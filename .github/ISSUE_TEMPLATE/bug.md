@@ -45,8 +45,12 @@ labels: bug
 ## Your Environment
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 - <!-- seda-rust Version -->
 =======
 >>>>>>> 2ce6431 (docs: add github issue templates)
+=======
+- <!-- seda-rust Version -->
+>>>>>>> fb0cc39 (fix: documentation links, bug versions, push.yml formatting)
 - <!-- Rust Version -->
 - <!-- Computer OS -->
