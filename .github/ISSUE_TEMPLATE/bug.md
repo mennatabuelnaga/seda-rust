@@ -44,6 +44,9 @@ labels: bug
 
 ## Your Environment
 
+<<<<<<< HEAD
 - <!-- seda-rust Version -->
+=======
+>>>>>>> 2ce6431 (docs: add github issue templates)
 - <!-- Rust Version -->
 - <!-- Computer OS -->
