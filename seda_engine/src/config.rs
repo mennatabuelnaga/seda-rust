@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {}
 
 impl Config {
-    /// For reading from byte code.
+    /// For reading from a toml file.
     pub fn from_read<R: std::io::Read>(buf: &mut R) -> Result<Self, Box<dyn Error>> {
         let mut content = String::new();
         buf.read_to_string(&mut content)?;
