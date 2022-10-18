@@ -1,7 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, log, near_bindgen, AccountId, BorshStorageKey};
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::U64;
+use near_sdk::{env, log, near_bindgen, AccountId, BorshStorageKey};
 
 /// LookupMap keys
 #[derive(BorshStorageKey, BorshSerialize)]
@@ -32,14 +32,14 @@ impl MainchainContract {
             nodes: LookupMap::new(MainchainStorageKeys::NumNodes),
         }
     }
-    
+
     #[payable]
     pub fn register_node(&mut self, ip_address: String, port: U64) {
         self.num_nodes += 1;
         let node_id = self.num_nodes;
         let account_id = env::signer_account_id();
-        
-        log!("{} registered node with id {}", account_id, node_id);
+
+        log!("{} registered node_id {}", account_id, node_id);
         let node = Node {
             account_id,
             ip_address,
@@ -52,9 +52,17 @@ impl MainchainContract {
         let account_id = env::signer_account_id();
         let mut node = self.nodes.get(&node_id.into()).expect("node not found");
 
-        assert_eq!(node.account_id, account_id, "only associated `account_id` can update node");
+        assert_eq!(
+            node.account_id, account_id,
+            "only associated `account_id` can update node"
+        );
 
-        log!("{} updated node with id {} ip address to {}", account_id, u64::from(node_id), new_ip_address);
+        log!(
+            "{} updated node with id {} ip address to {}",
+            account_id,
+            u64::from(node_id),
+            new_ip_address
+        );
         node.ip_address = new_ip_address;
         self.nodes.insert(&node_id.into(), &node);
     }
@@ -63,17 +71,36 @@ impl MainchainContract {
         let account_id = env::signer_account_id();
         let mut node = self.nodes.get(&node_id.into()).expect("node not found");
 
-        assert_eq!(node.account_id, account_id, "only associated `account_id` can update node");
+        assert_eq!(
+            node.account_id, account_id,
+            "only associated `account_id` can update node"
+        );
 
-        log!("{} updated node with id {} port to {}", account_id, u64::from(node_id), u64::from(new_port));
+        log!(
+            "{} updated node with id {} port to {}",
+            account_id,
+            u64::from(node_id),
+            u64::from(new_port)
+        );
         node.port = new_port.into();
         self.nodes.insert(&node_id.into(), &node);
     }
 
-    // pub fn remove_node(&mut self, node_id: U64) {}
+    pub fn remove_node(&mut self, node_id: U64) {
+        let account_id = env::signer_account_id();
+        let node = self.nodes.get(&node_id.into()).expect("node not found");
+
+        assert_eq!(
+            node.account_id, account_id,
+            "only associated `account_id` can remove node"
+        );
+
+        log!("{} removed node with id {}", account_id, u64::from(node_id));
+        self.nodes.remove(&node_id.into());
+    }
 
     pub fn get_node_account_id(&self, node_id: U64) -> Option<AccountId> {
-        log!("get_node_account_id for id {}", u64::from(node_id));
+        log!("get_node_account_id for node_id {}", u64::from(node_id));
         match self.nodes.get(&node_id.into()) {
             Some(node) => Some(node.account_id),
             None => None,
@@ -81,7 +108,7 @@ impl MainchainContract {
     }
 
     pub fn get_node_ip_address(&self, node_id: U64) -> Option<String> {
-        log!("get_node_ip_address for id {}", u64::from(node_id));
+        log!("get_node_ip_address for node_id {}", u64::from(node_id));
         match self.nodes.get(&node_id.into()) {
             Some(node) => Some(node.ip_address),
             None => None,
@@ -89,7 +116,7 @@ impl MainchainContract {
     }
 
     pub fn get_node_port(&self, node_id: U64) -> Option<U64> {
-        log!("get_node_port for id {}", u64::from(node_id));
+        log!("get_node_port for node_id {}", u64::from(node_id));
         match self.nodes.get(&node_id.into()) {
             Some(node) => Some(U64(node.port)),
             None => None,
@@ -112,49 +139,88 @@ mod tests {
     }
 
     #[test]
-    fn test_register_get_node() {
+    fn test_register_and_get_node() {
+        // register node
         let context = get_context(false);
         testing_env!(context);
         let mut contract = MainchainContract::new();
         contract.register_node("0.0.0.0".to_string(), U64(8080));
-        assert_eq!(get_logs(), vec!["bob_near registered node with id 1"]);
+        assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
+        // check account_id, ip_address, and port
         let context = get_context(true);
         testing_env!(context);
-        assert_eq!("bob_near".to_string(), contract.get_node_account_id(U64(1)).unwrap().to_string());
+        assert_eq!(
+            "bob_near".to_string(),
+            contract.get_node_account_id(U64(1)).unwrap().to_string()
+        );
         assert_eq!("0.0.0.0".to_string(), contract.get_node_ip_address(U64(1)).unwrap());
         assert_eq!(U64(8080), contract.get_node_port(U64(1)).unwrap());
-
-        assert_eq!(get_logs(), vec![
-            "get_node_account_id for id 1",
-            "get_node_ip_address for id 1",
-            "get_node_port for id 1"
-        ]);
+        assert_eq!(
+            get_logs(),
+            vec![
+                "get_node_account_id for node_id 1",
+                "get_node_ip_address for node_id 1",
+                "get_node_port for node_id 1"
+            ]
+        );
     }
 
     #[test]
-    fn test_update_node_ip_address_port() {
+    fn test_remove_node() {
+        // register node
         let context = get_context(false);
         testing_env!(context);
         let mut contract = MainchainContract::new();
         contract.register_node("0.0.0.0".to_string(), U64(8080));
-        assert_eq!(get_logs(), vec!["bob_near registered node with id 1"]);
+        assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
+        // check the ip address after registering
+        let context = get_context(true);
+        testing_env!(context);
+        assert_eq!(Some("0.0.0.0".to_string()), contract.get_node_ip_address(U64(1)));
+
+        // remove the node
+        let context = get_context(false);
+        testing_env!(context);
+        contract.remove_node(U64(1));
+
+        // check the ip address after removing
+        let context = get_context(true);
+        testing_env!(context);
+        assert_eq!(None, contract.get_node_ip_address(U64(1)));
+    }
+
+    #[test]
+    fn test_update_node_ip_address_and_port() {
+        // register node
+        let context = get_context(false);
+        testing_env!(context);
+        let mut contract = MainchainContract::new();
+        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
+
+        // update the ip address and port
         contract.update_node_ip_address(U64(1), "1.1.1.1".to_string());
         contract.update_node_port(U64(1), U64(8081));
 
+        // check the ip address and port after updating
         let context = get_context(true);
         testing_env!(context);
         assert_eq!("1.1.1.1".to_string(), contract.get_node_ip_address(U64(1)).unwrap());
         assert_eq!(U64(8081), contract.get_node_port(U64(1)).unwrap());
+        assert_eq!(
+            get_logs(),
+            vec!["get_node_ip_address for node_id 1", "get_node_port for node_id 1"]
+        );
     }
 
-    // #[test]
-    // fn get_nonexistent_message() {
-    //     let context = get_context(true);
-    //     testing_env!(context);
-    //     let contract = MainchainContract::default();
-    //     assert_eq!(None, contract.get_status("francis.near".parse().unwrap()));
-    //     assert_eq!(get_logs(), vec!["get_status for account_id francis.near"])
-    // }
+    #[test]
+    fn get_nonexistent_message() {
+        let context = get_context(true);
+        testing_env!(context);
+        let contract = MainchainContract::new();
+        assert_eq!(None, contract.get_node_ip_address(U64(1)));
+        assert_eq!(get_logs(), vec!["get_node_ip_address for node_id 1"])
+    }
 }
