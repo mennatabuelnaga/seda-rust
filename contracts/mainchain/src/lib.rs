@@ -131,9 +131,9 @@ mod tests {
     use near_sdk::test_utils::{get_logs, VMContextBuilder};
     use near_sdk::{testing_env, VMContext};
 
-    fn get_context(is_view: bool) -> VMContext {
+    fn get_context(is_view: bool, signer_account_id: String) -> VMContext {
         VMContextBuilder::new()
-            .signer_account_id("bob_near".parse().unwrap())
+            .signer_account_id(signer_account_id.parse().unwrap())
             .is_view(is_view)
             .build()
     }
@@ -141,14 +141,14 @@ mod tests {
     #[test]
     fn test_register_and_get_node() {
         // register node
-        let context = get_context(false);
+        let context = get_context(false, "bob_near".to_string());
         testing_env!(context);
         let mut contract = MainchainContract::new();
         contract.register_node("0.0.0.0".to_string(), U64(8080));
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // check account_id, ip_address, and port
-        let context = get_context(true);
+        let context = get_context(true, "bob_near".to_string());
         testing_env!(context);
         assert_eq!(
             "bob_near".to_string(),
@@ -169,32 +169,53 @@ mod tests {
     #[test]
     fn test_remove_node() {
         // register node
-        let context = get_context(false);
+        let context = get_context(false, "bob_near".to_string());
         testing_env!(context);
         let mut contract = MainchainContract::new();
         contract.register_node("0.0.0.0".to_string(), U64(8080));
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // check the ip address after registering
-        let context = get_context(true);
+        let context = get_context(true, "bob_near".to_string());
         testing_env!(context);
         assert_eq!(Some("0.0.0.0".to_string()), contract.get_node_ip_address(U64(1)));
 
         // remove the node
-        let context = get_context(false);
+        let context = get_context(false, "bob_near".to_string());
         testing_env!(context);
         contract.remove_node(U64(1));
 
         // check the ip address after removing
-        let context = get_context(true);
+        let context = get_context(true, "bob_near".to_string());
         testing_env!(context);
         assert_eq!(None, contract.get_node_ip_address(U64(1)));
     }
 
     #[test]
+    #[should_panic(expected = "only associated `account_id` can remove node")]
+    fn test_remove_node_wrong_account_id() {
+        // register node
+        let context = get_context(false, "bob_near".to_string());
+        testing_env!(context);
+        let mut contract = MainchainContract::new();
+        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
+
+        // check the ip address after registering
+        let context = get_context(true, "bob_near".to_string());
+        testing_env!(context);
+        assert_eq!(Some("0.0.0.0".to_string()), contract.get_node_ip_address(U64(1)));
+
+        // try removing the node
+        let context = get_context(false, "alice_near".to_string());
+        testing_env!(context);
+        contract.remove_node(U64(1));
+    }
+
+    #[test]
     fn test_update_node_ip_address_and_port() {
         // register node
-        let context = get_context(false);
+        let context = get_context(false, "bob_near".to_string());
         testing_env!(context);
         let mut contract = MainchainContract::new();
         contract.register_node("0.0.0.0".to_string(), U64(8080));
@@ -205,7 +226,7 @@ mod tests {
         contract.update_node_port(U64(1), U64(8081));
 
         // check the ip address and port after updating
-        let context = get_context(true);
+        let context = get_context(true, "bob_near".to_string());
         testing_env!(context);
         assert_eq!("1.1.1.1".to_string(), contract.get_node_ip_address(U64(1)).unwrap());
         assert_eq!(U64(8081), contract.get_node_port(U64(1)).unwrap());
@@ -217,7 +238,7 @@ mod tests {
 
     #[test]
     fn get_nonexistent_message() {
-        let context = get_context(true);
+        let context = get_context(true, "bob_near".to_string());
         testing_env!(context);
         let contract = MainchainContract::new();
         assert_eq!(None, contract.get_node_ip_address(U64(1)));
