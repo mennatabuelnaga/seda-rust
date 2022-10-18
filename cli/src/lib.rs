@@ -15,7 +15,3 @@ enum Commands {
     /// Sends a JsonRPC message to the node's server.
     Register,
 }
-
-fn main() {
-    let _options = Options::parse();
-}

@@ -1,7 +1,5 @@
 [workspace]
-members = [
-	"seda"
-]
+members = ["cli"]
 
 [profile.dev]
 codegen-units = 512
