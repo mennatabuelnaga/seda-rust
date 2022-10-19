@@ -11,7 +11,8 @@ enum MainchainStorageKeys {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Node {
-    pub account_id: AccountId,
+    pub owner: AccountId,
+    pub pending_owner: Option<AccountId>,
     pub ip_address: String,
     pub port: u64,
 }
@@ -42,9 +43,11 @@ impl MainchainContract {
         let node_id = self.num_nodes;
         let account_id = env::signer_account_id();
 
+        // create a new node
         log!("{} registered node_id {}", account_id, node_id);
         let node = Node {
-            account_id,
+            owner: account_id,
+            pending_owner: None,
             ip_address,
             port: port.into(),
         };
@@ -59,14 +62,45 @@ impl MainchainContract {
         );
     }
 
-    pub fn update_node_ip_address(&mut self, node_id: U64, new_ip_address: String) {
+    /// Update the pending owner of a node
+    pub fn set_node_pending_owner(&mut self, node_id: U64, new_owner: String) {
+        let account_id = env::signer_account_id();
+        let mut node = self.nodes.get(&node_id.into()).expect("Node does not exist");
+
+        assert_eq!(node.owner, account_id, "only associated `owner` can update node");
+
+        log!(
+            "{} updated node_id {} pending_owner to {}",
+            account_id,
+            u64::from(node_id),
+            new_owner
+        );
+        node.pending_owner = Some(new_owner.parse().unwrap());
+        self.nodes.insert(&u64::from(node_id), &node);
+    }
+
+    /// Finalize the pending owner change
+    pub fn become_node_owner(&mut self, node_id: U64) {
+        let account_id = env::signer_account_id();
+        let mut node = self.nodes.get(&node_id.into()).expect("Node does not exist");
+
+        assert_eq!(
+            node.pending_owner,
+            Some(account_id.clone()),
+            "only associated `pending_owner` can update node"
+        );
+
+        log!("{} became owner of node_id {}", account_id, u64::from(node_id),);
+        node.owner = account_id;
+        node.pending_owner = None;
+        self.nodes.insert(&u64::from(node_id), &node);
+    }
+
+    pub fn set_node_ip_address(&mut self, node_id: U64, new_ip_address: String) {
         let account_id = env::signer_account_id();
         let mut node = self.nodes.get(&node_id.into()).expect("node not found");
 
-        assert_eq!(
-            node.account_id, account_id,
-            "only associated `account_id` can update node"
-        );
+        assert_eq!(node.owner, account_id, "only associated `owner` can update node");
 
         log!(
             "{} updated node with id {} ip address to {}",
@@ -78,14 +112,11 @@ impl MainchainContract {
         self.nodes.insert(&node_id.into(), &node);
     }
 
-    pub fn update_node_port(&mut self, node_id: U64, new_port: U64) {
+    pub fn set_node_port(&mut self, node_id: U64, new_port: U64) {
         let account_id = env::signer_account_id();
         let mut node = self.nodes.get(&node_id.into()).expect("node not found");
 
-        assert_eq!(
-            node.account_id, account_id,
-            "only associated `account_id` can update node"
-        );
+        assert_eq!(node.owner, account_id, "only associated `owner` can update node");
 
         log!(
             "{} updated node with id {} port to {}",
@@ -101,19 +132,24 @@ impl MainchainContract {
         let account_id = env::signer_account_id();
         let node = self.nodes.get(&node_id.into()).expect("node not found");
 
-        assert_eq!(
-            node.account_id, account_id,
-            "only associated `account_id` can remove node"
-        );
+        assert_eq!(node.owner, account_id, "only associated `owner` can remove node");
 
         log!("{} removed node with id {}", account_id, u64::from(node_id));
         self.nodes.remove(&node_id.into());
     }
 
-    pub fn get_node_account_id(&self, node_id: U64) -> Option<AccountId> {
-        log!("get_node_account_id for node_id {}", u64::from(node_id));
+    pub fn get_node_owner(&self, node_id: U64) -> Option<AccountId> {
+        log!("get_node_owner for node_id {}", u64::from(node_id));
         match self.nodes.get(&node_id.into()) {
-            Some(node) => Some(node.account_id),
+            Some(node) => Some(node.owner),
+            None => None,
+        }
+    }
+
+    pub fn get_node_pending_owner(&self, node_id: U64) -> Option<AccountId> {
+        log!("get_node_pending_owner for node_id {}", u64::from(node_id));
+        match self.nodes.get(&node_id.into()) {
+            Some(node) => node.pending_owner,
             None => None,
         }
     }
@@ -146,7 +182,7 @@ mod tests {
         VMContextBuilder::new()
             .signer_account_id(signer_account_id.parse().unwrap())
             .is_view(is_view)
-            .attached_deposit(800_000_000_000_000_000_000) // required for register_node()
+            .attached_deposit(810_000_000_000_000_000_000) // required for register_node()
             .build()
     }
 
@@ -159,19 +195,19 @@ mod tests {
         contract.register_node("0.0.0.0".to_string(), U64(8080));
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
-        // check account_id, ip_address, and port
+        // check owner, ip_address, and port
         let context = get_context(true, "bob_near".to_string());
         testing_env!(context);
         assert_eq!(
             "bob_near".to_string(),
-            contract.get_node_account_id(U64(1)).unwrap().to_string()
+            contract.get_node_owner(U64(1)).unwrap().to_string()
         );
         assert_eq!("0.0.0.0".to_string(), contract.get_node_ip_address(U64(1)).unwrap());
         assert_eq!(U64(8080), contract.get_node_port(U64(1)).unwrap());
         assert_eq!(
             get_logs(),
             vec![
-                "get_node_account_id for node_id 1",
+                "get_node_owner for node_id 1",
                 "get_node_ip_address for node_id 1",
                 "get_node_port for node_id 1"
             ]
@@ -204,8 +240,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "only associated `account_id` can remove node")]
-    fn test_remove_node_wrong_account_id() {
+    #[should_panic(expected = "only associated `owner` can remove node")]
+    fn test_remove_node_wrong_owner() {
         // register node
         let context = get_context(false, "bob_near".to_string());
         testing_env!(context);
@@ -225,7 +261,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_node_ip_address_and_port() {
+    fn test_set_node_ip_address_and_port() {
         // register node
         let context = get_context(false, "bob_near".to_string());
         testing_env!(context);
@@ -234,8 +270,8 @@ mod tests {
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // update the ip address and port
-        contract.update_node_ip_address(U64(1), "1.1.1.1".to_string());
-        contract.update_node_port(U64(1), U64(8081));
+        contract.set_node_ip_address(U64(1), "1.1.1.1".to_string());
+        contract.set_node_port(U64(1), U64(8081));
 
         // check the ip address and port after updating
         let context = get_context(true, "bob_near".to_string());
@@ -246,6 +282,67 @@ mod tests {
             get_logs(),
             vec!["get_node_ip_address for node_id 1", "get_node_port for node_id 1"]
         );
+    }
+
+    #[test]
+    fn test_new_owner() {
+        // register node
+        let context = get_context(false, "bob_near".to_string());
+        testing_env!(context);
+        let mut contract = MainchainContract::new();
+        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
+
+        // set pending owner
+        contract.set_node_pending_owner(U64(1), "alice_near".to_string());
+
+        // check pending owner
+        let context = get_context(true, "bob_near".to_string());
+        testing_env!(context);
+        assert_eq!(
+            "alice_near".to_string(),
+            contract.get_node_pending_owner(U64(1)).unwrap().to_string()
+        );
+
+        // accept ownership
+        let context = get_context(false, "alice_near".to_string());
+        testing_env!(context);
+        contract.become_node_owner(U64(1));
+
+        // check owner
+        let context = get_context(true, "alice_near".to_string());
+        testing_env!(context);
+        assert_eq!(
+            "alice_near".to_string(),
+            contract.get_node_owner(U64(1)).unwrap().to_string()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "only associated `pending_owner` can update node")]
+    fn test_wrong_owner() {
+        // register node
+        let context = get_context(false, "bob_near".to_string());
+        testing_env!(context);
+        let mut contract = MainchainContract::new();
+        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
+
+        // set pending owner
+        contract.set_node_pending_owner(U64(1), "alice_near".to_string());
+
+        // check pending owner
+        let context = get_context(true, "bob_near".to_string());
+        testing_env!(context);
+        assert_eq!(
+            "alice_near".to_string(),
+            contract.get_node_pending_owner(U64(1)).unwrap().to_string()
+        );
+
+        // accept ownership from wrong owner
+        let context = get_context(false, "franklin_near".to_string());
+        testing_env!(context);
+        contract.become_node_owner(U64(1));
     }
 
     #[test]
