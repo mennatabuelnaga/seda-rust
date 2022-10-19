@@ -1,5 +1,5 @@
 [workspace]
-members = ["cli", "seda_engine"]
+members = ["cli", "runtime"]
 
 [profile.dev]
 codegen-units = 512
