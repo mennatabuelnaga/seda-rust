@@ -8,7 +8,7 @@ use near_sdk::{env, log, near_bindgen, AccountId, BorshStorageKey};
 enum MainchainStorageKeys {
     NumNodes,
 }
-
+/// Node information
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Node {
     pub owner: AccountId,
@@ -17,6 +17,7 @@ pub struct Node {
     pub port: u64,
 }
 
+/// Contract global state
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct MainchainContract {
@@ -24,6 +25,21 @@ pub struct MainchainContract {
     nodes: LookupMap<u64, Node>,
 }
 
+/// Contract private methods
+impl MainchainContract {
+    pub fn get_expect_node(&self, node_id: u64) -> Node {
+        self.nodes.get(&node_id).expect("Node does not exist")
+    }
+    pub fn assert_permission(&self, account_id: &AccountId, correct_account_id: &AccountId) {
+        assert_eq!(
+            account_id, correct_account_id,
+            "Only {} can call this method",
+            correct_account_id
+        );
+    }
+}
+
+/// Contract public methods
 #[near_bindgen]
 impl MainchainContract {
     #[init]
@@ -34,6 +50,7 @@ impl MainchainContract {
         }
     }
 
+    /// Registers a new node while charging for storage usage
     #[payable]
     pub fn register_node(&mut self, ip_address: String, port: U64) {
         // keep track of storage usage
@@ -65,9 +82,9 @@ impl MainchainContract {
     /// Update the pending owner of a node
     pub fn set_node_pending_owner(&mut self, node_id: U64, new_owner: String) {
         let account_id = env::signer_account_id();
-        let mut node = self.nodes.get(&node_id.into()).expect("Node does not exist");
+        let mut node = self.get_expect_node(node_id.into());
 
-        assert_eq!(node.owner, account_id, "only associated `owner` can update node");
+        self.assert_permission(&account_id, &node.owner);
 
         log!(
             "{} updated node_id {} pending_owner to {}",
@@ -82,13 +99,9 @@ impl MainchainContract {
     /// Finalize the pending owner change
     pub fn become_node_owner(&mut self, node_id: U64) {
         let account_id = env::signer_account_id();
-        let mut node = self.nodes.get(&node_id.into()).expect("Node does not exist");
+        let mut node = self.get_expect_node(node_id.into());
 
-        assert_eq!(
-            node.pending_owner,
-            Some(account_id.clone()),
-            "only associated `pending_owner` can update node"
-        );
+        self.assert_permission(&account_id.clone(), &node.pending_owner.unwrap());
 
         log!("{} became owner of node_id {}", account_id, u64::from(node_id),);
         node.owner = account_id;
@@ -98,9 +111,9 @@ impl MainchainContract {
 
     pub fn set_node_ip_address(&mut self, node_id: U64, new_ip_address: String) {
         let account_id = env::signer_account_id();
-        let mut node = self.nodes.get(&node_id.into()).expect("node not found");
+        let mut node = self.get_expect_node(node_id.into());
 
-        assert_eq!(node.owner, account_id, "only associated `owner` can update node");
+        self.assert_permission(&account_id, &node.owner);
 
         log!(
             "{} updated node with id {} ip address to {}",
@@ -114,9 +127,9 @@ impl MainchainContract {
 
     pub fn set_node_port(&mut self, node_id: U64, new_port: U64) {
         let account_id = env::signer_account_id();
-        let mut node = self.nodes.get(&node_id.into()).expect("node not found");
+        let mut node = self.get_expect_node(node_id.into());
 
-        assert_eq!(node.owner, account_id, "only associated `owner` can update node");
+        self.assert_permission(&account_id, &node.owner);
 
         log!(
             "{} updated node with id {} port to {}",
@@ -130,12 +143,14 @@ impl MainchainContract {
 
     pub fn remove_node(&mut self, node_id: U64) {
         let account_id = env::signer_account_id();
-        let node = self.nodes.get(&node_id.into()).expect("node not found");
+        let node = self.get_expect_node(node_id.into());
 
-        assert_eq!(node.owner, account_id, "only associated `owner` can remove node");
+        self.assert_permission(&account_id, &node.owner);
 
         log!("{} removed node with id {}", account_id, u64::from(node_id));
         self.nodes.remove(&node_id.into());
+
+        // TODO: refund storage deposit
     }
 
     pub fn get_node_owner(&self, node_id: U64) -> Option<AccountId> {
@@ -240,7 +255,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "only associated `owner` can remove node")]
+    #[should_panic(expected = "Only bob_near can call this method")]
     fn test_remove_node_wrong_owner() {
         // register node
         let context = get_context(false, "bob_near".to_string());
@@ -319,7 +334,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "only associated `pending_owner` can update node")]
+    #[should_panic(expected = "Only alice_near can call this method")]
     fn test_wrong_owner() {
         // register node
         let context = get_context(false, "bob_near".to_string());
