@@ -35,6 +35,9 @@ impl MainchainContract {
 
     #[payable]
     pub fn register_node(&mut self, ip_address: String, port: U64) {
+        // keep track of storage usage
+        let initial_storage_usage = env::storage_usage();
+
         self.num_nodes += 1;
         let node_id = self.num_nodes;
         let account_id = env::signer_account_id();
@@ -46,6 +49,14 @@ impl MainchainContract {
             port: port.into(),
         };
         self.nodes.insert(&node_id, &node);
+
+        // check for storage deposit
+        let storage_cost = env::storage_byte_cost() * u128::from(env::storage_usage() - initial_storage_usage);
+        assert!(
+            storage_cost <= env::attached_deposit(),
+            "Insufficient storage, need {}",
+            storage_cost
+        );
     }
 
     pub fn update_node_ip_address(&mut self, node_id: U64, new_ip_address: String) {
@@ -135,6 +146,7 @@ mod tests {
         VMContextBuilder::new()
             .signer_account_id(signer_account_id.parse().unwrap())
             .is_view(is_view)
+            .attached_deposit(800_000_000_000_000_000_000) // required for register_node()
             .build()
     }
 
