@@ -5,3 +5,9 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.0.15", default-features = true, features = ["derive"] }
+
+seda-node = { path = "../node" }
+
+[[bin]]
+name = "seda"
+path = "src/main.rs"

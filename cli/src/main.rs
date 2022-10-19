@@ -14,4 +14,19 @@ struct Options {
 enum Commands {
     /// Sends a JsonRPC message to the node's server.
     Register,
+    /// Runs the SEDA node
+    Run,
+}
+
+fn main() {
+    let options = Options::parse();
+
+    if let Some(command) = options.command {
+        match command {
+            Commands::Register => todo!(),
+            Commands::Run => seda_node::run(),
+        }
+    } else {
+        todo!()
+    }
 }
