@@ -1,5 +1,5 @@
 [workspace]
-members = ["cli", "runtime"]
+members = ["cli", "contracts", "node", "runtime"]
 
 [profile.dev]
 codegen-units = 512
