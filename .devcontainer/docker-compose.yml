@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args: 
-        VARIANT: ${DEBIAN_VARIANT:-buster}
+        VARIANT: ${DEBIAN_VARIANT:-bullseye}
 
     volumes:
       - ..:/workspace:cached
@@ -27,10 +27,10 @@ services:
     # user: vscode
 
     # Uncomment the next four lines if you will use a ptrace-based debugger like C++, Go, and Rust.
-    # cap_add:
-    #   - SYS_PTRACE
-    # security_opt:
-    #   - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
 
   # Uncomment to include other services not opened by VS Code as well
   # another-service:
