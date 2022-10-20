@@ -44,6 +44,8 @@ jobs:
           override: true
 
       - name: Clippy Check
+        env:
+          RUSTFLAGS: '-D warnings'
         uses: actions-rs/cargo@v1
         with:
           command: clippy
