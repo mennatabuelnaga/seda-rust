@@ -1,18 +1,11 @@
 {
-	"name": "Rust",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			// Use the VARIANT arg to pick a Debian OS version: buster, bullseye
-			// Use bullseye when running locally on arm64/Apple Silicon.
-			"VARIANT": "bullseye"
-		}
-	},
-	"runArgs": [
-		"--cap-add=SYS_PTRACE",
-		"--security-opt",
-		"seccomp=unconfined"
-	],
+	"name": "seda-rust",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "vscode",
+	"workspaceFolder": "/workspace",
+	// "runServices": ["vscode"],
+	// Comment the next line if you want to keep your containers running after VS Code shuts down.
+	"shutdownAction": "stopCompose",
 	// Setup default git GPG path
 	"postStartCommand": "git config --global gpg.program \"$(which gpg)\" && git config --global --add safe.directory $PWD",
 	// Set *default* container specific settings.json values on container create.
