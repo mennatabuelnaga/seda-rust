@@ -47,6 +47,12 @@ impl MainchainContract {
     }
 }
 
+impl Default for MainchainContract {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Contract public methods
 #[near_bindgen]
 impl MainchainContract {
@@ -127,7 +133,7 @@ impl MainchainContract {
         let account_id = env::signer_account_id();
         let mut node = self.get_expect_node(node_id.into());
 
-        self.assert_node_pending_owner(&account_id.clone(), &node.pending_owner);
+        self.assert_node_pending_owner(&account_id, &node.pending_owner);
 
         log!("{} became owner of node_id {}", account_id, u64::from(node_id),);
         node.owner = account_id;
