@@ -17,10 +17,9 @@ enum MainchainStorageKeys {
 /// Node information
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Node {
-    pub owner:         AccountId,
-    pub pending_owner: Option<AccountId>,
-    pub ip_address:    String,
-    pub port:          u64,
+    pub owner:          AccountId,
+    pub pending_owner:  Option<AccountId>,
+    pub socket_address: String, // ip address and port
 }
 
 /// Contract global state
@@ -66,7 +65,7 @@ impl MainchainContract {
 
     /// Registers a new node while charging for storage usage
     #[payable]
-    pub fn register_node(&mut self, ip_address: String, port: U64) {
+    pub fn register_node(&mut self, socket_address: String) {
         // keep track of storage usage
         let initial_storage_usage = env::storage_usage();
 
@@ -79,8 +78,7 @@ impl MainchainContract {
         let node = Node {
             owner: account_id,
             pending_owner: None,
-            ip_address,
-            port: port.into(),
+            socket_address,
         };
         self.nodes.insert(&node_id, &node);
 
@@ -141,35 +139,19 @@ impl MainchainContract {
         self.nodes.insert(&u64::from(node_id), &node);
     }
 
-    pub fn set_node_ip_address(&mut self, node_id: U64, new_ip_address: String) {
+    pub fn set_node_socket_address(&mut self, node_id: U64, new_socket_address: String) {
         let account_id = env::signer_account_id();
         let mut node = self.get_expect_node(node_id.into());
 
         self.assert_node_owner(&account_id, &node.owner);
 
         log!(
-            "{} updated node with id {} ip address to {}",
+            "{} updated node_id {} socket address to {}",
             account_id,
             u64::from(node_id),
-            new_ip_address
+            new_socket_address
         );
-        node.ip_address = new_ip_address;
-        self.nodes.insert(&node_id.into(), &node);
-    }
-
-    pub fn set_node_port(&mut self, node_id: U64, new_port: U64) {
-        let account_id = env::signer_account_id();
-        let mut node = self.get_expect_node(node_id.into());
-
-        self.assert_node_owner(&account_id, &node.owner);
-
-        log!(
-            "{} updated node with id {} port to {}",
-            account_id,
-            u64::from(node_id),
-            u64::from(new_port)
-        );
-        node.port = new_port.into();
+        node.socket_address = new_socket_address;
         self.nodes.insert(&node_id.into(), &node);
     }
 
@@ -189,18 +171,10 @@ impl MainchainContract {
         }
     }
 
-    pub fn get_node_ip_address(&self, node_id: U64) -> Option<String> {
-        log!("get_node_ip_address for node_id {}", u64::from(node_id));
+    pub fn get_node_socket_address(&self, node_id: U64) -> Option<String> {
+        log!("get_node_socket_address for node_id {}", u64::from(node_id));
         match self.nodes.get(&node_id.into()) {
-            Some(node) => Some(node.ip_address),
-            None => None,
-        }
-    }
-
-    pub fn get_node_port(&self, node_id: U64) -> Option<U64> {
-        log!("get_node_port for node_id {}", u64::from(node_id));
-        match self.nodes.get(&node_id.into()) {
-            Some(node) => Some(U64(node.port)),
+            Some(node) => Some(node.socket_address),
             None => None,
         }
     }

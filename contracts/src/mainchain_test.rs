@@ -23,7 +23,7 @@ mod tests {
         VMContextBuilder::new()
             .signer_account_id(signer_account_id.parse().unwrap())
             .is_view(false)
-            .attached_deposit(810_000_000_000_000_000_000) // required for register_node()
+            .attached_deposit(780_000_000_000_000_000_000) // required for register_node()
             .build()
     }
 
@@ -33,35 +33,33 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
-        // check owner, ip_address, and port
+        // check owner and socket address
         testing_env!(get_context_view());
         assert_eq!(
             "bob_near".to_string(),
             contract.get_node_owner(U64(1)).unwrap().to_string()
         );
-        assert_eq!("0.0.0.0".to_string(), contract.get_node_ip_address(U64(1)).unwrap());
-        assert_eq!(U64(8080), contract.get_node_port(U64(1)).unwrap());
+        assert_eq!(
+            "0.0.0.0:8080".to_string(),
+            contract.get_node_socket_address(U64(1)).unwrap()
+        );
         assert_eq!(
             get_logs(),
-            vec![
-                "get_node_owner for node_id 1",
-                "get_node_ip_address for node_id 1",
-                "get_node_port for node_id 1"
-            ]
+            vec!["get_node_owner for node_id 1", "get_node_socket_address for node_id 1",]
         );
     }
 
     #[test]
-    #[should_panic(expected = "Insufficient storage, need 810000000000000000000")]
+    #[should_panic(expected = "Insufficient storage, need 780000000000000000000")]
     fn register_not_enough_storage() {
         let mut contract = MainchainContract::new();
 
         // register node
         testing_env!(get_context("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
     }
 
     #[test]
@@ -70,11 +68,14 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
 
-        // check the ip address after registering
+        // check the socket address after registering
         testing_env!(get_context_view());
-        assert_eq!(Some("0.0.0.0".to_string()), contract.get_node_ip_address(U64(1)));
+        assert_eq!(
+            Some("0.0.0.0:8080".to_string()),
+            contract.get_node_socket_address(U64(1))
+        );
 
         // remove the node
         testing_env!(get_context("bob_near".to_string()));
@@ -83,13 +84,13 @@ mod tests {
             get_logs(),
             vec![
                 "bob_near removed node_id 1",
-                "Refunding 810000000000000000000 for storage deposit to bob_near"
+                "Refunding 780000000000000000000 for storage deposit to bob_near"
             ]
         );
 
-        // check the ip address after removing
+        // check the socket address after removing
         testing_env!(get_context_view());
-        assert_eq!(None, contract.get_node_ip_address(U64(1)));
+        assert_eq!(None, contract.get_node_socket_address(U64(1)));
     }
 
     #[test]
@@ -99,12 +100,15 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
-        // check the ip address after registering
+        // check the socket address after registering
         testing_env!(get_context_view());
-        assert_eq!(Some("0.0.0.0".to_string()), contract.get_node_ip_address(U64(1)));
+        assert_eq!(
+            Some("0.0.0.0:8080".to_string()),
+            contract.get_node_socket_address(U64(1))
+        );
 
         // try removing the node
         testing_env!(get_context("alice_near".to_string()));
@@ -112,26 +116,24 @@ mod tests {
     }
 
     #[test]
-    fn set_node_ip_address_and_port() {
+    fn set_node_socket_address() {
         let mut contract = MainchainContract::new();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
-        // update the ip address and port
-        contract.set_node_ip_address(U64(1), "1.1.1.1".to_string());
-        contract.set_node_port(U64(1), U64(8081));
+        // update the socket address
+        contract.set_node_socket_address(U64(1), "1.1.1.1:8081".to_string());
 
-        // check the ip address and port after updating
+        // check the socket address after updating
         testing_env!(get_context_view());
-        assert_eq!("1.1.1.1".to_string(), contract.get_node_ip_address(U64(1)).unwrap());
-        assert_eq!(U64(8081), contract.get_node_port(U64(1)).unwrap());
         assert_eq!(
-            get_logs(),
-            vec!["get_node_ip_address for node_id 1", "get_node_port for node_id 1"]
+            "1.1.1.1:8081".to_string(),
+            contract.get_node_socket_address(U64(1)).unwrap()
         );
+        assert_eq!(get_logs(), vec!["get_node_socket_address for node_id 1"]);
     }
 
     #[test]
@@ -140,7 +142,7 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // set pending owner
@@ -172,7 +174,7 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // accept ownership from wrong owner
@@ -187,7 +189,7 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0".to_string(), U64(8080));
+        contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // set pending owner
@@ -209,7 +211,7 @@ mod tests {
     fn get_nonexistent_message() {
         let contract = MainchainContract::new();
         testing_env!(get_context_view());
-        assert_eq!(None, contract.get_node_ip_address(U64(1)));
-        assert_eq!(get_logs(), vec!["get_node_ip_address for node_id 1"])
+        assert_eq!(None, contract.get_node_socket_address(U64(1)));
+        assert_eq!(get_logs(), vec!["get_node_socket_address for node_id 1"])
     }
 }
