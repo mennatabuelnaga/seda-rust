@@ -54,7 +54,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [maubuntu-latest]
+        os: [ubuntu-latest]
         include:
           - os: ubuntu-latest
     steps:
