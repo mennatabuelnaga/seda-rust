@@ -14,6 +14,7 @@ RUN  apt-get -y install --no-install-recommends vim
 # WASM dependencies + Rustup
 RUN apt-get -y install --no-install-recommends binaryen
 RUN rustup target add wasm32-wasi
+RUN rustup target add wasm32-unknown-unknown
 
 # Rustfmt with nightly toolchain
 RUN rustup install nightly
