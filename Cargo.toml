@@ -1,5 +1,11 @@
 [workspace]
-members = ["cli", "contracts", "node", "runtime", "runtime/test_res/promise_wasm_bin"]
+members = [
+	"cli",
+	"contracts",
+	"node",
+	"runtime/core",
+	"runtime/core/test_res/promise_wasm_bin",
+]
 
 [profile.dev]
 codegen-units = 512
