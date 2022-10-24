@@ -1,5 +1,6 @@
 mod app;
 mod config;
+pub mod server;
 
 use actix::prelude::*;
 use app::App;
