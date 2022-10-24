@@ -5,19 +5,24 @@ fn test_in_memory_storage() {
     let mut memory_adapter = InMemory::default();
 
     let input_1 = 245u32;
-    memory_adapter.write("u32", input_1).expect("No error");
+    memory_adapter.put("u32", input_1).expect("No error");
 
     let input_2 = "hello".to_string();
-    memory_adapter.write("string", input_2.clone()).expect("No error");
+    memory_adapter.put("string", input_2.clone()).expect("No error");
 
-    assert_eq!(memory_adapter.read("u32").unwrap(), Some(input_1));
-    assert_eq!(memory_adapter.read("string").unwrap(), Some(input_2));
+    assert_eq!(memory_adapter.get("u32").unwrap(), Some(input_1));
+    assert_eq!(memory_adapter.get("string").unwrap(), Some(input_2));
 }
 
 #[test]
-fn test_in_memory_storage_duplicate_key() {
+fn test_in_memory_storage_overwite_key() {
     let mut memory_adapter = InMemory::default();
 
-    memory_adapter.write("u32", 245u32).expect("No error");
-    assert!(memory_adapter.write("u32", 2u32).is_err());
+    let og = 245u32;
+    memory_adapter.put("tbr", og).expect("No error");
+    assert_eq!(memory_adapter.get("tbr").unwrap(), Some(og));
+
+    let replacement = "replaced".to_string();
+    memory_adapter.put("tbr", replacement.clone()).expect("No error");
+    assert_eq!(memory_adapter.get("tbr").unwrap(), Some(replacement));
 }
