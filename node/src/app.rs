@@ -1,5 +1,9 @@
 use actix::prelude::*;
 
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct Shutdown;
+
 // Node Actor definition
 pub struct App;
 
@@ -22,5 +26,16 @@ impl Actor for App {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         println!("Node stopped");
+    }
+}
+
+// Simple message handler for Ping message
+impl Handler<Shutdown> for App {
+    type Result = ();
+
+    fn handle(&mut self, _msg: Shutdown, _ctx: &mut Context<Self>) {
+        // Node stopping logic (for gracefull shutdown)
+
+        System::current().stop();
     }
 }
