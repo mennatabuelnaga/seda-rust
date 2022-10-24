@@ -1,5 +1,7 @@
 mod app;
 mod config;
+mod near_adapter;
+mod rpc;
 pub mod server;
 
 use actix::prelude::*;

@@ -1,14 +1,12 @@
 use near_jsonrpc_client::{methods, JsonRpcClient};
-use near_jsonrpc_primitives::types::query::QueryResponseKind;
-use near_jsonrpc_primitives::types::transactions::TransactionInfo;
-use near_primitives::transaction::SignedTransaction;
-use near_primitives::types::BlockReference;
-use tokio::time;
-
-use near_primitives::types::{Finality, FunctionArgs};
-use near_primitives::views::QueryRequest;
-
+use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
+use near_primitives::{
+    transaction::SignedTransaction,
+    types::{BlockReference, Finality, FunctionArgs},
+    views::QueryRequest,
+};
 use serde_json::from_slice;
+use tokio::time;
 
 pub async fn call_change_method(
     signed_tx: SignedTransaction,
@@ -27,7 +25,7 @@ pub async fn call_change_method(
         let response = client
             .call(methods::tx::RpcTransactionStatusRequest {
                 transaction_info: TransactionInfo::TransactionId {
-                    hash: tx_hash,
+                    hash:       tx_hash,
                     account_id: signed_tx.transaction.signer_id.clone(),
                 },
             })
@@ -63,7 +61,7 @@ pub async fn call_view_method(contract_id: String, method_name: String, args: Ve
 
     let request = methods::query::RpcQueryRequest {
         block_reference: BlockReference::Finality(Finality::Final),
-        request: QueryRequest::CallFunction {
+        request:         QueryRequest::CallFunction {
             account_id: contract_id.parse().unwrap(),
             method_name,
             args: FunctionArgs::from(args),

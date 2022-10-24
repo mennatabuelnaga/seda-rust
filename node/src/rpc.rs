@@ -1,29 +1,31 @@
 use std::str::FromStr;
 
-use jsonrpsee::server::ServerBuilder;
-use jsonrpsee::RpcModule;
-use seda_contracts_adapter::mc_client::{call_change_method, call_view_method};
+use jsonrpsee::{server::ServerBuilder, RpcModule};
 use serde_json::{json, Number};
 use tracing_subscriber::util::SubscriberInitExt;
 
-pub async fn run() -> anyhow::Result<()> {
-    println!("Starting server...");
+use crate::near_adapter::{call_change_method, call_view_method};
 
-    start_server().await?;
+// pub async fn run() -> anyhow::Result<()> {
+//     println!("Starting server...");
 
-    // How do we keep the server running without using an infinite loop?
-    loop {}
-}
+//     start_server().await?;
+//     println!("Started RPC server.");
 
-pub async fn start_server() -> anyhow::Result<()> {
-    let filter = tracing_subscriber::EnvFilter::try_from_default_env()?
-        .add_directive("jsonrpsee[method_call{name = \"get_node_socket_address\"}]=trace".parse()?)
-        .add_directive("jsonrpsee[method_call{name = \"register_node\"}]=trace".parse()?);
+//     // How do we keep the server running without using an infinite loop?
+//     loop {}
+// }
 
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_env_filter(filter)
-        .finish()
-        .try_init()?;
+pub async fn start_rpc_server() -> anyhow::Result<()> {
+    // let filter = tracing_subscriber::EnvFilter::try_from_default_env()?
+    //     .add_directive("jsonrpsee[method_call{name =
+    // \"get_node_socket_address\"}]=trace".parse()?)     .add_directive("
+    // jsonrpsee[method_call{name = \"register_node\"}]=trace".parse()?);
+
+    // tracing_subscriber::FmtSubscriber::builder()
+    //     .with_env_filter(filter)
+    //     .finish()
+    //     .try_init()?;
 
     let server = ServerBuilder::default().build("127.0.0.1:12345").await?;
     let mut module = RpcModule::new(());

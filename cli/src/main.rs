@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use dotenv::dotenv;
 use helpers::construct_signed_tx;
-use seda_node::server;
 use serde_json::{json, Number};
 
 pub mod helpers;
@@ -88,7 +87,7 @@ async fn main() -> anyhow::Result<()> {
                 let node_id: Number = Number::from(4);
                 seda_client::get_node_socket_address(seda_server_url, node_id).await?;
             }
-            Commands::Run => server::run().await?, // cargo run --bin seda run
+            Commands::Run => seda_node::run(), // cargo run --bin seda run
         }
     } else {
         todo!()

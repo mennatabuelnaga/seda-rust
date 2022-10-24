@@ -3,7 +3,10 @@ use near_sdk::{
     collections::LookupMap,
     env,
     json_types::U64,
-    log, near_bindgen, AccountId, BorshStorageKey,
+    log,
+    near_bindgen,
+    AccountId,
+    BorshStorageKey,
 };
 
 /// LookupMap keys
@@ -14,8 +17,8 @@ enum MainchainStorageKeys {
 /// Node information
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Node {
-    pub owner: AccountId,
-    pub pending_owner: Option<AccountId>,
+    pub owner:          AccountId,
+    pub pending_owner:  Option<AccountId>,
     pub socket_address: String, // ip address and port
 }
 
@@ -24,7 +27,7 @@ pub struct Node {
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct MainchainContract {
     num_nodes: u64,
-    nodes: LookupMap<u64, Node>,
+    nodes:     LookupMap<u64, Node>,
 }
 
 /// Contract private methods
@@ -56,7 +59,7 @@ impl MainchainContract {
     pub fn new() -> Self {
         Self {
             num_nodes: 0,
-            nodes: LookupMap::new(MainchainStorageKeys::NumNodes),
+            nodes:     LookupMap::new(MainchainStorageKeys::NumNodes),
         }
     }
 

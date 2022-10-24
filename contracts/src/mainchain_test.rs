@@ -4,7 +4,8 @@ mod tests {
     use near_sdk::{
         json_types::U64,
         test_utils::{get_logs, VMContextBuilder},
-        testing_env, VMContext,
+        testing_env,
+        VMContext,
     };
 
     use crate::mainchain::MainchainContract;

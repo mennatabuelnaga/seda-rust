@@ -1,8 +1,9 @@
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::query::QueryResponseKind;
-use near_primitives::transaction::SignedTransaction;
-use near_primitives::transaction::{Action, FunctionCallAction, Transaction};
-use near_primitives::types::{AccountId, BlockReference};
+use near_primitives::{
+    transaction::{Action, FunctionCallAction, SignedTransaction, Transaction},
+    types::{AccountId, BlockReference},
+};
 
 #[allow(clippy::too_many_arguments)]
 pub async fn construct_signed_tx(
@@ -25,7 +26,7 @@ pub async fn construct_signed_tx(
     let access_key_query_response = client
         .call(methods::query::RpcQueryRequest {
             block_reference: BlockReference::latest(),
-            request: near_primitives::views::QueryRequest::ViewAccessKey {
+            request:         near_primitives::views::QueryRequest::ViewAccessKey {
                 account_id: signer.account_id.clone(),
                 public_key: signer.public_key.clone(),
             },
@@ -38,12 +39,12 @@ pub async fn construct_signed_tx(
     };
 
     let transaction = Transaction {
-        signer_id: signer.account_id.clone(),
-        public_key: signer.public_key.clone(),
-        nonce: current_nonce + 1,
+        signer_id:   signer.account_id.clone(),
+        public_key:  signer.public_key.clone(),
+        nonce:       current_nonce + 1,
         receiver_id: contract_id.parse().unwrap(),
-        block_hash: access_key_query_response.block_hash,
-        actions: vec![Action::FunctionCall(FunctionCallAction {
+        block_hash:  access_key_query_response.block_hash,
+        actions:     vec![Action::FunctionCall(FunctionCallAction {
             method_name,
             args,
             gas, // 100 TeraGas
