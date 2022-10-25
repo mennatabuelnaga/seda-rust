@@ -1,10 +1,11 @@
 use wasmer::{imports, Array, Function, ImportObject, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
-use crate::{
-    adapters::{AdapterTypes, DatabaseAdapter},
+use super::{
     context::VmContext,
     promise::{Promise, PromiseQueueBP},
+    AdapterTypes,
+    DatabaseAdapter,
 };
 
 /// Adds a new promise to the promises stack

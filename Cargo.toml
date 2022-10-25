@@ -5,6 +5,7 @@ members = [
 	"node",
 	"runtime/core",
 	"runtime/core/test_res/promise_wasm_bin",
+	"runtime/macros",
 ]
 
 [profile.dev]

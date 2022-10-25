@@ -2,12 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use wasmer::{Instance, Module, Store};
 
-use crate::{
-    adapters::{AdapterTypes, Adapters, DatabaseAdapter},
-    config::VmConfig,
-    context::VmContext,
-    imports::create_wasm_imports,
-};
+use super::{imports::create_wasm_imports, AdapterTypes, Adapters, VmConfig, VmContext};
+use crate::adapters::DatabaseAdapter;
 
 pub struct VmResult {}
 
