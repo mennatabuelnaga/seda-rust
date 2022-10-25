@@ -1,13 +1,27 @@
 /// WASI compatible WASM VM
-pub mod config;
+mod adapters;
+pub(crate) use adapters::*;
+
+mod config;
+pub use config::*;
+
 mod config_old;
 
 pub use config_old::*;
 
-mod adapters;
 mod context;
-mod imports;
+pub(crate) use context::*;
+
+pub(crate) mod imports;
+
 mod promise;
+pub(crate) use promise::*;
+
 pub mod runtime;
 
-mod runtime_test;
+#[cfg(test)]
+#[path = ""]
+pub mod test {
+    use super::*;
+    mod runtime_test;
+}

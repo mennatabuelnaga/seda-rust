@@ -2,10 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use wasmer::{HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
-use crate::{
-    adapters::{AdapterTypes, Adapters},
-    promise::{PromiseQueue, PromiseQueueBP},
-};
+use super::{AdapterTypes, Adapters, PromiseQueue, PromiseQueueBP};
 
 #[derive(Clone)]
 pub struct VmContext<Types>
