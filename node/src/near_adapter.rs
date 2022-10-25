@@ -3,7 +3,7 @@ use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::Tra
 use near_primitives::{
     transaction::SignedTransaction,
     types::{BlockReference, Finality, FunctionArgs},
-    views::QueryRequest,
+    views::{QueryRequest, FinalExecutionStatus},
 };
 use serde_json::from_slice;
 use tokio::time;
@@ -11,7 +11,7 @@ use tokio::time;
 pub async fn call_change_method(
     signed_tx: SignedTransaction,
     server_addr: String,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<FinalExecutionStatus, Box<dyn std::error::Error>> {
     let client = JsonRpcClient::connect(server_addr);
 
     let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
@@ -47,13 +47,18 @@ pub async fn call_change_method(
             },
             Ok(response) => {
                 println!("response gotten after: {}s", delta);
-                println!("response status: {:#?}", response.status);
-                break;
+      
+                println!("response.status: {:#?}", response.status);
+
+
+
+                return Ok(response.status);
+                // break;
             }
         }
     }
 
-    Ok(())
+    // Ok(())
 }
 
 pub async fn call_view_method(contract_id: String, method_name: String, args: Vec<u8>, server_addr: String) -> String {

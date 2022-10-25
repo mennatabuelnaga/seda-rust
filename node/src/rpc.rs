@@ -1,39 +1,58 @@
+
 use std::str::FromStr;
 
-use jsonrpsee::{server::ServerBuilder, RpcModule};
 use serde_json::{json, Number};
-use tracing_subscriber::util::SubscriberInitExt;
+// use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::near_adapter::{call_change_method, call_view_method};
 
-// pub async fn run() -> anyhow::Result<()> {
-//     println!("Starting server...");
 
-//     start_server().await?;
-//     println!("Started RPC server.");
+use actix::prelude::*;
+use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 
-//     // How do we keep the server running without using an infinite loop?
-//     loop {}
-// }
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct Stop;
 
-pub async fn start_rpc_server() -> anyhow::Result<()> {
-    // let filter = tracing_subscriber::EnvFilter::try_from_default_env()?
-    //     .add_directive("jsonrpsee[method_call{name =
-    // \"get_node_socket_address\"}]=trace".parse()?)     .add_directive("
-    // jsonrpsee[method_call{name = \"register_node\"}]=trace".parse()?);
+impl Handler<Stop> for JsonRpcServer {
+    type Result = ();
 
-    // tracing_subscriber::FmtSubscriber::builder()
-    //     .with_env_filter(filter)
-    //     .finish()
-    //     .try_init()?;
+    fn handle(&mut self, _msg: Stop, _ctx: &mut Context<Self>) {
+        self.handle.to_owned().stop().unwrap().into_actor(self).wait(_ctx);
+        println!("JsonRpcServer stopped!");
+    }
+}
 
-    let server = ServerBuilder::default().build("127.0.0.1:12345").await?;
-    let mut module = RpcModule::new(());
+pub struct JsonRpcServer {
+    handle: WsServerHandle,
+}
 
-    // register methods
-    module
-        .register_async_method("get_node_socket_address", |params, _| async move {
-            let method_name = "get_node_socket_address".to_string();
+impl JsonRpcServer {
+    pub async fn build() -> Self {
+        let mut module = RpcModule::new(());
+        // TODO: refactor module configuration
+        
+        module
+            .register_async_method("get_node_socket_address", |params, _| async move {
+                let method_name = "get_node_socket_address".to_string();
+
+                let received_params: Vec<String> = params.parse().unwrap();
+
+                // let node_id: Number = params.one()?;
+                let contract_id = received_params[0].to_string();
+                let node_id = Number::from_str((received_params[1]).as_str()).unwrap();
+
+                let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
+                let server_addr = "https://rpc.testnet.near.org".to_string();
+
+                let status = call_view_method(contract_id, method_name, args, server_addr).await;
+                Ok(status)
+            })
+            .unwrap();
+
+        module
+        .register_async_method("get_node_owner", |params, _| async move {
+            let method_name = "get_node_owner".to_string();
 
             let received_params: Vec<String> = params.parse().unwrap();
 
@@ -49,22 +68,58 @@ pub async fn start_rpc_server() -> anyhow::Result<()> {
         })
         .unwrap();
 
-    module
-        .register_async_method("register_node", |params, _| async move {
-            // let received_params: Vec<String> = params.parse().unwrap();
+        module
+            .register_async_method("register_node", |params, _| async move {
+                let signed_tx = params.one()?;
+                let server_addr = "https://rpc.testnet.near.org".to_string();
+
+                let result = call_change_method(signed_tx, server_addr).await.unwrap();
+                Ok(result)
+            })
+            .unwrap();
+
+        module
+        .register_async_method("remove_node", |params, _| async move {
             let signed_tx = params.one()?;
+            
             let server_addr = "https://rpc.testnet.near.org".to_string();
 
-            call_change_method(signed_tx, server_addr).await.unwrap();
-            Ok("Successful register_node")
+            let result = call_change_method(signed_tx, server_addr).await.unwrap();
+            Ok(result)
         })
         .unwrap();
 
-    let addr = server.local_addr()?;
-    let handle = server.start(module)?;
-    tokio::spawn(handle.stopped());
+        module
+        .register_async_method("set_node_socket_address", |params, _| async move {
+            let signed_tx = params.one()?;
+            
+            let server_addr = "https://rpc.testnet.near.org".to_string();
 
-    let url = format!("ws://{}", addr);
-    println!("server started on url: {:?}", url);
-    Ok(())
+            let result = call_change_method(signed_tx, server_addr).await.unwrap();
+            Ok(result)
+        })
+        .unwrap();
+
+
+        let server = WsServerBuilder::default()
+            .build("127.0.0.1:12345")
+            .await
+            .expect("builder didnt work");
+
+        let handle = server.start(module).expect("server should start");
+
+        Self { handle }
+    }
+}
+
+impl Actor for JsonRpcServer {
+    type Context = Context<Self>;
+
+    fn started(&mut self, _ctx: &mut Self::Context) {
+        println!("JsonRpcServer starting...");
+    }
+
+    fn stopped(&mut self, _ctx: &mut Self::Context) {
+        println!("JsonRpcServer stopped");
+    }
 }

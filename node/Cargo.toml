@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
+# anyhow = "1"
+# futures = "0.3"
 actix = { version = "0.13.0" }
 anyhow = "1"
 console-subscriber = "0.1.8"
@@ -16,6 +17,7 @@ futures = "0.3"
 hyper = "0.14.20"
 jsonrpsee = { git = "https://github.com/paritytech/jsonrpsee.git", branch = "master", features = ["full"] }
 jsonrpsee-core = "0.15.1"
+jsonrpsee-ws-server = "0.15.1"
 log = "0.4"
 near-crypto = "0.15.0"
 near-jsonrpc-client = { version="0.4.0", default-features = false, features = ["auth","rustls-tls"] }

@@ -1,7 +1,5 @@
 use actix::prelude::*;
 
-use crate::rpc::start_rpc_server;
-
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Shutdown;
@@ -10,7 +8,7 @@ pub struct Shutdown;
 pub struct App;
 
 impl Actor for App {
-    type Context = Context<App>;
+    type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
         println!("Node starting...");
@@ -23,8 +21,7 @@ impl Actor for App {
         "#;
         println!("{}", banner);
 
-        // Box::pin(start_rpc_server());
-        println!("Started RPC server.");
+        // Node starting logic...
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
