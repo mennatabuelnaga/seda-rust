@@ -33,9 +33,12 @@ mod tests {
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0.0:8080".to_string());
+        let node_id = contract.register_node("0.0.0.0:8080".to_string()).unwrap();
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
-
+        assert_eq!(
+            "1".to_string(),
+            node_id
+        );
         // check owner and socket address
         testing_env!(get_context_view());
         assert_eq!(

@@ -65,7 +65,7 @@ impl MainchainContract {
 
     /// Registers a new node while charging for storage usage
     #[payable]
-    pub fn register_node(&mut self, socket_address: String) {
+    pub fn register_node(&mut self, socket_address: String) -> Option<String>{
         // keep track of storage usage
         let initial_storage_usage = env::storage_usage();
 
@@ -89,6 +89,7 @@ impl MainchainContract {
             "Insufficient storage, need {}",
             storage_cost
         );
+        Some(self.num_nodes.to_string())
     }
 
     /// Removes a node and refunds storage deposit
