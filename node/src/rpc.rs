@@ -1,7 +1,9 @@
 use std::str::FromStr;
+
 use actix::prelude::*;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 use serde_json::{json, Number};
+
 use crate::near_adapter::{call_change_method, call_view_method};
 
 #[derive(Message)]

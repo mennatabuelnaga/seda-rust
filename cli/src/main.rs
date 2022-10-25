@@ -32,9 +32,9 @@ enum Commands {
     },
     SetNodeSocketAddress {
         #[arg(short, long)]
-        node_id:            u64,
+        node_id:        u64,
         #[arg(short, long)]
-        new_socket_address: String,
+        socket_address: String,
     },
     GetNodeOwner {
         #[arg(short, long)]
@@ -60,8 +60,8 @@ fn main() -> anyhow::Result<()> {
             Commands::RemoveNode { node_id } => remove_node(node_id), // cargo run --bin seda remove-node
             Commands::SetNodeSocketAddress {
                 node_id,
-                new_socket_address,
-            } => set_node_socket_address(node_id, new_socket_address), // cargo run --bin seda set-node-socket-address
+                socket_address,
+            } => set_node_socket_address(node_id, socket_address), // cargo run --bin seda set-node-socket-address
             Commands::GetNodeOwner { node_id } => get_node_owner(node_id), // cargo run --bin seda get-node-owner
         }
     } else {
