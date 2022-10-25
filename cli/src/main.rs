@@ -3,7 +3,7 @@ mod helpers;
 
 use clap::{Parser, Subcommand};
 use dotenv::dotenv;
-use node_commands::{register, get_node_socket_address};
+use node_commands::{register, get_node_socket_address, remove_node, set_node_socket_address, get_node_owner};
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -17,16 +17,18 @@ struct Options {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Sends a JsonRPC message to the node's server.
-    Register,
-    /// Runs the SEDA node
     Run,
 
+    Register,
     GetNodeSocketAddress,
+    RemoveNode,
+    SetNodeSocketAddress,
+    GetNodeOwner,
+
+
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     let options = Options::parse();
     dotenv().ok();
 
@@ -34,13 +36,16 @@ async fn main() -> anyhow::Result<()> {
         match command {
             Commands::Register => {
                 // cargo run --bin seda register
-                Box::pin(register());
+                register()
             }
             Commands::GetNodeSocketAddress => {
                 // cargo run --bin seda get-node-socket-address
-                Box::pin(get_node_socket_address());
+                get_node_socket_address();
             }
             Commands::Run => seda_node::run(), // cargo run --bin seda run
+            Commands::RemoveNode => remove_node(),// cargo run --bin seda remove-node
+            Commands::SetNodeSocketAddress => set_node_socket_address(),// cargo run --bin seda set-node-socket-address
+            Commands::GetNodeOwner => get_node_owner(), // cargo run --bin seda get-node-owner
         }
     } else {
         todo!()
