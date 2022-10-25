@@ -42,7 +42,7 @@ enum Commands {
     },
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     let options = Options::parse();
     dotenv().ok();
 
@@ -67,6 +67,4 @@ fn main() -> anyhow::Result<()> {
     } else {
         todo!()
     }
-
-    Ok(())
 }

@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.0.15", default-features = true, features = ["derive"] }
 tokio = { version = "1.16", features = ["full"] }
-anyhow = "1"
 serde_json = { version = "1" }
 jsonrpsee = { git = "https://github.com/paritytech/jsonrpsee.git", branch = "master", features = ["full"] }
 dotenv = "0.15.0"

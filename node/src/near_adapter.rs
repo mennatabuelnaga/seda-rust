@@ -55,8 +55,6 @@ pub async fn call_change_method(
             }
         }
     }
-
-    // Ok(())
 }
 
 pub async fn call_view_method(contract_id: String, method_name: String, args: Vec<u8>, server_addr: String) -> String {
