@@ -1,6 +1,6 @@
 pub trait DatabaseAdapter: Send {
     fn set(&mut self, key: &str, value: &str);
-    fn get(&self, key: &str);
+    fn get(&self, key: &str) -> Option<&String>;
 }
 
 pub trait AdapterTypes: Clone + Default + 'static {

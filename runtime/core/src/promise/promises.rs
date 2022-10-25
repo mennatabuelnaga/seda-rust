@@ -1,10 +1,11 @@
-use mockall::automock;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+use super::promise_actions::PromiseAction;
+
+#[derive(Serialize, Deserialize, Clone)]
 pub enum PromiseStatus {
     /// Initial state
-    Unfullfilled,
+    Unfulfilled,
 
     /// We are processing the promise
     Pending,
@@ -16,34 +17,11 @@ pub enum PromiseStatus {
     Rejected(Vec<u8>),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Promise {
     /// The name of the action we should execute
-    pub action_name: String,
-
-    /// A byte array containing the payload which should be passed to the action
-    pub payload: Vec<u8>,
+    pub action: PromiseAction,
 
     /// The status of the promise, will include the result if it's fulfilled
     pub status: PromiseStatus,
-}
-
-#[automock]
-pub trait PromiseQueueBP {
-    fn new() -> Self;
-    fn add(&mut self, promise: Promise);
-}
-
-pub struct PromiseQueue {
-    pub queue: Vec<Promise>,
-}
-
-impl PromiseQueueBP for PromiseQueue {
-    fn new() -> Self {
-        Self { queue: Vec::new() }
-    }
-
-    fn add(&mut self, promise: Promise) {
-        self.queue.push(promise);
-    }
 }

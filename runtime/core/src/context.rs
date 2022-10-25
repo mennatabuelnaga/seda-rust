@@ -2,16 +2,17 @@ use std::sync::{Arc, Mutex};
 
 use wasmer::{HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
-use super::{AdapterTypes, Adapters, PromiseQueue, PromiseQueueBP};
+use super::{AdapterTypes, Adapters, PromiseQueue, PromiseStatus};
 
 #[derive(Clone)]
 pub struct VmContext<Types>
 where
     Types: AdapterTypes,
 {
-    pub memory:   LazyInit<Memory>,
-    pub promises: Arc<Mutex<PromiseQueue>>,
-    pub adapters: Arc<Mutex<Adapters<Types>>>,
+    pub memory:                LazyInit<Memory>,
+    pub promise_queue:         Arc<Mutex<PromiseQueue>>,
+    pub prev_promise_statuses: Arc<Mutex<Vec<PromiseStatus>>>,
+    pub adapters:              Arc<Mutex<Adapters<Types>>>,
 }
 
 impl<Types> WasmerEnv for VmContext<Types>
@@ -30,12 +31,15 @@ impl<Types> VmContext<Types>
 where
     Types: AdapterTypes,
 {
-    pub fn create_vm_context(adapters: Arc<Mutex<Adapters<Types>>>) -> VmContext<Types> {
-        let promise_queue = PromiseQueue::new();
-
+    pub fn create_vm_context(
+        adapters: Arc<Mutex<Adapters<Types>>>,
+        prev_promise_statuses: Arc<Mutex<Vec<PromiseStatus>>>,
+        promise_queue: Arc<Mutex<PromiseQueue>>,
+    ) -> VmContext<Types> {
         VmContext {
             memory: LazyInit::new(),
-            promises: Arc::new(Mutex::new(promise_queue)),
+            prev_promise_statuses,
+            promise_queue,
             adapters,
         }
     }

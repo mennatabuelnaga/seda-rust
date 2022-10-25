@@ -10,9 +10,33 @@ mod raw;
 use serde::Deserialize;
 
 #[derive(Serialize, Deserialize)]
+pub enum PromiseAction {
+    CallSelf(CallSelfAction),
+    DatabaseSet(DatabaseSetAction),
+    DatabaseGet(DatabaseGetAction),
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CallSelfAction {
+    pub function_name: String,
+    pub args:          Vec<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseSetAction {
+    pub key:   String,
+    pub value: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseGetAction {
+    pub key: String,
+}
+
+#[derive(Serialize, Deserialize)]
 pub enum PromiseStatus {
     /// Initial state
-    Unfullfilled,
+    Unfulfilled,
 
     /// We are processing the promise
     Pending,
@@ -27,10 +51,7 @@ pub enum PromiseStatus {
 #[derive(Serialize, Deserialize)]
 pub struct Promise {
     /// The name of the action we should execute
-    pub action_name: String,
-
-    /// A byte array containing the payload which should be passed to the action
-    pub payload: Vec<u8>,
+    pub action: PromiseAction,
 
     /// The status of the promise, will include the result if it's fulfilled
     pub status: PromiseStatus,
@@ -40,19 +61,17 @@ pub struct Promise {
 }
 
 impl Promise {
-    pub fn new(action_name: String, payload: Vec<u8>) -> Self {
+    pub fn new(action: PromiseAction) -> Self {
         Self {
-            action_name,
-            payload,
+            action,
             after: None,
-            status: PromiseStatus::Unfullfilled,
+            status: PromiseStatus::Unfulfilled,
         }
     }
 
     fn add_to_queue(promise: &Self) {
         let promise_data = json!({
-            "action_name": promise.action_name,
-            "payload": promise.payload,
+            "action": promise.action,
             "status": promise.status,
         })
         .to_string();
@@ -93,21 +112,24 @@ impl Promise {
         }
 
         let result = str::from_utf8(&result_data).unwrap();
-        println!("Result: {}", result);
+        println!("Promise Result: {}", result);
     }
 }
 
-pub fn db_query() -> Promise {
-    Promise::new("db_query".to_string(), "SELECT * FROM table1".to_string().into_bytes())
+pub fn db_set(key: &str, value: &str) -> Promise {
+    Promise::new(PromiseAction::DatabaseSet(DatabaseSetAction {
+        key:   key.to_string(),
+        value: value.to_string().into_bytes(),
+    }))
 }
 
-pub fn call_self(function_name: String, payload: Vec<u8>) -> Promise {
-    let data = json!({
-        "function_name": function_name,
-        "payload": payload,
-    })
-    .to_string()
-    .into_bytes();
+pub fn db_get(key: &str) -> Promise {
+    Promise::new(PromiseAction::DatabaseGet(DatabaseGetAction { key: key.to_string() }))
+}
 
-    Promise::new("call_self".to_string(), data)
+pub fn call_self(function_name: &str, args: Vec<String>) -> Promise {
+    Promise::new(PromiseAction::CallSelf(CallSelfAction {
+        function_name: function_name.to_string(),
+        args,
+    }))
 }
