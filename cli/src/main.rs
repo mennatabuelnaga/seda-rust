@@ -1,9 +1,9 @@
-mod node_commands;
 mod helpers;
+mod node_commands;
 
 use clap::{Parser, Subcommand};
 use dotenv::dotenv;
-use node_commands::{register, get_node_socket_address, remove_node, set_node_socket_address, get_node_owner};
+use node_commands::{get_node_owner, get_node_socket_address, register_node, remove_node, set_node_socket_address};
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -18,14 +18,28 @@ struct Options {
 #[derive(Subcommand)]
 enum Commands {
     Run,
-
-    Register,
-    GetNodeSocketAddress,
-    RemoveNode,
-    SetNodeSocketAddress,
-    GetNodeOwner,
-
-
+    RegisterNode {
+        #[arg(short, long)]
+        socket_address: String,
+    },
+    GetNodeSocketAddress {
+        #[arg(short, long)]
+        node_id: u64,
+    },
+    RemoveNode {
+        #[arg(short, long)]
+        node_id: u64,
+    },
+    SetNodeSocketAddress {
+        #[arg(short, long)]
+        node_id:            u64,
+        #[arg(short, long)]
+        new_socket_address: String,
+    },
+    GetNodeOwner {
+        #[arg(short, long)]
+        node_id: u64,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -34,18 +48,21 @@ fn main() -> anyhow::Result<()> {
 
     if let Some(command) = options.command {
         match command {
-            Commands::Register => {
+            Commands::RegisterNode { socket_address } => {
                 // cargo run --bin seda register
-                register()
+                register_node(socket_address)
             }
-            Commands::GetNodeSocketAddress => {
+            Commands::GetNodeSocketAddress { node_id } => {
                 // cargo run --bin seda get-node-socket-address
-                get_node_socket_address();
+                get_node_socket_address(node_id);
             }
             Commands::Run => seda_node::run(), // cargo run --bin seda run
-            Commands::RemoveNode => remove_node(),// cargo run --bin seda remove-node
-            Commands::SetNodeSocketAddress => set_node_socket_address(),// cargo run --bin seda set-node-socket-address
-            Commands::GetNodeOwner => get_node_owner(), // cargo run --bin seda get-node-owner
+            Commands::RemoveNode { node_id } => remove_node(node_id), // cargo run --bin seda remove-node
+            Commands::SetNodeSocketAddress {
+                node_id,
+                new_socket_address,
+            } => set_node_socket_address(node_id, new_socket_address), // cargo run --bin seda set-node-socket-address
+            Commands::GetNodeOwner { node_id } => get_node_owner(node_id), // cargo run --bin seda get-node-owner
         }
     } else {
         todo!()

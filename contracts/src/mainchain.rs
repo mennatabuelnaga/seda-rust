@@ -65,7 +65,7 @@ impl MainchainContract {
 
     /// Registers a new node while charging for storage usage
     #[payable]
-    pub fn register_node(&mut self, socket_address: String) -> Option<String>{
+    pub fn register_node(&mut self, socket_address: String) -> Option<String> {
         // keep track of storage usage
         let initial_storage_usage = env::storage_usage();
 

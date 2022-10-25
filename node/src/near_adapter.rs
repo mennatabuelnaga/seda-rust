@@ -3,7 +3,7 @@ use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::Tra
 use near_primitives::{
     transaction::SignedTransaction,
     types::{BlockReference, Finality, FunctionArgs},
-    views::{QueryRequest, FinalExecutionStatus},
+    views::{FinalExecutionStatus, QueryRequest},
 };
 use serde_json::from_slice;
 use tokio::time;
@@ -47,10 +47,8 @@ pub async fn call_change_method(
             },
             Ok(response) => {
                 println!("response gotten after: {}s", delta);
-      
+
                 println!("response.status: {:#?}", response.status);
-
-
 
                 return Ok(response.status);
                 // break;
