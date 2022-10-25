@@ -8,7 +8,7 @@ fn test_in_memory_storage() {
     memory_adapter.put("u32", input_1).expect("No error");
 
     let input_2 = "hello".to_string();
-    memory_adapter.put("string", input_2.clone()).expect("No error");
+    memory_adapter.put("string", input_2.clone());
 
     assert_eq!(memory_adapter.get("u32").unwrap(), Some(input_1));
     assert_eq!(memory_adapter.get("string").unwrap(), Some(input_2));
@@ -19,10 +19,19 @@ fn test_in_memory_storage_overwite_key() {
     let mut memory_adapter = InMemory::default();
 
     let og = 245u32;
-    memory_adapter.put("tbr", og).expect("No error");
+    memory_adapter.put("tbr", og);
     assert_eq!(memory_adapter.get("tbr").unwrap(), Some(og));
 
     let replacement = "replaced".to_string();
-    memory_adapter.put("tbr", replacement.clone()).expect("No error");
+    memory_adapter.put("tbr", replacement.clone());
     assert_eq!(memory_adapter.get("tbr").unwrap(), Some(replacement));
+}
+
+#[test]
+#[should_panic]
+fn test_in_memory_storage_incorrect_read_type() {
+    let mut memory_adapter = InMemory::default();
+
+    memory_adapter.put("u32", 245u32);
+    let _: Option<u8> = memory_adapter.get("u32").unwrap();
 }

@@ -1,9 +1,7 @@
-use std::error::Error;
-
-use crate::{Bytes, FromBytes, ToBytes};
+use super::{Bytes, FromBytes, Result, ToBytes};
 
 pub trait MemoryAdapter {
-    fn get<V>(&self, key: &str) -> Result<Option<V>, Box<dyn Error>>
+    fn get<V>(&self, key: &str) -> Result<Option<V>>
     where
         V: FromBytes;
 

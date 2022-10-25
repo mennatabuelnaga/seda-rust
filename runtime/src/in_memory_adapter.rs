@@ -1,6 +1,6 @@
-use std::{collections::HashMap, error::Error, ops::Deref};
+use std::{collections::HashMap, ops::Deref};
 
-use crate::{Bytes, FromBytes, MemoryAdapter, ToBytes};
+use super::{Bytes, FromBytes, MemoryAdapter, Result, ToBytes};
 
 #[derive(Default)]
 pub struct InMemory {
@@ -8,7 +8,7 @@ pub struct InMemory {
 }
 
 impl MemoryAdapter for InMemory {
-    fn get<O>(&self, key: &str) -> Result<Option<O>, Box<dyn Error>>
+    fn get<O>(&self, key: &str) -> Result<Option<O>>
     where
         O: FromBytes,
     {

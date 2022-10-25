@@ -4,6 +4,9 @@ pub use bytes::*;
 mod config;
 pub use config::*;
 
+mod errors;
+pub use errors::*;
+
 mod memory_adapter;
 pub use memory_adapter::*;
 

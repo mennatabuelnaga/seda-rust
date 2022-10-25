@@ -1,4 +1,8 @@
-use std::{error::Error, ops::Deref};
+use std::ops::Deref;
+
+use error_stack::IntoReport;
+
+use super::Result;
 
 #[derive(Clone)]
 pub struct Bytes(Vec<u8>);
@@ -21,7 +25,7 @@ pub trait FromBytes
 where
     Self: Sized,
 {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, Box<dyn Error>>;
+    fn from_bytes(bytes: &[u8]) -> Result<Self>;
 }
 
 impl ToBytes for String {
@@ -31,8 +35,8 @@ impl ToBytes for String {
 }
 
 impl FromBytes for String {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, Box<dyn Error>> {
-        Ok(std::str::from_utf8(bytes)?.into())
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        Ok(std::str::from_utf8(bytes).into_report()?.into())
     }
 }
 
@@ -45,8 +49,8 @@ macro_rules! bytes_impls_le_bytes {
         }
 
         impl FromBytes for $type_ {
-            fn from_bytes(bytes: &[u8]) -> Result<Self, Box<dyn Error>> {
-                let bytes: [u8; $num_bytes] = bytes.try_into()?;
+            fn from_bytes(bytes: &[u8]) -> Result<Self> {
+                let bytes: [u8; $num_bytes] = bytes.try_into().into_report()?;
                 Ok(<$type_>::from_le_bytes(bytes))
             }
         }
