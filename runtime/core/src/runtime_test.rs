@@ -16,21 +16,18 @@ struct DatabaseTestAdapter {
 }
 
 impl DatabaseAdapter for DatabaseTestAdapter {
-    fn get(&self, key: &str) {
-        let data = self.data.get(key);
-
-        println!("From database {:?}", &data);
+    fn get(&self, key: &str) -> Option<&String> {
+        self.data.get(key)
     }
 
     fn set(&mut self, key: &str, value: &str) {
         self.data.insert(key.to_string(), value.to_string());
-        println!("Called set for the database");
     }
 }
 
 #[test]
 fn start_runtime_simple() {
-    let wasm_binary = include_bytes!("../../target/wasm32-wasi/release/promise-wasm-bin.wasm");
+    let wasm_binary = include_bytes!("../../../target/wasm32-wasi/release/promise-wasm-bin.wasm");
 
     let adapter = Arc::new(Mutex::new(Adapters::<TestAdapters>::default()));
 
@@ -48,5 +45,9 @@ fn start_runtime_simple() {
     let adapter_ref = adapter.lock().unwrap();
     adapter_ref.database.get("key");
 
-    assert!(runtime_execution_result.is_ok())
+    let value = adapter_ref.database.get("from_wasm");
+
+    assert!(runtime_execution_result.is_ok());
+    assert!(value.is_some());
+    assert_eq!(value.unwrap(), "somevalue");
 }
