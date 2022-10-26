@@ -4,7 +4,7 @@ use syn::{parse::Parse, parse_macro_input, punctuated::Punctuated, Attribute, De
 
 #[derive(Clone, Default)]
 struct AdapterActions {
-    pub db: Option<Ident>,
+    pub db:   Option<Ident>,
     pub http: Option<Ident>,
 }
 
@@ -30,7 +30,7 @@ impl AdapterActions {
         };
 
         Ok(Self {
-            db: either(self.db, other.db)?,
+            db:   either(self.db, other.db)?,
             http: either(self.http, other.http)?,
         })
     }
@@ -73,7 +73,7 @@ impl Parse for AdapterActions {
             input.parse::<syn::Token![=]>()?;
             let db = input.parse::<syn::Ident>()?;
             Ok(Self {
-                db: Some(db),
+                db:   Some(db),
                 http: None,
             })
         } else if input.peek(keywords::http) {
@@ -82,7 +82,7 @@ impl Parse for AdapterActions {
             let http = input.parse::<syn::Ident>()?;
             Ok(Self {
                 http: Some(http),
-                db: None,
+                db:   None,
             })
         } else {
             Err(syn::Error::new(

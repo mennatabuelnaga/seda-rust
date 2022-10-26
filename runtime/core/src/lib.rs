@@ -12,7 +12,6 @@ pub use config_old::*;
 pub use errors::*;
 
 mod context;
-pub(crate) use context::*;
 
 pub(crate) mod imports;
 
@@ -26,4 +25,5 @@ pub mod runtime;
 pub mod test {
     use super::*;
     mod runtime_test;
+    mod test_adapters;
 }

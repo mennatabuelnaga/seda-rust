@@ -20,12 +20,12 @@ pub enum PromiseAction {
 #[derive(Serialize, Deserialize)]
 pub struct CallSelfAction {
     pub function_name: String,
-    pub args:          Vec<String>,
+    pub args: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DatabaseSetAction {
-    pub key:   String,
+    pub key: String,
     pub value: Vec<u8>,
 }
 
@@ -121,7 +121,7 @@ impl Promise {
 
 pub fn db_set(key: &str, value: &str) -> Promise {
     Promise::new(PromiseAction::DatabaseSet(DatabaseSetAction {
-        key:   key.to_string(),
+        key: key.to_string(),
         value: value.to_string().into_bytes(),
     }))
 }
@@ -138,7 +138,5 @@ pub fn call_self(function_name: &str, args: Vec<String>) -> Promise {
 }
 
 pub fn http_fetch(url: &str) -> Promise {
-    Promise::new(PromiseAction::Http(HttpAction {
-        url: ("http://potato.org".to_string()),
-    }))
+    Promise::new(PromiseAction::Http(HttpAction { url: url.into() }))
 }

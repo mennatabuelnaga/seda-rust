@@ -1,11 +1,11 @@
 use wasmer::{imports, Array, Function, ImportObject, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
-use crate::{adapters::AdapterTypes, context::VmContext, promise::Promise};
+use crate::{context::VmContext, promise::Promise, VmAdapterTypes};
 
 /// Adds a new promise to the promises stack
-pub fn promise_then_import_obj<Adapters: AdapterTypes>(store: &Store, vm_context: VmContext<Adapters>) -> Function {
-    fn promise_result_write<Adapters: AdapterTypes>(env: &VmContext<Adapters>, ptr: WasmPtr<u8, Array>, length: i32) {
+pub fn promise_then_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn promise_result_write(env: &VmContext, ptr: WasmPtr<u8, Array>, length: i32) {
         let memory_ref = env.memory.get_ref().unwrap();
         let mut promises_queue_ref = env.promise_queue.lock().unwrap();
 
@@ -18,11 +18,8 @@ pub fn promise_then_import_obj<Adapters: AdapterTypes>(store: &Store, vm_context
 }
 
 /// Gets the length (stringified) of the promise status
-pub fn promise_status_length_import_obj<Adapters: AdapterTypes>(
-    store: &Store,
-    vm_context: VmContext<Adapters>,
-) -> Function {
-    fn promise_status_length<Adapters: AdapterTypes>(env: &VmContext<Adapters>, promise_index: i32) -> i64 {
+pub fn promise_status_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn promise_status_length(env: &VmContext, promise_index: i32) -> i64 {
         let promises_queue_ref = env.prev_promise_statuses.lock().unwrap();
         let promise_info = promises_queue_ref.get(promise_index as usize).unwrap();
 
@@ -34,12 +31,9 @@ pub fn promise_status_length_import_obj<Adapters: AdapterTypes>(
 }
 
 /// Writes the status of the promise to the WASM memory
-pub fn promise_status_write_import_obj<Adapters: AdapterTypes>(
-    store: &Store,
-    vm_context: VmContext<Adapters>,
-) -> Function {
-    fn promise_status_write<Adapters: AdapterTypes>(
-        env: &VmContext<Adapters>,
+pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn promise_status_write(
+        env: &VmContext,
         promise_index: i32,
         result_data_ptr: WasmPtr<u8, Array>,
         result_data_length: i64,
@@ -63,9 +57,9 @@ pub fn promise_status_write_import_obj<Adapters: AdapterTypes>(
     Function::new_native_with_env(store, vm_context, promise_status_write)
 }
 
-pub fn create_wasm_imports<Adapters: AdapterTypes>(
+pub fn create_wasm_imports(
     store: &Store,
-    vm_context: VmContext<Adapters>,
+    vm_context: VmContext,
     wasi_env: &mut WasiEnv,
     wasm_module: &Module,
 ) -> ImportObject {

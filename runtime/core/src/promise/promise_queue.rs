@@ -2,7 +2,7 @@
 /// This allows us to change to batches easily in the future
 use super::Promise;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct PromiseQueue {
     /// A list which contains batches of promises
     pub queue: Vec<Promise>,
