@@ -1,7 +1,5 @@
 use std::ops::Deref;
 
-use error_stack::IntoReport;
-
 use super::Result;
 
 #[derive(Clone)]
@@ -36,7 +34,7 @@ impl ToBytes for String {
 
 impl FromBytes for String {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        Ok(std::str::from_utf8(bytes).into_report()?.into())
+        Ok(std::str::from_utf8(bytes)?.into())
     }
 }
 
@@ -50,7 +48,7 @@ macro_rules! bytes_impls_le_bytes {
 
         impl FromBytes for $type_ {
             fn from_bytes(bytes: &[u8]) -> Result<Self> {
-                let bytes: [u8; $num_bytes] = bytes.try_into().into_report()?;
+                let bytes: [u8; $num_bytes] = bytes.try_into()?;
                 Ok(<$type_>::from_le_bytes(bytes))
             }
         }
