@@ -41,13 +41,16 @@ pub async fn register_node(socket_address: String) {
         args,
         GAS,
         DEPOSIT_FOR_REGISTER_NODE,
-        near_server_url,
+        near_server_url.clone(),
     )
     .await
     .unwrap();
 
     let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
-    let response: FinalExecutionStatus = client.request("register_node", rpc_params![signed_tx]).await.unwrap();
+    let response: FinalExecutionStatus = client
+        .request("register_node", rpc_params![signed_tx, near_server_url])
+        .await
+        .unwrap();
 
     println!("response from server: {:?}", response);
 }
@@ -86,13 +89,16 @@ pub async fn remove_node(node_id: u64) {
         args,
         GAS,
         0_u128,
-        near_server_url,
+        near_server_url.clone(),
     )
     .await
     .unwrap();
 
     let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
-    let response: FinalExecutionStatus = client.request("remove_node", rpc_params![signed_tx]).await.unwrap();
+    let response: FinalExecutionStatus = client
+        .request("remove_node", rpc_params![signed_tx, near_server_url])
+        .await
+        .unwrap();
 
     println!("response from server: {:?}", response);
 }
@@ -133,14 +139,14 @@ pub async fn set_node_socket_address(node_id: u64, new_socket_address: String) {
         args,
         GAS,
         0_u128,
-        near_server_url,
+        near_server_url.clone(),
     )
     .await
     .unwrap();
 
     let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
     let response: FinalExecutionStatus = client
-        .request("set_node_socket_address", rpc_params![signed_tx])
+        .request("set_node_socket_address", rpc_params![signed_tx, near_server_url])
         .await
         .unwrap();
 
@@ -149,6 +155,10 @@ pub async fn set_node_socket_address(node_id: u64, new_socket_address: String) {
 
 #[tokio::main]
 pub async fn get_node_socket_address(node_id: u64) {
+    let near_server_url: String = std::env::var("NEAR_SERVER_URL")
+        .expect("NEAR_SERVER_URL must be set.")
+        .parse()
+        .unwrap();
     let seda_server_url: String = std::env::var("SEDA_SERVER_URL")
         .expect("SEDA_SERVER_URL must be set.")
         .parse()
@@ -159,7 +169,10 @@ pub async fn get_node_socket_address(node_id: u64) {
         .unwrap();
     let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
     let response: String = client
-        .request("get_node_socket_address", rpc_params![contract_id, node_id.to_string()])
+        .request(
+            "get_node_socket_address",
+            rpc_params![contract_id, node_id, near_server_url],
+        )
         .await
         .unwrap();
 
@@ -168,6 +181,10 @@ pub async fn get_node_socket_address(node_id: u64) {
 
 #[tokio::main]
 pub async fn get_node_owner(node_id: u64) {
+    let near_server_url: String = std::env::var("NEAR_SERVER_URL")
+        .expect("NEAR_SERVER_URL must be set.")
+        .parse()
+        .unwrap();
     let seda_server_url: String = std::env::var("SEDA_SERVER_URL")
         .expect("SEDA_SERVER_URL must be set.")
         .parse()
@@ -178,7 +195,7 @@ pub async fn get_node_owner(node_id: u64) {
         .unwrap();
     let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
     let response: String = client
-        .request("get_node_owner", rpc_params![contract_id, node_id.to_string()])
+        .request("get_node_owner", rpc_params![contract_id, node_id, near_server_url])
         .await
         .unwrap();
 

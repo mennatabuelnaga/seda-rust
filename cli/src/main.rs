@@ -49,15 +49,15 @@ fn main() {
     if let Some(command) = options.command {
         match command {
             Commands::RegisterNode { socket_address } => {
-                // cargo run --bin seda register
+                // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
                 register_node(socket_address)
             }
             Commands::GetNodeSocketAddress { node_id } => {
-                // cargo run --bin seda get-node-socket-address
+                // cargo run --bin seda get-node-socket-address --node-id 9
                 get_node_socket_address(node_id);
             }
             Commands::Run => seda_node::run(), // cargo run --bin seda run
-            Commands::RemoveNode { node_id } => remove_node(node_id), // cargo run --bin seda remove-node
+            Commands::RemoveNode { node_id } => remove_node(node_id), // cargo run --bin seda remove-node --node-id 9
             Commands::SetNodeSocketAddress {
                 node_id,
                 socket_address,

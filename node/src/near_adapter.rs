@@ -71,8 +71,8 @@ pub async fn call_view_method(contract_id: String, method_name: String, args: Ve
 
     let response = client.call(request).await.unwrap();
 
-    if let QueryResponseKind::CallResult(result) = response.kind {
-        from_slice::<String>(&result.result).unwrap()
+    if let QueryResponseKind::CallResult(ref result) = response.kind {
+        from_slice::<String>(&result.result).unwrap_or_else(|_| "Couldn't deserialize status to string".to_string())
     } else {
         "Couldn't fetch status".to_string()
     }
