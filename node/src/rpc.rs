@@ -37,7 +37,9 @@ impl JsonRpcServer {
                 let node_id: Number = seq.next().expect("Node Id must be set");
                 let server_addr: String = seq.next().expect("Server address must be set");
                 let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
-                let status = call_view_method(contract_id, method_name, args, server_addr).await;
+                let status = call_view_method(contract_id, method_name, args, server_addr)
+                    .await
+                    .unwrap();
                 Ok(status)
             })
             .unwrap();
@@ -50,7 +52,9 @@ impl JsonRpcServer {
                 let node_id: Number = seq.next().expect("Node Id must be set");
                 let server_addr: String = seq.next().expect("Server address must be set");
                 let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
-                let status = call_view_method(contract_id, method_name, args, server_addr).await;
+                let status = call_view_method(contract_id, method_name, args, server_addr)
+                    .await
+                    .unwrap();
                 Ok(status)
             })
             .unwrap();
