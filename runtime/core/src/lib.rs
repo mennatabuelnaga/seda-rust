@@ -7,7 +7,9 @@ pub use config::*;
 
 mod config_old;
 
+mod errors;
 pub use config_old::*;
+pub use errors::*;
 
 mod context;
 pub(crate) use context::*;

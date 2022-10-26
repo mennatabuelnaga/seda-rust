@@ -1,5 +1,7 @@
 use std::env;
 
+use promise::http_fetch;
+
 use crate::promise::{call_self, db_get, db_set, Promise};
 
 mod promise;
@@ -30,7 +32,19 @@ fn db_fetch_success() {
 
 #[no_mangle]
 fn completed_all() {
-    println!("Last step completed");
+    db_set("test_value", "completed").start();
 
     Promise::result(2);
+}
+
+#[no_mangle]
+fn http_fetch_test() {
+    http_fetch("https://swapi.dev/api/people/1")
+        .start()
+        .then(call_self("http_fetch_test_success", vec![]));
+}
+
+#[no_mangle]
+fn http_fetch_test_success() {
+    Promise::result(0);
 }

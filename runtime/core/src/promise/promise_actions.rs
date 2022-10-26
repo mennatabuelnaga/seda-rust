@@ -5,6 +5,7 @@ pub enum PromiseAction {
     CallSelf(CallSelfAction),
     DatabaseSet(DatabaseSetAction),
     DatabaseGet(DatabaseGetAction),
+    Http(HttpAction),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -22,4 +23,10 @@ pub struct DatabaseSetAction {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DatabaseGetAction {
     pub key: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct HttpAction {
+    pub url: String,
+    // TODO: add headers & methods :)
 }

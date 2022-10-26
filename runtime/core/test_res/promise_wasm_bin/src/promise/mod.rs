@@ -14,6 +14,7 @@ pub enum PromiseAction {
     CallSelf(CallSelfAction),
     DatabaseSet(DatabaseSetAction),
     DatabaseGet(DatabaseGetAction),
+    Http(HttpAction),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -31,6 +32,12 @@ pub struct DatabaseSetAction {
 #[derive(Serialize, Deserialize)]
 pub struct DatabaseGetAction {
     pub key: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct HttpAction {
+    pub url: String,
+    // TODO: add headers & methods :)
 }
 
 #[derive(Serialize, Deserialize)]
@@ -98,11 +105,7 @@ impl Promise {
     }
 
     pub fn result(index: i32) {
-        let mut promise_result_length: i64 = 0;
-
-        unsafe {
-            promise_result_length = raw::promise_status_length(index);
-        }
+        let promise_result_length = unsafe { raw::promise_status_length(index) };
 
         let mut result_data: Vec<u8> = Vec::new();
         result_data.resize(promise_result_length as usize, 0);
@@ -131,5 +134,11 @@ pub fn call_self(function_name: &str, args: Vec<String>) -> Promise {
     Promise::new(PromiseAction::CallSelf(CallSelfAction {
         function_name: function_name.to_string(),
         args,
+    }))
+}
+
+pub fn http_fetch(url: &str) -> Promise {
+    Promise::new(PromiseAction::Http(HttpAction {
+        url: ("http://potato.org".to_string()),
     }))
 }

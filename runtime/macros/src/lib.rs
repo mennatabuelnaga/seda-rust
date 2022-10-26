@@ -5,14 +5,15 @@ use syn::{parse::Parse, parse_macro_input, punctuated::Punctuated, Attribute, De
 #[derive(Clone, Default)]
 struct AdapterActions {
     pub db: Option<Ident>,
+    pub http: Option<Ident>,
 }
 
 impl IntoIterator for AdapterActions {
-    type IntoIter = std::array::IntoIter<Self::Item, 1>;
+    type IntoIter = std::array::IntoIter<Self::Item, 2>;
     type Item = (&'static str, Option<Ident>);
 
     fn into_iter(self) -> Self::IntoIter {
-        [("database", self.db)].into_iter()
+        [("database", self.db), ("http", self.http)].into_iter()
     }
 }
 
@@ -30,6 +31,7 @@ impl AdapterActions {
 
         Ok(Self {
             db: either(self.db, other.db)?,
+            http: either(self.http, other.http)?,
         })
     }
 
@@ -61,6 +63,7 @@ impl AdapterActions {
 
 mod keywords {
     syn::custom_keyword!(database);
+    syn::custom_keyword!(http);
 }
 
 impl Parse for AdapterActions {
@@ -69,14 +72,18 @@ impl Parse for AdapterActions {
             input.parse::<keywords::database>()?;
             input.parse::<syn::Token![=]>()?;
             let db = input.parse::<syn::Ident>()?;
-            if !input.is_empty() {
-                Err(syn::Error::new(
-                    input.span(),
-                    "Illegal tokens after specifying Adapter Type.",
-                ))
-            } else {
-                Ok(Self { db: Some(db) })
-            }
+            Ok(Self {
+                db: Some(db),
+                http: None,
+            })
+        } else if input.peek(keywords::http) {
+            input.parse::<keywords::http>()?;
+            input.parse::<syn::Token![=]>()?;
+            let http = input.parse::<syn::Ident>()?;
+            Ok(Self {
+                http: Some(http),
+                db: None,
+            })
         } else {
             Err(syn::Error::new(
                 input.span(),
@@ -95,10 +102,12 @@ pub fn adapter(input: TokenStream) -> TokenStream {
         Err(err) => return err.to_compile_error().into(),
     };
     let db = actions.db.unwrap();
+    let http = actions.http.unwrap();
 
     let adapter_trait_impl = quote!(
         impl AdapterTypes for #name {
           type Database = #db;
+          type Http = #http;
         }
     );
 
