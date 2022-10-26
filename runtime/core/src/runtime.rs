@@ -3,54 +3,56 @@ use std::sync::{Arc, Mutex};
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
-use super::Result;
-use crate::{
-    adapters::{AdapterTypes, Adapters, DatabaseAdapter},
-    config::VmConfig,
-    context::VmContext,
+use super::{
     imports::create_wasm_imports,
-    promise::{
-        promise_actions::{CallSelfAction, PromiseAction},
-        Promise,
-        PromiseQueue,
-        PromiseStatus,
-    },
+    AdapterTypes,
+    Adapters,
+    CallSelfAction,
+    DatabaseAdapter,
+    Promise,
+    PromiseAction,
+    PromiseQueue,
+    PromiseStatus,
+    Result,
+    VmConfig,
+    VmContext,
 };
 
 pub struct VmResult {}
 
 fn execute_promise_queue<Types: AdapterTypes>(
     wasm_module: Module,
-    promise_queue: PromiseQueue,
+    mut promise_queue: PromiseQueue,
     adapters: Arc<Mutex<Adapters<Types>>>,
 ) -> Result<VmResult> {
     // This queue will be used in the current execution
     // We should not use the same promise_queue otherwise getting results back would
     // be hard to do due the indexes of results (will be hard to refactor)
     let next_promise_queue = Arc::new(Mutex::new(PromiseQueue::new()));
-    let mut statuses = vec![PromiseStatus::Unfulfilled; promise_queue.queue.len()];
+    // let mut statuses = vec![PromiseStatus::Unfulfilled;
+    // promise_queue.queue.len()];
 
-    for (index, promise) in promise_queue.queue.iter().enumerate() {
-        statuses[index] = PromiseStatus::Pending;
+    for index in 0..promise_queue.queue.len() {
+        promise_queue.queue[index].status = PromiseStatus::Pending;
 
-        match &promise.action {
+        match &promise_queue.queue[index].action {
             PromiseAction::CallSelf(call_action) => {
                 let wasm_store = Store::default();
                 let mut wasi_env = WasiState::new(&call_action.function_name)
                     .args(call_action.args.clone())
                     .finalize()?;
 
-                let promise_statuses = Arc::new(Mutex::new(statuses.clone()));
+                let current_promise_queue = Arc::new(Mutex::new(promise_queue.clone()));
 
                 let vm_context =
-                    VmContext::create_vm_context(adapters.clone(), promise_statuses, next_promise_queue.clone());
+                    VmContext::create_vm_context(adapters.clone(), current_promise_queue, next_promise_queue.clone());
                 let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module);
                 let wasmer_instance = Instance::new(&wasm_module, &imports).unwrap();
 
                 let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
 
                 main_func.call(&[])?;
-                statuses[index] = PromiseStatus::Fulfilled(vec![]);
+                promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
             }
 
             // Just an example, delete this later
@@ -61,14 +63,14 @@ fn execute_promise_queue<Types: AdapterTypes>(
                     .database
                     .set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap());
 
-                statuses[index] = PromiseStatus::Fulfilled(vec![]);
+                promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
             }
 
             PromiseAction::DatabaseGet(db_action) => {
                 let adapter_ref = adapters.lock().unwrap();
                 let result = adapter_ref.database.get(&db_action.key).unwrap();
 
-                statuses[index] = PromiseStatus::Fulfilled(result.to_string().into_bytes());
+                promise_queue.queue[index].status = PromiseStatus::Fulfilled(result.to_string().into_bytes());
             }
         }
     }

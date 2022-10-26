@@ -98,7 +98,7 @@ impl Promise {
     }
 
     pub fn result(index: i32) {
-        let mut promise_result_length: i64 = 0;
+        let promise_result_length: i64;
 
         unsafe {
             promise_result_length = raw::promise_status_length(index);

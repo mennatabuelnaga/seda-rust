@@ -6,9 +6,9 @@ mod config;
 pub use config::*;
 
 mod config_old;
+pub use config_old::*;
 
 mod errors;
-pub use config_old::*;
 pub use errors::*;
 
 mod context;

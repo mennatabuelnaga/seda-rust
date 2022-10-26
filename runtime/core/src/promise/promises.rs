@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::promise_actions::PromiseAction;
+use super::PromiseAction;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum PromiseStatus {

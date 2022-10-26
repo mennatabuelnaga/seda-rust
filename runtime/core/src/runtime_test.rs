@@ -7,8 +7,7 @@ use std::{
 
 use seda_runtime_macros::Adapter;
 
-use super::{runtime::start_runtime, AdapterTypes, Adapters, DatabaseAdapter, VmConfig};
-use crate::RuntimeError;
+use super::{runtime::start_runtime, AdapterTypes, Adapters, DatabaseAdapter, RuntimeError, VmConfig};
 #[derive(Clone, Default, Adapter)]
 #[adapter(database = DatabaseTestAdapter)]
 struct TestAdapters;
