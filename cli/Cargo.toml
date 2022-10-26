@@ -14,6 +14,7 @@ near-jsonrpc-primitives = "0.15.0"
 near-primitives = "0.15.0"
 near-crypto = "0.15.0"
 seda-node = { path = "../node" }
+thiserror = "1.0.37"
 
 [[bin]]
 name = "seda"

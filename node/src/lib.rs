@@ -1,5 +1,6 @@
 mod app;
 mod config;
+mod errors;
 mod near_adapter;
 mod rpc;
 use actix::prelude::*;

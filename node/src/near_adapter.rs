@@ -1,6 +1,3 @@
-use std::{error::Error, fmt};
-
-use error_stack::{Report, Result};
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
 use near_primitives::{
@@ -11,32 +8,12 @@ use near_primitives::{
 use serde_json::from_slice;
 use tokio::time;
 
-#[derive(Debug)]
-pub struct CallChangeMethodError;
-
-impl fmt::Display for CallChangeMethodError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str("Error calling contract change method")
-    }
-}
-
-impl Error for CallChangeMethodError {}
-
-#[derive(Debug)]
-pub struct CallViewMethodError;
-
-impl fmt::Display for CallViewMethodError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str("Error calling contract view method")
-    }
-}
-
-impl Error for CallViewMethodError {}
+use super::errors::NodeError;
 
 pub async fn call_change_method(
     signed_tx: SignedTransaction,
     server_addr: String,
-) -> Result<FinalExecutionStatus, CallChangeMethodError> {
+) -> Result<FinalExecutionStatus, NodeError> {
     let client = JsonRpcClient::connect(server_addr);
 
     let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
@@ -59,9 +36,7 @@ pub async fn call_change_method(
         let delta = (received_at - sent_at).as_secs();
 
         if delta > 60 {
-            // Err("time limit exceeded for the transaction to be recognized")?;
-            Err(Report::new(CallChangeMethodError)
-                .attach_printable("time limit exceeded for the transaction to be recognized".to_string()))?;
+            return Err(NodeError::BadTransactionTimestamp());
         }
 
         match response {
@@ -70,7 +45,7 @@ pub async fn call_change_method(
                     time::sleep(time::Duration::from_secs(2)).await;
                     continue;
                 }
-                _ => Err(Report::new(CallChangeMethodError).attach_printable(format!("{:?}", err)))?,
+                _ => return Err(NodeError::CallChangeMethod(err.to_string())),
             },
             Ok(response) => {
                 println!("response gotten after: {}s", delta);
@@ -78,7 +53,6 @@ pub async fn call_change_method(
                 println!("response.status: {:#?}", response.status);
 
                 return Ok(response.status);
-                // break;
             }
         }
     }
@@ -89,7 +63,7 @@ pub async fn call_view_method(
     method_name: String,
     args: Vec<u8>,
     server_addr: String,
-) -> Result<String, CallViewMethodError> {
+) -> Result<String, NodeError> {
     let client = JsonRpcClient::connect(server_addr);
 
     let request = methods::query::RpcQueryRequest {
@@ -106,12 +80,9 @@ pub async fn call_view_method(
     if let QueryResponseKind::CallResult(ref result) = response.kind {
         match from_slice::<String>(&result.result).is_ok() {
             true => Ok(from_slice::<String>(&result.result).unwrap()),
-            false => {
-                Err(Report::new(CallViewMethodError)
-                    .attach_printable("Couldn't deserialize status to string".to_string()))
-            }
+            false => Err(NodeError::BadDeserialization()),
         }
     } else {
-        Err(Report::new(CallViewMethodError).attach_printable("Couldn't fetch status".to_string()))
+        Err(NodeError::CallViewMethod())
     }
 }
