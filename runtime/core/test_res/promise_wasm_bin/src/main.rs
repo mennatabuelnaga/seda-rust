@@ -30,7 +30,7 @@ fn db_fetch_success() {
 
 #[no_mangle]
 fn completed_all() {
-    println!("Last step completed");
+    db_set("test_value", "completed").start();
 
     Promise::result(2);
 }

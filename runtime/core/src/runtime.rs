@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
+use super::Result;
 use crate::{
     adapters::{AdapterTypes, Adapters, DatabaseAdapter},
     config::VmConfig,
@@ -22,7 +23,7 @@ fn execute_promise_queue<Types: AdapterTypes>(
     wasm_module: Module,
     promise_queue: PromiseQueue,
     adapters: Arc<Mutex<Adapters<Types>>>,
-) {
+) -> Result<VmResult> {
     // This queue will be used in the current execution
     // We should not use the same promise_queue otherwise getting results back would
     // be hard to do due the indexes of results (will be hard to refactor)
@@ -37,8 +38,7 @@ fn execute_promise_queue<Types: AdapterTypes>(
                 let wasm_store = Store::default();
                 let mut wasi_env = WasiState::new(&call_action.function_name)
                     .args(call_action.args.clone())
-                    .finalize()
-                    .unwrap();
+                    .finalize()?;
 
                 let promise_statuses = Arc::new(Mutex::new(statuses.clone()));
 
@@ -47,12 +47,9 @@ fn execute_promise_queue<Types: AdapterTypes>(
                 let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module);
                 let wasmer_instance = Instance::new(&wasm_module, &imports).unwrap();
 
-                let main_func = wasmer_instance
-                    .exports
-                    .get_function(&call_action.function_name)
-                    .unwrap();
+                let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
 
-                main_func.call(&[]).unwrap();
+                main_func.call(&[])?;
                 statuses[index] = PromiseStatus::Fulfilled(vec![]);
             }
 
@@ -80,17 +77,16 @@ fn execute_promise_queue<Types: AdapterTypes>(
     let deref_next_promise_queue = next_promise_queue_ref.unwrap().to_owned();
 
     if !deref_next_promise_queue.queue.is_empty() {
-        execute_promise_queue(wasm_module, deref_next_promise_queue, adapters);
+        return execute_promise_queue(wasm_module, deref_next_promise_queue, adapters);
     }
+
+    Result::Ok(VmResult {})
 }
 
-pub fn start_runtime<Types: AdapterTypes>(
-    config: VmConfig,
-    adapters: Arc<Mutex<Adapters<Types>>>,
-) -> Result<VmResult, String> {
+pub fn start_runtime<Types: AdapterTypes>(config: VmConfig, adapters: Arc<Mutex<Adapters<Types>>>) -> Result<VmResult> {
     let wasm_store = Store::default();
     let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
-    let wasm_module = Module::new(&wasm_store, &config.wasm_binary).unwrap();
+    let wasm_module = Module::new(&wasm_store, &config.wasm_binary)?;
 
     let mut promise_queue = PromiseQueue::new();
 
@@ -102,6 +98,5 @@ pub fn start_runtime<Types: AdapterTypes>(
         status: PromiseStatus::Unfulfilled,
     });
 
-    execute_promise_queue(wasm_module, promise_queue, adapters);
-    Result::Ok(VmResult {})
+    execute_promise_queue(wasm_module, promise_queue, adapters)
 }

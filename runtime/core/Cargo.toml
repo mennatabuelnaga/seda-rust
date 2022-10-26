@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+error-stack = "0.2.3"
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
+thiserror = "1.0.37"
 toml = { version = "0.5.9", default-features = false }
 wasmer = "2.3.0"
 wasmer-wasi = "2.3.0"
