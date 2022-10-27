@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use super::Result;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Bytes(Vec<u8>);
 
 /// We implement Deref over the Bytes type allowing us to avoid a clone for
