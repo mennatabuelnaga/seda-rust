@@ -40,7 +40,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 
     let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
 
-    let host_adapter = Arc::new(Mutex::new(HostAdapters::<TestAdapters>::default()));
+    let host_adapter = HostAdapters::<TestAdapters>::default();
 
     let runtime = Runtime {};
 
@@ -56,8 +56,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     );
     assert!(runtime_execution_result.await.is_ok());
 
-    let adapters = host_adapter.lock().unwrap();
-    let value = adapters.database.get("test_value");
+    let value = host_adapter.db_get("test_value");
 
     assert!(value.is_some());
     assert_eq!(value.unwrap(), "completed");

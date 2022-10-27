@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    result,
+    sync::{Arc, Mutex},
+};
 
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
@@ -26,27 +29,27 @@ pub struct VmResult {}
 
 #[async_trait::async_trait]
 pub trait RunnablePotato {
-    async fn execute_promise_queue<T: HostAdapterTypes>(
+    async fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: Module,
         promise_queue: Arc<Mutex<PromiseQueue>>,
-        host_adapters: Arc<Mutex<HostAdapters<T>>>,
+        host_adapters: HostAdapters<T>,
     ) -> Result<VmResult>;
 
-    async fn start_runtime<T: HostAdapterTypes>(
+    async fn start_runtime<T: HostAdapterTypes + Default>(
         &self,
         config: VmConfig,
-        host_adapters: Arc<Mutex<HostAdapters<T>>>,
+        host_adapters: HostAdapters<T>,
     ) -> Result<VmResult>;
 }
 
 #[async_trait::async_trait]
 impl RunnablePotato for Runtime {
-    async fn execute_promise_queue<T: HostAdapterTypes>(
+    async fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: Module,
         promise_queue: Arc<Mutex<PromiseQueue>>,
-        host_adapters: Arc<Mutex<HostAdapters<T>>>,
+        host_adapters: HostAdapters<T>,
     ) -> Result<VmResult> {
         let next_promise_queue = Arc::new(Mutex::new(PromiseQueue::new()));
         {
@@ -85,33 +88,21 @@ impl RunnablePotato for Runtime {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        host_adapters
-                            .lock()
-                            .as_mut()
-                            .unwrap()
-                            .database
-                            .set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap());
+                        host_adapters.db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap());
 
                         statuses[index] = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let adapters = host_adapters.lock().unwrap();
-                        let result = adapters.database.get(&db_action.key).unwrap();
+                        let result = host_adapters.db_get(&db_action.key).unwrap();
 
                         statuses[index] = PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }
                     PromiseAction::Http(http_action) => {
                         // TODO: use fetch result(await here)
-                        let adatpters = host_adapters
-                            .lock()
-                            .as_mut()
-                            .unwrap()
-                            .http
-                            .fetch(&http_action.url)
-                            .await;
+                        let resp = host_adapters.http_fetch(&http_action.url).unwrap();
 
-                        statuses[index] = PromiseStatus::Fulfilled(vec![]);
+                        statuses[index] = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
                 }
             }
@@ -121,10 +112,10 @@ impl RunnablePotato for Runtime {
         res.await
     }
 
-    async fn start_runtime<T: HostAdapterTypes>(
+    async fn start_runtime<T: HostAdapterTypes + Default>(
         &self,
         config: VmConfig,
-        host_adapters: Arc<Mutex<HostAdapters<T>>>,
+        host_adapters: HostAdapters<T>,
     ) -> Result<VmResult> {
         let wasm_store = Store::default();
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
