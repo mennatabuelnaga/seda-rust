@@ -21,7 +21,11 @@ async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String, C
     Ok(response)
 }
 
-async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>) -> Result<FinalExecutionStatus, CliError> {
+async fn format_tx_and_request_seda_server(
+    method: &str,
+    args: Vec<u8>,
+    deposit: u128,
+) -> Result<FinalExecutionStatus, CliError> {
     let seda_server_url = get_env_var("SEDA_SERVER_URL")?;
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let signer_acc_str = get_env_var("SIGNER_ACCOUNT_ID")?;
@@ -35,7 +39,7 @@ async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>) -> Resul
         method.to_string(),
         args,
         GAS,
-        DEPOSIT_FOR_REGISTER_NODE,
+        deposit,
         near_server_url.clone(),
     )
     .await
@@ -57,6 +61,7 @@ pub async fn register_node(socket_address: String) -> Result<(), CliError> {
     let response = format_tx_and_request_seda_server(
         method_name,
         json!({ "socket_address": socket_address }).to_string().into_bytes(),
+        DEPOSIT_FOR_REGISTER_NODE,
     )
     .await?;
 
@@ -72,6 +77,7 @@ pub async fn remove_node(node_id: u64) -> Result<(), CliError> {
     let response = format_tx_and_request_seda_server(
         method_name,
         json!({ "node_id": node_id.to_string() }).to_string().into_bytes(),
+        0_u128,
     )
     .await?;
 
@@ -89,6 +95,7 @@ pub async fn set_node_socket_address(node_id: u64, new_socket_address: String) -
         json!({ "node_id": node_id.to_string(), "new_socket_address": new_socket_address })
             .to_string()
             .into_bytes(),
+        0_u128,
     )
     .await?;
 
