@@ -1,7 +1,6 @@
 use thiserror::Error;
-
 #[derive(Error, Debug)]
-pub enum NodeError {
+pub enum NearAdapterError {
     #[error("error calling contract change method")]
     CallChangeMethod(String),
     #[error("error calling contract view method")]

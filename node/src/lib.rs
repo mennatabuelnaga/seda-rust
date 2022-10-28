@@ -1,7 +1,4 @@
 mod app;
-mod config;
-mod errors;
-mod near_adapter;
 mod rpc;
 use actix::prelude::*;
 use app::App;
@@ -15,7 +12,10 @@ pub fn run() {
     // Initialize actors inside system context
     system.block_on(async {
         let app = App.start();
-        let rpc_server = JsonRpcServer::build().await.start();
+        let rpc_server = JsonRpcServer::build()
+            .await
+            .expect("Error starting jsonrpsee server")
+            .start();
 
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {

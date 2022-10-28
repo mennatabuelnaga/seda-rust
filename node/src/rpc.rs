@@ -1,9 +1,13 @@
 use actix::prelude::*;
+use adapter::near_adapter::{
+    get_node_owner,
+    get_node_socket_address,
+    register_node,
+    remove_node,
+    set_node_socket_address,
+};
+use jsonrpsee_core::Error;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
-use near_primitives::transaction::SignedTransaction;
-use serde_json::{json, Number};
-
-use crate::near_adapter::{call_change_method, call_view_method};
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -23,73 +27,38 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn build() -> Self {
+    pub async fn build() -> Result<Self, Error> {
         let mut module = RpcModule::new(());
         // TODO: refactor module configuration
 
         // register view methods
 
-        module
-            .register_async_method("get_node_socket_address", |params, _| async move {
-                let method_name = "get_node_socket_address".to_string();
-                let mut seq = params.sequence();
-                let contract_id: String = seq.next().expect("Contract Id must be set");
-                let node_id: Number = seq.next().expect("Node Id must be set");
-                let server_addr: String = seq.next().expect("Server address must be set");
-                let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
-                let status = call_view_method(contract_id, method_name, args, server_addr)
-                    .await
-                    .unwrap();
-                Ok(status)
-            })
-            .unwrap();
+        module.register_async_method("get_node_socket_address", |params, _| async move {
+            let status = get_node_socket_address(params).await;
+            status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
+        })?;
 
-        module
-            .register_async_method("get_node_owner", |params, _| async move {
-                let method_name = "get_node_owner".to_string();
-                let mut seq = params.sequence();
-                let contract_id: String = seq.next().expect("Contract Id must be set");
-                let node_id: Number = seq.next().expect("Node Id must be set");
-                let server_addr: String = seq.next().expect("Server address must be set");
-                let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
-                let status = call_view_method(contract_id, method_name, args, server_addr)
-                    .await
-                    .unwrap();
-                Ok(status)
-            })
-            .unwrap();
+        module.register_async_method("get_node_owner", |params, _| async move {
+            let status = get_node_owner(params).await;
+            status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
+        })?;
 
         // register change methods
 
-        module
-            .register_async_method("register_node", |params, _| async move {
-                let mut seq = params.sequence();
-                let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
-                let server_addr: String = seq.next().expect("Server address must be set");
-                let result = call_change_method(signed_tx, server_addr).await.unwrap();
-                Ok(result)
-            })
-            .unwrap();
+        module.register_async_method("register_node", |params, _| async move {
+            let result = register_node(params).await;
+            result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
+        })?;
 
-        module
-            .register_async_method("remove_node", |params, _| async move {
-                let mut seq = params.sequence();
-                let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
-                let server_addr: String = seq.next().expect("Server address must be set");
-                let result = call_change_method(signed_tx, server_addr).await.unwrap();
-                Ok(result)
-            })
-            .unwrap();
+        module.register_async_method("remove_node", |params, _| async move {
+            let result = remove_node(params).await;
+            result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
+        })?;
 
-        module
-            .register_async_method("set_node_socket_address", |params, _| async move {
-                let mut seq = params.sequence();
-                let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
-                let server_addr: String = seq.next().expect("Server address must be set");
-                let result = call_change_method(signed_tx, server_addr).await.unwrap();
-                Ok(result)
-            })
-            .unwrap();
+        module.register_async_method("set_node_socket_address", |params, _| async move {
+            let result = set_node_socket_address(params).await;
+            result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
+        })?;
 
         let server = WsServerBuilder::default()
             .build("127.0.0.1:12345")
@@ -98,7 +67,7 @@ impl JsonRpcServer {
 
         let handle = server.start(module).expect("server should start");
 
-        Self { handle }
+        Ok(Self { handle })
     }
 }
 
