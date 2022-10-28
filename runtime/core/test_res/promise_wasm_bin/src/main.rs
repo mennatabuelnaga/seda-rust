@@ -39,12 +39,18 @@ fn completed_all() {
 
 #[no_mangle]
 fn http_fetch_test() {
-    http_fetch("https://swapi.dev/api/people/1")
+    let args: Vec<String> = env::args().collect();
+    println!("Hello world {:?}", args);
+
+    http_fetch(args.get(1).unwrap())
         .start()
         .then(call_self("http_fetch_test_success", vec![]));
 }
 
 #[no_mangle]
 fn http_fetch_test_success() {
-    Promise::result(0);
+    let result = Promise::result(0);
+    let value_to_store = String::from_utf8(result).unwrap();
+
+    db_set("http_fetch_result", &value_to_store).start();
 }
