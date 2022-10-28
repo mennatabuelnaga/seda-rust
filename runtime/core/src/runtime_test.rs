@@ -113,7 +113,7 @@ async fn test_non_existing_function() {
     }
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_http_fetch() {
     before_all();
 
