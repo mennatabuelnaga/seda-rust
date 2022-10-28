@@ -33,11 +33,11 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 
     let runtime_execution_result = runtime.start_runtime(
         VmConfig {
-            args: vec!["hello world".to_string()],
+            args:         vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func: None,
-            wasm_binary: wasm_binary.to_vec(),
-            debug: true,
+            start_func:   None,
+            wasm_binary:  wasm_binary.to_vec(),
+            debug:        true,
         },
         host_adapter.clone(),
     );
@@ -59,11 +59,11 @@ async fn test_bad_wasm_file() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec!["hello world".to_string()],
+                args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func: None,
-                wasm_binary: vec![203],
-                debug: true,
+                start_func:   None,
+                wasm_binary:  vec![203],
+                debug:        true,
             },
             host_adapter.clone(),
         )
@@ -112,11 +112,11 @@ async fn test_promise_queue_http_fetch() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec![fetch_url.clone()],
+                args:         vec![fetch_url.clone()],
                 program_name: "consensus".to_string(),
-                start_func: Some("http_fetch_test".to_string()),
-                wasm_binary: wasm_binary.to_vec(),
-                debug: true,
+                start_func:   Some("http_fetch_test".to_string()),
+                wasm_binary:  wasm_binary.to_vec(),
+                debug:        true,
             },
             host_adapter.clone(),
         )

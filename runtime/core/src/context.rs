@@ -2,13 +2,13 @@ use std::sync::{Arc, Mutex};
 
 use wasmer::{HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
-use super::{PromiseQueue, PromiseStatus};
+use super::PromiseQueue;
 
 #[derive(Clone)]
 pub struct VmContext {
     pub memory:                LazyInit<Memory>,
     pub promise_queue:         Arc<Mutex<PromiseQueue>>,
-    pub prev_promise_statuses: Arc<Mutex<Vec<PromiseStatus>>>,
+    pub current_promise_queue: Arc<Mutex<PromiseQueue>>,
 }
 
 impl WasmerEnv for VmContext {
@@ -22,12 +22,12 @@ impl WasmerEnv for VmContext {
 
 impl VmContext {
     pub fn create_vm_context(
-        prev_promise_statuses: Arc<Mutex<Vec<PromiseStatus>>>,
+        current_promise_queue: Arc<Mutex<PromiseQueue>>,
         promise_queue: Arc<Mutex<PromiseQueue>>,
     ) -> VmContext {
         VmContext {
             memory: LazyInit::new(),
-            prev_promise_statuses,
+            current_promise_queue,
             promise_queue,
         }
     }

@@ -20,11 +20,15 @@ pub fn promise_then_import_obj(store: &Store, vm_context: VmContext) -> Function
 /// Gets the length (stringified) of the promise status
 pub fn promise_status_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
     fn promise_status_length(env: &VmContext, promise_index: i32) -> i64 {
-        let promises_queue_ref = env.prev_promise_statuses.lock().unwrap();
-        let promise_info = promises_queue_ref.get(promise_index as usize).unwrap();
+        let promises_queue_ref = env.current_promise_queue.lock().unwrap();
+        let promise_info = promises_queue_ref.queue.get(promise_index as usize).unwrap();
 
         // The length depends on the full status enum + result in JSON
-        serde_json::to_string(&promise_info).unwrap().len().try_into().unwrap()
+        serde_json::to_string(&promise_info.status)
+            .unwrap()
+            .len()
+            .try_into()
+            .unwrap()
     }
 
     Function::new_native_with_env(store, vm_context, promise_status_length)
@@ -39,9 +43,9 @@ pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> 
         result_data_length: i64,
     ) {
         let memory_ref = env.memory.get_ref().unwrap();
-        let promises_ref = env.prev_promise_statuses.lock().unwrap();
-        let promise_info = promises_ref.get(promise_index as usize).unwrap();
-        let promise_status = serde_json::to_string(&promise_info).unwrap();
+        let promises_ref = env.current_promise_queue.lock().unwrap();
+        let promise_info = promises_ref.queue.get(promise_index as usize).unwrap();
+        let promise_status = serde_json::to_string(&promise_info.status).unwrap();
         let promise_status_bytes = promise_status.as_bytes();
 
         let derefed_ptr = result_data_ptr.deref(memory_ref, 0, result_data_length as u32).unwrap();

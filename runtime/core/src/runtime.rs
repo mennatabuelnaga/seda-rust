@@ -52,53 +52,51 @@ impl RunnablePotato for Runtime {
             // This queue will be used in the current execution
             // We should not use the same promise_queue otherwise getting results back would
             // be hard to do due the indexes of results (will be hard to refactor)
-            let promise_queue = promise_queue.lock().unwrap();
+            let mut promise_queue = promise_queue.lock().unwrap();
 
             if promise_queue.queue.is_empty() {
                 return Ok(VmResult {});
             }
 
-            let mut statuses = vec![PromiseStatus::Unfulfilled; promise_queue.queue.len()];
+            for index in 0..promise_queue.queue.len() {
+                promise_queue.queue[index].status = PromiseStatus::Pending;
 
-            for (index, promise) in promise_queue.queue.iter().enumerate() {
-                statuses[index] = PromiseStatus::Pending;
-
-                match &promise.action {
+                match &promise_queue.queue[index].action {
                     PromiseAction::CallSelf(call_action) => {
                         let wasm_store = Store::default();
                         let mut wasi_env = WasiState::new(&call_action.function_name)
                             .args(call_action.args.clone())
                             .finalize()?;
 
-                        let promise_statuses = Arc::new(Mutex::new(statuses.clone()));
+                        let current_promise_queue = Arc::new(Mutex::new(promise_queue.clone()));
 
-                        let vm_context = VmContext::create_vm_context(promise_statuses, next_promise_queue.clone());
+                        let vm_context =
+                            VmContext::create_vm_context(current_promise_queue, next_promise_queue.clone());
                         let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module);
                         let wasmer_instance = Instance::new(&wasm_module, &imports).unwrap();
 
                         let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
 
                         main_func.call(&[])?;
-                        statuses[index] = PromiseStatus::Fulfilled(vec![]);
+                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
                         host_adapters.db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap());
 
-                        statuses[index] = PromiseStatus::Fulfilled(vec![]);
+                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
                         let result = host_adapters.db_get(&db_action.key).unwrap();
 
-                        statuses[index] = PromiseStatus::Fulfilled(result.to_string().into_bytes());
+                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }
                     PromiseAction::Http(http_action) => {
-                        // TODO: use fetch result(await here)
                         let resp = host_adapters.http_fetch(&http_action.url).unwrap();
 
-                        statuses[index] = PromiseStatus::Fulfilled(resp.into_bytes());
+                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
                 }
             }
