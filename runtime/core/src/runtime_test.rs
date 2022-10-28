@@ -1,23 +1,12 @@
-use std::{
-    collections::HashMap,
-    fs,
-    process::Command,
-    sync::{Arc, Mutex, Once},
-};
+use std::{fs, process::Command, sync::Once};
 
 use super::VmConfig;
 use crate::{
     adapters::HostAdapters,
     runtime::{RunnablePotato, Runtime},
     test::test_adapters::TestAdapters,
-    DatabaseAdapter,
     RuntimeError,
 };
-
-#[derive(Default, Clone)]
-struct DatabaseTestAdapter {
-    data: HashMap<String, String>,
-}
 
 static INIT: Once = Once::new();
 // This is not a standard thing you can do in rust..
@@ -39,9 +28,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     before_all();
 
     let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
-
     let host_adapter = HostAdapters::<TestAdapters>::default();
-
     let runtime = Runtime {};
 
     let runtime_execution_result = runtime.start_runtime(
@@ -57,101 +44,95 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     assert!(runtime_execution_result.await.is_ok());
 
     let value = host_adapter.db_get("test_value");
-
     assert!(value.is_some());
     assert_eq!(value.unwrap(), "completed");
 }
 
-// #[test]
-// fn test_bad_wasm_file() {
-//     before_all();
+#[tokio::test]
+async fn test_bad_wasm_file() {
+    before_all();
 
-//     let vm_adapter =
-// Arc::new(Mutex::new(VmAdapters::<VmTestAdapters>::default()));     let mut
-// host_adapter = HostAdapters::<HostTestAdapters>::default();
+    let host_adapter = HostAdapters::<TestAdapters>::default();
+    let runtime = Runtime {};
 
-//     let runtime = Runtime {};
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args:         vec!["hello world".to_string()],
+                program_name: "consensus".to_string(),
+                start_func:   None,
+                wasm_binary:  vec![203],
+                debug:        true,
+            },
+            host_adapter.clone(),
+        )
+        .await;
 
-//     let runtime_execution_result = runtime.start_runtime(
-//         VmConfig {
-//             args:         vec!["hello world".to_string()],
-//             program_name: "consensus".to_string(),
-//             start_func:   None,
-//             wasm_binary:  vec![203],
-//             debug:        true,
-//         },
-//         vm_adapter.clone(),
-//         &host_adapter,
-//     );
+    assert!(runtime_execution_result.is_err());
 
-//     let error_type = match runtime_execution_result {
-//         Ok(_) => panic!("Runtime should error"),
-//         Err(err) => err,
-//     };
+    let error_type = match runtime_execution_result {
+        Ok(_) => panic!("Runtime should error"),
+        Err(err) => err,
+    };
 
-//     match error_type {
-//         RuntimeError::WasmCompileError(_) => (),
-//         _ => panic!("WasmCompileError not triggered"),
-//     }
-// }
+    match error_type {
+        RuntimeError::WasmCompileError(_) => (),
+        _ => panic!("WasmCompileError not triggered"),
+    }
+}
 
-// #[test]
-// fn test_non_existing_function() {
-//     before_all();
+#[tokio::test]
+async fn test_non_existing_function() {
+    before_all();
 
-//     let wasm_binary =
-// fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
-//     let vm_adapter =
-// Arc::new(Mutex::new(VmAdapters::<VmTestAdapters>::default()));     let mut
-// host_adapter = HostAdapters::<HostTestAdapters>::default();
+    let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
+    let host_adapter = HostAdapters::<TestAdapters>::default();
+    let runtime = Runtime {};
 
-//     let runtime = Runtime {};
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args: vec!["hello world".to_string()],
+                program_name: "consensus".to_string(),
+                start_func: Some("non_existing_function".to_string()),
+                wasm_binary,
+                debug: true,
+            },
+            host_adapter.clone(),
+        )
+        .await;
 
-//     let runtime_execution_result = runtime.start_runtime(
-//         VmConfig {
-//             args: vec!["hello world".to_string()],
-//             program_name: "consensus".to_string(),
-//             start_func: Some("non_existing_function".to_string()),
-//             wasm_binary,
-//             debug: true,
-//         },
-//         vm_adapter.clone(),
-//         &host_adapter,
-//     );
+    let error_type = match runtime_execution_result {
+        Ok(_) => panic!("Runtime should error"),
+        Err(err) => err,
+    };
 
-//     let error_type = match runtime_execution_result {
-//         Ok(_) => panic!("Runtime should error"),
-//         Err(err) => err,
-//     };
+    match error_type {
+        RuntimeError::FunctionNotFound(_) => (),
+        _ => panic!("FunctionNotFound not triggered"),
+    }
+}
 
-//     match error_type {
-//         RuntimeError::FunctionNotFound(_) => (),
-//         _ => panic!("FunctionNotFound not triggered"),
-//     }
-// }
+#[tokio::test]
+async fn test_promise_queue_http_fetch() {
+    before_all();
 
-// #[test]
-// fn test_promise_queue_http_fetch() {
-//     before_all();
+    let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
+    let host_adapter = HostAdapters::<TestAdapters>::default();
+    let runtime = Runtime {};
 
-//     let wasm_binary =
-// fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args:         vec!["hello world".to_string()],
+                program_name: "consensus".to_string(),
+                start_func:   Some("http_fetch_test".to_string()),
+                wasm_binary:  wasm_binary.to_vec(),
+                debug:        true,
+            },
+            host_adapter.clone(),
+        )
+        .await;
 
-//     let vm_adapter =
-// Arc::new(Mutex::new(VmAdapters::<VmTestAdapters>::default()));     let mut
-// host_adapter = HostAdapters::<HostTestAdapters>::default();
-
-//     let runtime = Runtime {};
-
-//     let runtime_execution_result = runtime.start_runtime(
-//         VmConfig {
-//             args:         vec!["hello world".to_string()],
-//             program_name: "consensus".to_string(),
-//             start_func:   Some("http_fetch_test".to_string()),
-//             wasm_binary:  wasm_binary.to_vec(),
-//             debug:        true,
-//         },
-//         vm_adapter.clone(),
-//         &host_adapter,
-//     );
-// }
+    assert!(runtime_execution_result.is_ok());
+}
