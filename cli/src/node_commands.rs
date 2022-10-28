@@ -10,7 +10,7 @@ use super::errors::{get_env_var, CliError};
 use crate::helpers::construct_signed_tx;
 
 const GAS: u64 = 300_000_000_000_000;
-const DEPOSIT_FOR_REGISTER_NODE: u128 = 9 * 10_u128.pow(20);
+const DEPOSIT_FOR_REGISTER_NODE: u128 = 87 * 10_u128.pow(19); // 0.00087 NEAR
 
 async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String, CliError> {
     let seda_server_url = get_env_var("SEDA_SERVER_URL")?;
