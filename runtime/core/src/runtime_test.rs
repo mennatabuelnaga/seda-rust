@@ -3,6 +3,7 @@ use std::{fs, process::Command, sync::Once};
 use super::VmConfig;
 use crate::{
     adapters::HostAdapters,
+    promise::PromiseStatus,
     runtime::{RunnablePotato, Runtime},
     test::test_adapters::TestAdapters,
     RuntimeError,
@@ -115,6 +116,8 @@ async fn test_non_existing_function() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_http_fetch() {
+    let fetch_url = "https://swapi.dev/api/people/2/".to_string();
+
     before_all();
 
     let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
@@ -124,7 +127,7 @@ async fn test_promise_queue_http_fetch() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args:         vec!["hello world".to_string()],
+                args:         vec![fetch_url.clone()],
                 program_name: "consensus".to_string(),
                 start_func:   Some("http_fetch_test".to_string()),
                 wasm_binary:  wasm_binary.to_vec(),
@@ -133,6 +136,19 @@ async fn test_promise_queue_http_fetch() {
             host_adapter.clone(),
         )
         .await;
-
     assert!(runtime_execution_result.is_ok());
+
+    let db_result = host_adapter.db_get("http_fetch_result");
+    assert!(db_result.is_some());
+
+    let result: PromiseStatus = serde_json::from_str(&db_result.unwrap()).unwrap();
+    assert!(matches!(result, PromiseStatus::Fulfilled(_)));
+
+    let result = match result {
+        PromiseStatus::Fulfilled(data) => String::from_utf8(data).unwrap(),
+        _ => panic!("Promise should be fulfilled"),
+    };
+    // Compare result with real API fetch
+    let expected_result = reqwest::get(fetch_url).await.unwrap().text().await.unwrap();
+    assert_eq!(result, expected_result);
 }
