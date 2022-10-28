@@ -6,7 +6,7 @@ use std::{
 pub trait DatabaseAdapter: Send {
     fn set(&mut self, key: &str, value: &str);
     fn get(&self, key: &str) -> Option<&String>;
-    fn getAll(&self) -> HashMap<String, String>;
+    fn get_all(&self) -> HashMap<String, String>;
 }
 
 #[async_trait::async_trait]
@@ -31,20 +31,6 @@ where
 {
     pub memory: VmTypes::Dummy,
 }
-
-// pub trait HostAdapterTypes: Clone + Default + 'static {
-//     type Database: DatabaseAdapter;
-//     // type Http: HttpAdapter;
-// }
-
-// pub struct HostAdapters<HostTypes>
-// where
-//     HostTypes: HostAdapterTypes,
-// {
-//     pub database: HostTypes::Database,
-//     // pub http:     HostTypes::Http,
-// }
-
 pub trait HostAdapterTypes: Default + Clone {
     type Database: DatabaseAdapter + Default;
     type Http: HttpAdapter + Default;
@@ -56,7 +42,7 @@ where
     T: HostAdapterTypes,
 {
     pub database: T::Database,
-    pub http: T::Http,
+    pub http:     T::Http,
 }
 
 #[derive(Clone)]

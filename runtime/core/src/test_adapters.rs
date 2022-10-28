@@ -19,7 +19,7 @@ impl DatabaseAdapter for DatabaseTestAdapter {
         self.data.insert(key.to_string(), value.to_string());
     }
 
-    fn getAll(&self) -> HashMap<String, String> {
+    fn get_all(&self) -> HashMap<String, String> {
         self.data.clone()
     }
 }

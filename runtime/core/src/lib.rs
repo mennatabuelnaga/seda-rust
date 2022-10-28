@@ -1,6 +1,5 @@
 /// WASI compatible WASM VM
 mod adapters;
-pub(crate) use adapters::*;
 
 mod config;
 pub use config::*;
