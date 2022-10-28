@@ -104,7 +104,7 @@ impl Promise {
         self
     }
 
-    pub fn result(index: i32) {
+    pub fn result(index: i32) -> Vec<u8> {
         let promise_result_length = unsafe { raw::promise_status_length(index) };
 
         let mut result_data: Vec<u8> = Vec::new();
@@ -116,6 +116,8 @@ impl Promise {
 
         let result = str::from_utf8(&result_data).unwrap();
         println!("Promise Result: {}", result);
+
+        result_data
     }
 }
 
