@@ -26,7 +26,8 @@ pub use memory_adapter::*;
 mod promise;
 pub(crate) use promise::*;
 
-pub mod runtime;
+mod runtime;
+pub use runtime::*;
 
 #[cfg(test)]
 #[path = ""]
