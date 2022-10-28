@@ -6,7 +6,7 @@ use near_sdk::{
     log,
     near_bindgen,
     AccountId,
-    BorshStorageKey,
+    BorshStorageKey, Promise,
 };
 
 /// LookupMap keys
@@ -107,6 +107,7 @@ impl MainchainContract {
 
         // refund storage deposit
         let storage_cost = env::storage_byte_cost() * u128::from(initial_storage_usage - env::storage_usage());
+        Promise::new(account_id.clone()).transfer(storage_cost);
         log!("Refunding {} for storage deposit to {}", storage_cost, account_id);
     }
 

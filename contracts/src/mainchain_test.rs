@@ -5,7 +5,7 @@ mod tests {
         json_types::U64,
         test_utils::{get_logs, VMContextBuilder},
         testing_env,
-        VMContext,
+        VMContext, env::account_balance,
     };
 
     use crate::mainchain::MainchainContract;
@@ -65,7 +65,6 @@ mod tests {
     #[test]
     fn remove_node() {
         let mut contract = MainchainContract::new();
-
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
         contract.register_node("0.0.0.0:8080".to_string());
@@ -79,6 +78,7 @@ mod tests {
 
         // remove the node
         testing_env!(get_context("bob_near".to_string()));
+        let balance_before = account_balance();
         contract.remove_node(U64(1));
         assert_eq!(
             get_logs(),
@@ -87,7 +87,8 @@ mod tests {
                 "Refunding 780000000000000000000 for storage deposit to bob_near"
             ]
         );
-
+        let balance_after = account_balance();
+        assert_eq!(balance_before - balance_after, 780000000000000000000);
         // check the socket address after removing
         testing_env!(get_context_view());
         assert_eq!(None, contract.get_node_socket_address(U64(1)));
