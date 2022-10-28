@@ -1,7 +1,7 @@
 use wasmer::{imports, Array, Function, ImportObject, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
-use crate::{context::VmContext, promise::Promise};
+use super::{Promise, VmContext};
 
 /// Adds a new promise to the promises stack
 pub fn promise_then_import_obj(store: &Store, vm_context: VmContext) -> Function {

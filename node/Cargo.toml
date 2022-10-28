@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 actix = { version = "0.13.0" }
+serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 tokio = { version = "1.21.2" }
+toml = { version = "0.5.9", default-features = false }

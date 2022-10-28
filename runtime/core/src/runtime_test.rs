@@ -1,12 +1,6 @@
 use std::{fs, process::Command, sync::Once};
 
-use super::VmConfig;
-use crate::{
-    adapters::HostAdapters,
-    promise::PromiseStatus,
-    runtime::{RunnablePotato, Runtime},
-    test::test_adapters::TestAdapters,
-};
+use super::{HostAdapters, PromiseStatus, RunnablePotato, Runtime, TestAdapters, VmConfig};
 
 static INIT: Once = Once::new();
 // This is not a standard thing you can do in rust..

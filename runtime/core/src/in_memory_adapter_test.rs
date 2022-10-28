@@ -1,5 +1,4 @@
-use super::{InMemory, MemoryAdapter};
-use crate::ToBytes;
+use super::{InMemory, MemoryAdapter, ToBytes};
 
 #[test]
 fn test_in_memory_storage() {

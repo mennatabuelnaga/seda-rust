@@ -1,4 +1,5 @@
 mod app;
+mod config;
 
 use actix::prelude::*;
 use app::App;

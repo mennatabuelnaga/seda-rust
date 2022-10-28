@@ -3,18 +3,18 @@ use std::sync::{Arc, Mutex};
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
-use super::Result;
-use crate::{
-    adapters::{HostAdapterTypes, HostAdapters},
-    config::VmConfig,
-    context::VmContext,
+use super::{
     imports::create_wasm_imports,
-    promise::{
-        promise_actions::{CallSelfAction, PromiseAction},
-        Promise,
-        PromiseQueue,
-        PromiseStatus,
-    },
+    CallSelfAction,
+    HostAdapterTypes,
+    HostAdapters,
+    Promise,
+    PromiseAction,
+    PromiseQueue,
+    PromiseStatus,
+    Result,
+    VmConfig,
+    VmContext,
 };
 
 #[derive(Clone, Default)]
