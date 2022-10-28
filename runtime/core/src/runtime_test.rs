@@ -6,7 +6,6 @@ use crate::{
     promise::PromiseStatus,
     runtime::{RunnablePotato, Runtime},
     test::test_adapters::TestAdapters,
-    RuntimeError,
 };
 
 static INIT: Once = Once::new();
@@ -34,11 +33,11 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 
     let runtime_execution_result = runtime.start_runtime(
         VmConfig {
-            args:         vec!["hello world".to_string()],
+            args: vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func:   None,
-            wasm_binary:  wasm_binary.to_vec(),
-            debug:        true,
+            start_func: None,
+            wasm_binary: wasm_binary.to_vec(),
+            debug: true,
         },
         host_adapter.clone(),
     );
@@ -50,6 +49,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 }
 
 #[tokio::test]
+#[should_panic(expected = "input bytes aren't valid utf-8")]
 async fn test_bad_wasm_file() {
     before_all();
 
@@ -59,30 +59,22 @@ async fn test_bad_wasm_file() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args:         vec!["hello world".to_string()],
+                args: vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func:   None,
-                wasm_binary:  vec![203],
-                debug:        true,
+                start_func: None,
+                wasm_binary: vec![203],
+                debug: true,
             },
             host_adapter.clone(),
         )
         .await;
 
     assert!(runtime_execution_result.is_err());
-
-    let error_type = match runtime_execution_result {
-        Ok(_) => panic!("Runtime should error"),
-        Err(err) => err,
-    };
-
-    match error_type {
-        RuntimeError::WasmCompileError(_) => (),
-        _ => panic!("WasmCompileError not triggered"),
-    }
+    runtime_execution_result.unwrap();
 }
 
 #[tokio::test]
+#[should_panic(expected = "Missing export non_existing_function")]
 async fn test_non_existing_function() {
     before_all();
 
@@ -103,15 +95,8 @@ async fn test_non_existing_function() {
         )
         .await;
 
-    let error_type = match runtime_execution_result {
-        Ok(_) => panic!("Runtime should error"),
-        Err(err) => err,
-    };
-
-    match error_type {
-        RuntimeError::FunctionNotFound(_) => (),
-        _ => panic!("FunctionNotFound not triggered"),
-    }
+    assert!(runtime_execution_result.is_err());
+    runtime_execution_result.unwrap();
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -127,11 +112,11 @@ async fn test_promise_queue_http_fetch() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args:         vec![fetch_url.clone()],
+                args: vec![fetch_url.clone()],
                 program_name: "consensus".to_string(),
-                start_func:   Some("http_fetch_test".to_string()),
-                wasm_binary:  wasm_binary.to_vec(),
-                debug:        true,
+                start_func: Some("http_fetch_test".to_string()),
+                wasm_binary: wasm_binary.to_vec(),
+                debug: true,
             },
             host_adapter.clone(),
         )
