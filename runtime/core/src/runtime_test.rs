@@ -1,37 +1,27 @@
-use std::{fs, process::Command, sync::Once};
+use std::{fs, path::PathBuf};
 
 use super::{HostAdapters, PromiseStatus, RunnablePotato, Runtime, TestAdapters, VmConfig};
 
-static INIT: Once = Once::new();
-// This is not a standard thing you can do in rust..
-fn before_all() {
-    INIT.call_once(|| {
-        println!("Building WASM test binary...");
+fn read_wasm() -> Vec<u8> {
+    let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path_prefix.push("./test_files/promise-wasm-bin.wasm");
 
-        let output = Command::new("cargo")
-            .current_dir("./test_res/promise_wasm_bin")
-            .args(["build", "--target", "wasm32-wasi", "--release"])
-            .output();
-
-        println!("Build completed: {}", output.is_ok());
-    });
+    fs::read(path_prefix).unwrap()
 }
 
 #[tokio::test]
 async fn test_promise_queue_multiple_calls_with_external_traits() {
-    before_all();
-
-    let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
+    let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let runtime = Runtime {};
 
     let runtime_execution_result = runtime.start_runtime(
         VmConfig {
-            args:         vec!["hello world".to_string()],
+            args: vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func:   None,
-            wasm_binary:  wasm_binary.to_vec(),
-            debug:        true,
+            start_func: None,
+            wasm_binary,
+            debug: true,
         },
         host_adapter.clone(),
     );
@@ -45,8 +35,6 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 #[tokio::test]
 #[should_panic(expected = "input bytes aren't valid utf-8")]
 async fn test_bad_wasm_file() {
-    before_all();
-
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let runtime = Runtime {};
 
@@ -70,9 +58,7 @@ async fn test_bad_wasm_file() {
 #[tokio::test]
 #[should_panic(expected = "Missing export non_existing_function")]
 async fn test_non_existing_function() {
-    before_all();
-
-    let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
+    let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let runtime = Runtime {};
 
@@ -97,20 +83,18 @@ async fn test_non_existing_function() {
 async fn test_promise_queue_http_fetch() {
     let fetch_url = "https://swapi.dev/api/people/2/".to_string();
 
-    before_all();
-
-    let wasm_binary = fs::read("../../target/wasm32-wasi/release/promise-wasm-bin.wasm").unwrap();
+    let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let runtime = Runtime {};
 
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args:         vec![fetch_url.clone()],
+                args: vec![fetch_url.clone()],
                 program_name: "consensus".to_string(),
-                start_func:   Some("http_fetch_test".to_string()),
-                wasm_binary:  wasm_binary.to_vec(),
-                debug:        true,
+                start_func: Some("http_fetch_test".to_string()),
+                wasm_binary,
+                debug: true,
             },
             host_adapter.clone(),
         )

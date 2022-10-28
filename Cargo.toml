@@ -4,7 +4,8 @@ members = [
 	"contracts",
 	"node",
 	"runtime/core",
-	"runtime/core/test_res/promise_wasm_bin",
+	# Commmented since it breaks test all locally and in CI.
+	# "runtime/core/test_res/promise_wasm_bin",
 	"runtime/macros",
 ]
 
