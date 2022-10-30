@@ -4,9 +4,11 @@ pub enum NearAdapterError {
     #[error("error calling contract change method")]
     CallChangeMethod(String),
     #[error("error calling contract view method")]
-    CallViewMethod(),
+    CallViewMethod,
     #[error("time limit exceeded for the transaction to be recognized")]
-    BadTransactionTimestamp(),
+    BadTransactionTimestamp,
     #[error("could not deserialize status to string")]
-    BadDeserialization(),
+    BadDeserialization,
 }
+
+pub type Result<T, E = NearAdapterError> = core::result::Result<T, E>;

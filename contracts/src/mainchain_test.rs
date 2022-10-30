@@ -2,10 +2,11 @@
 #[cfg(test)]
 mod tests {
     use near_sdk::{
+        env::account_balance,
         json_types::U64,
         test_utils::{get_logs, VMContextBuilder},
         testing_env,
-        VMContext, env::account_balance,
+        VMContext,
     };
 
     use crate::mainchain::MainchainContract;

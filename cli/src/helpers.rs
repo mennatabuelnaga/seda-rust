@@ -5,6 +5,8 @@ use near_primitives::{
     types::{AccountId, BlockReference},
 };
 
+use super::errors::{CliError, Result};
+
 #[allow(clippy::too_many_arguments)]
 pub async fn construct_signed_tx(
     signer_acc_str: String,
@@ -15,7 +17,7 @@ pub async fn construct_signed_tx(
     gas: u64,
     deposit: u128,
     server_url: String,
-) -> Result<SignedTransaction, Box<dyn std::error::Error>> {
+) -> Result<SignedTransaction> {
     let client = JsonRpcClient::connect(server_url);
 
     let signer_account_id: AccountId = signer_acc_str.parse().unwrap();
@@ -35,7 +37,7 @@ pub async fn construct_signed_tx(
 
     let current_nonce = match access_key_query_response.kind {
         QueryResponseKind::AccessKey(access_key) => access_key.nonce,
-        _ => Err("failed to extract current nonce")?,
+        _ => Err(CliError::FailedToExtractCurrentNonce)?,
     };
 
     let transaction = Transaction {

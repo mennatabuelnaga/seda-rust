@@ -9,12 +9,9 @@ use near_primitives::{
 use serde_json::{from_slice, json, Number};
 use tokio::time;
 
-use super::errors::NearAdapterError;
+use super::errors::{NearAdapterError, Result};
 
-pub async fn call_change_method(
-    signed_tx: SignedTransaction,
-    server_addr: String,
-) -> Result<FinalExecutionStatus, NearAdapterError> {
+pub async fn call_change_method(signed_tx: SignedTransaction, server_addr: String) -> Result<FinalExecutionStatus> {
     let client = JsonRpcClient::connect(server_addr);
 
     let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
@@ -37,7 +34,7 @@ pub async fn call_change_method(
         let delta = (received_at - sent_at).as_secs();
 
         if delta > 60 {
-            return Err(NearAdapterError::BadTransactionTimestamp());
+            return Err(NearAdapterError::BadTransactionTimestamp);
         }
 
         match response {
@@ -64,7 +61,7 @@ pub async fn call_view_method(
     method_name: String,
     args: Vec<u8>,
     server_addr: String,
-) -> Result<String, NearAdapterError> {
+) -> Result<String> {
     let client = JsonRpcClient::connect(server_addr);
 
     let request = methods::query::RpcQueryRequest {
@@ -81,14 +78,14 @@ pub async fn call_view_method(
     if let QueryResponseKind::CallResult(ref result) = response.kind {
         match from_slice::<String>(&result.result).is_ok() {
             true => Ok(from_slice::<String>(&result.result).unwrap()),
-            false => Err(NearAdapterError::BadDeserialization()),
+            false => Err(NearAdapterError::BadDeserialization),
         }
     } else {
-        Err(NearAdapterError::CallViewMethod())
+        Err(NearAdapterError::CallViewMethod)
     }
 }
 
-pub async fn get_node_owner(params: Params<'_>) -> Result<String, NearAdapterError> {
+pub async fn get_node_owner(params: Params<'_>) -> Result<String> {
     let method_name = "get_node_owner".to_string();
     let mut seq = params.sequence();
     let contract_id: String = seq.next().expect("Contract Id must be set");
@@ -98,7 +95,7 @@ pub async fn get_node_owner(params: Params<'_>) -> Result<String, NearAdapterErr
     call_view_method(contract_id, method_name, args, server_addr).await
 }
 
-pub async fn get_node_socket_address(params: Params<'_>) -> Result<String, NearAdapterError> {
+pub async fn get_node_socket_address(params: Params<'_>) -> Result<String> {
     let method_name = "get_node_socket_address".to_string();
     let mut seq = params.sequence();
     let contract_id: String = seq.next().expect("Contract Id must be set");
@@ -108,21 +105,21 @@ pub async fn get_node_socket_address(params: Params<'_>) -> Result<String, NearA
     call_view_method(contract_id, method_name, args, server_addr).await
 }
 
-pub async fn register_node(params: Params<'_>) -> Result<FinalExecutionStatus, NearAdapterError> {
+pub async fn register_node(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
     let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
     let server_addr: String = seq.next().expect("Server address must be set");
     call_change_method(signed_tx, server_addr).await
 }
 
-pub async fn remove_node(params: Params<'_>) -> Result<FinalExecutionStatus, NearAdapterError> {
+pub async fn remove_node(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
     let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
     let server_addr: String = seq.next().expect("Server address must be set");
     call_change_method(signed_tx, server_addr).await
 }
 
-pub async fn set_node_socket_address(params: Params<'_>) -> Result<FinalExecutionStatus, NearAdapterError> {
+pub async fn set_node_socket_address(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
     let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
     let server_addr: String = seq.next().expect("Server address must be set");

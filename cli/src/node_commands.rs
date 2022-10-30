@@ -6,13 +6,13 @@ use jsonrpsee::{
 use near_primitives::views::FinalExecutionStatus;
 use serde_json::json;
 
-use super::errors::{get_env_var, CliError};
+use super::errors::{get_env_var, Result};
 use crate::helpers::construct_signed_tx;
 
 const GAS: u64 = 300_000_000_000_000;
 const DEPOSIT_FOR_REGISTER_NODE: u128 = 87 * 10_u128.pow(19); // 0.00087 NEAR
 
-async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String, CliError> {
+async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String> {
     let seda_server_url = get_env_var("SEDA_SERVER_URL")?;
 
     let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
@@ -21,11 +21,7 @@ async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String, C
     Ok(response)
 }
 
-async fn format_tx_and_request_seda_server(
-    method: &str,
-    args: Vec<u8>,
-    deposit: u128,
-) -> Result<FinalExecutionStatus, CliError> {
+async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>, deposit: u128) -> Result<FinalExecutionStatus> {
     let seda_server_url = get_env_var("SEDA_SERVER_URL")?;
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let signer_acc_str = get_env_var("SIGNER_ACCOUNT_ID")?;
@@ -55,7 +51,7 @@ async fn format_tx_and_request_seda_server(
 }
 
 #[tokio::main]
-pub async fn register_node(socket_address: String) -> Result<(), CliError> {
+pub async fn register_node(socket_address: String) -> Result<()> {
     let method_name = "register_node";
 
     let response = format_tx_and_request_seda_server(
@@ -71,7 +67,7 @@ pub async fn register_node(socket_address: String) -> Result<(), CliError> {
 }
 
 #[tokio::main]
-pub async fn remove_node(node_id: u64) -> Result<(), CliError> {
+pub async fn remove_node(node_id: u64) -> Result<()> {
     let method_name = "remove_node";
 
     let response = format_tx_and_request_seda_server(
@@ -87,7 +83,7 @@ pub async fn remove_node(node_id: u64) -> Result<(), CliError> {
 }
 
 #[tokio::main]
-pub async fn set_node_socket_address(node_id: u64, new_socket_address: String) -> Result<(), CliError> {
+pub async fn set_node_socket_address(node_id: u64, new_socket_address: String) -> Result<()> {
     let method_name = "set_node_socket_address";
 
     let response = format_tx_and_request_seda_server(
@@ -105,7 +101,7 @@ pub async fn set_node_socket_address(node_id: u64, new_socket_address: String) -
 }
 
 #[tokio::main]
-pub async fn get_node_socket_address(node_id: u64) -> Result<(), CliError> {
+pub async fn get_node_socket_address(node_id: u64) -> Result<()> {
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;
 
@@ -121,7 +117,7 @@ pub async fn get_node_socket_address(node_id: u64) -> Result<(), CliError> {
 }
 
 #[tokio::main]
-pub async fn get_node_owner(node_id: u64) -> Result<(), CliError> {
+pub async fn get_node_owner(node_id: u64) -> Result<()> {
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;
 

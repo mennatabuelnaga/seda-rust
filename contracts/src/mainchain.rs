@@ -6,7 +6,8 @@ use near_sdk::{
     log,
     near_bindgen,
     AccountId,
-    BorshStorageKey, Promise,
+    BorshStorageKey,
+    Promise,
 };
 
 /// LookupMap keys
