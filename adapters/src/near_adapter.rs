@@ -19,7 +19,7 @@ pub async fn call_change_method(signed_tx: SignedTransaction, server_addr: Strin
     };
 
     let sent_at = time::Instant::now();
-    let tx_hash = client.call(request).await.expect("Couldn't fetch tx hash");
+    let tx_hash = client.call(request).await?;
 
     loop {
         let response = client
@@ -67,19 +67,16 @@ pub async fn call_view_method(
     let request = methods::query::RpcQueryRequest {
         block_reference: BlockReference::Finality(Finality::Final),
         request:         QueryRequest::CallFunction {
-            account_id: contract_id.parse().unwrap(),
+            account_id: contract_id.parse()?,
             method_name,
             args: FunctionArgs::from(args),
         },
     };
 
-    let response = client.call(request).await.expect("Error calling server");
+    let response = client.call(request).await?;
 
     if let QueryResponseKind::CallResult(ref result) = response.kind {
-        match from_slice::<String>(&result.result).is_ok() {
-            true => Ok(from_slice::<String>(&result.result).unwrap()),
-            false => Err(NearAdapterError::BadDeserialization),
-        }
+        Ok(from_slice::<String>(&result.result)?)
     } else {
         Err(NearAdapterError::CallViewMethod)
     }
@@ -88,9 +85,17 @@ pub async fn call_view_method(
 pub async fn get_node_owner(params: Params<'_>) -> Result<String> {
     let method_name = "get_node_owner".to_string();
     let mut seq = params.sequence();
-    let contract_id: String = seq.next().expect("Contract Id must be set");
-    let node_id: Number = seq.next().expect("Node Id must be set");
-    let server_addr: String = seq.next().expect("Server address must be set");
+
+    let contract_id: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("contract_id".to_string()))?;
+    let node_id: Number = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("node_id".to_string()))?;
+    let server_addr: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("server_addr".to_string()))?;
+
     let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
     call_view_method(contract_id, method_name, args, server_addr).await
 }
@@ -98,30 +103,52 @@ pub async fn get_node_owner(params: Params<'_>) -> Result<String> {
 pub async fn get_node_socket_address(params: Params<'_>) -> Result<String> {
     let method_name = "get_node_socket_address".to_string();
     let mut seq = params.sequence();
-    let contract_id: String = seq.next().expect("Contract Id must be set");
-    let node_id: Number = seq.next().expect("Node Id must be set");
-    let server_addr: String = seq.next().expect("Server address must be set");
+    let contract_id: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("contract_id".to_string()))?;
+    let node_id: Number = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("node_id".to_string()))?;
+    let server_addr: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("server_addr".to_string()))?;
+
     let args = json!({"node_id": node_id.to_string()}).to_string().into_bytes();
     call_view_method(contract_id, method_name, args, server_addr).await
 }
 
 pub async fn register_node(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
-    let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
-    let server_addr: String = seq.next().expect("Server address must be set");
+    let signed_tx: SignedTransaction = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("signed_tx".to_string()))?;
+    let server_addr: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("server_addr".to_string()))?;
+
     call_change_method(signed_tx, server_addr).await
 }
 
 pub async fn remove_node(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
-    let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
-    let server_addr: String = seq.next().expect("Server address must be set");
+    let signed_tx: SignedTransaction = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("signed_tx".to_string()))?;
+    let server_addr: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("server_addr".to_string()))?;
+
     call_change_method(signed_tx, server_addr).await
 }
 
 pub async fn set_node_socket_address(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
-    let signed_tx: SignedTransaction = seq.next().expect("Signed tx must be set");
-    let server_addr: String = seq.next().expect("Server address must be set");
+    let signed_tx: SignedTransaction = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("signed_tx".to_string()))?;
+    let server_addr: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("server_addr".to_string()))?;
+
     call_change_method(signed_tx, server_addr).await
 }

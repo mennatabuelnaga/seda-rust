@@ -21,7 +21,6 @@ pub fn run() {
         tokio::spawn(async move {
             tokio::signal::ctrl_c().await.expect("failed to listen for event");
             println!("\nStopping the node gracefully...");
-
             rpc_server.do_send(Stop);
             app.do_send(Shutdown);
         });

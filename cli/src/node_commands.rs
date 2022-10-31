@@ -15,8 +15,9 @@ const DEPOSIT_FOR_REGISTER_NODE: u128 = 87 * 10_u128.pow(19); // 0.00087 NEAR
 async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String> {
     let seda_server_url = get_env_var("SEDA_SERVER_URL")?;
 
-    let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
-    let response = client.request(method, params).await.unwrap();
+    let client = WsClientBuilder::default().build(&seda_server_url).await?;
+
+    let response = client.request(method, params).await?;
 
     Ok(response)
 }
@@ -38,14 +39,10 @@ async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>, deposit:
         deposit,
         near_server_url.clone(),
     )
-    .await
-    .unwrap();
+    .await?;
 
-    let client = WsClientBuilder::default().build(&seda_server_url).await.unwrap();
-    let response = client
-        .request(method, rpc_params![signed_tx, near_server_url])
-        .await
-        .unwrap();
+    let client = WsClientBuilder::default().build(&seda_server_url).await?;
+    let response = client.request(method, rpc_params![signed_tx, near_server_url]).await?;
 
     Ok(response)
 }

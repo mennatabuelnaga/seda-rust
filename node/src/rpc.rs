@@ -1,13 +1,13 @@
 use actix::prelude::*;
-use adapter::near_adapter::{
+use jsonrpsee_core::Error;
+use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
+use seda_adapters::near_adapter::{
     get_node_owner,
     get_node_socket_address,
     register_node,
     remove_node,
     set_node_socket_address,
 };
-use jsonrpsee_core::Error;
-use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -60,12 +60,9 @@ impl JsonRpcServer {
             result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        let server = WsServerBuilder::default()
-            .build("127.0.0.1:12345")
-            .await
-            .expect("builder didnt work");
+        let server = WsServerBuilder::default().build("127.0.0.1:12345").await?;
 
-        let handle = server.start(module).expect("server should start");
+        let handle = server.start(module)?;
 
         Ok(Self { handle })
     }
