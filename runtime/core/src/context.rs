@@ -1,5 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
+use parking_lot::Mutex;
 use wasmer::{HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
 use super::PromiseQueue;
@@ -13,7 +14,7 @@ pub struct VmContext {
 
 impl WasmerEnv for VmContext {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
-        let memory: Memory = instance.exports.get_with_generics_weak("memory").unwrap();
+        let memory: Memory = instance.exports.get_with_generics_weak("memory")?;
         self.memory.initialize(memory);
 
         Ok(())

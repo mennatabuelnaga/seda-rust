@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use super::{HostAdapters, PromiseStatus, RunnablePotato, Runtime, TestAdapters, VmConfig};
+use super::{HostAdapters, PromiseStatus, RunnableRuntime, Runtime, TestAdapters, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -25,7 +25,10 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
         },
         host_adapter.clone(),
     );
-    assert!(runtime_execution_result.await.is_ok());
+
+    let vm_result = runtime_execution_result.await;
+    dbg!("{:?}", &vm_result);
+    assert!(vm_result.is_ok());
 
     let value = host_adapter.db_get("test_value");
     assert!(value.is_some());
@@ -113,5 +116,7 @@ async fn test_promise_queue_http_fetch() {
     };
     // Compare result with real API fetch
     let expected_result = reqwest::get(fetch_url).await.unwrap().text().await.unwrap();
+
+    println!("Decoded result {}", result);
     assert_eq!(result, expected_result);
 }

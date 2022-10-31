@@ -1,17 +1,38 @@
-use wasmer::{imports, Array, Function, ImportObject, Module, Store, WasmPtr};
+use wasmer::{imports, Array, Function, ImportObject, Memory, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
 use super::{Promise, VmContext};
+use crate::RuntimeError;
+
+/// Wrapper around memory.get_ref to implement the RuntimeError
+fn get_memory(env: &VmContext) -> Result<&Memory, RuntimeError> {
+    match env.memory.get_ref() {
+        Some(memory) => Ok(memory),
+        None => Err(RuntimeError::VmHostError(
+            "Memory reference could not be retrieved".to_string(),
+        )),
+    }
+}
 
 /// Adds a new promise to the promises stack
 pub fn promise_then_import_obj(store: &Store, vm_context: VmContext) -> Function {
-    fn promise_result_write(env: &VmContext, ptr: WasmPtr<u8, Array>, length: i32) {
-        let memory_ref = env.memory.get_ref().unwrap();
-        let mut promises_queue_ref = env.promise_queue.lock().unwrap();
+    fn promise_result_write(env: &VmContext, ptr: WasmPtr<u8, Array>, length: i32) -> Result<(), RuntimeError> {
+        let memory_ref = get_memory(env)?;
+        let mut promises_queue_ref = env.promise_queue.lock();
 
-        let promise_data_raw = ptr.get_utf8_string(memory_ref, length as u32).unwrap();
-        let promise: Promise = serde_json::from_str(&promise_data_raw).unwrap();
+        let promise_data_raw = match ptr.get_utf8_string(memory_ref, length as u32) {
+            Some(data) => data,
+            None => return Err(RuntimeError::VmHostError("Error getting promise data".to_string())),
+        };
+
+        let promise: Promise = match serde_json::from_str(&promise_data_raw) {
+            Ok(prom) => prom,
+            Err(err) => return Err(RuntimeError::VmHostError(err.to_string())),
+        };
+
         promises_queue_ref.add_promise(promise);
+
+        Ok(())
     }
 
     Function::new_native_with_env(store, vm_context, promise_result_write)
@@ -19,16 +40,26 @@ pub fn promise_then_import_obj(store: &Store, vm_context: VmContext) -> Function
 
 /// Gets the length (stringified) of the promise status
 pub fn promise_status_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
-    fn promise_status_length(env: &VmContext, promise_index: i32) -> i64 {
-        let promises_queue_ref = env.current_promise_queue.lock().unwrap();
-        let promise_info = promises_queue_ref.queue.get(promise_index as usize).unwrap();
+    fn promise_status_length(env: &VmContext, promise_index: i32) -> Result<i64, RuntimeError> {
+        let promises_queue_ref = env.current_promise_queue.lock();
+
+        let promise_info = match promises_queue_ref.queue.get(promise_index as usize) {
+            Some(info) => info,
+            None => {
+                return Err(RuntimeError::VmHostError(format!(
+                    "Could not find promise at index {}",
+                    promise_index
+                )));
+            }
+        };
 
         // The length depends on the full status enum + result in JSON
-        serde_json::to_string(&promise_info.status)
-            .unwrap()
-            .len()
-            .try_into()
-            .unwrap()
+        let length = match serde_json::to_string(&promise_info.status) {
+            Ok(result) => result.len(),
+            Err(err) => return Err(RuntimeError::VmHostError(err.to_string())),
+        };
+
+        Ok(length as i64)
     }
 
     Function::new_native_with_env(store, vm_context, promise_status_length)
@@ -41,21 +72,38 @@ pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> 
         promise_index: i32,
         result_data_ptr: WasmPtr<u8, Array>,
         result_data_length: i64,
-    ) {
-        let memory_ref = env.memory.get_ref().unwrap();
-        let promises_ref = env.current_promise_queue.lock().unwrap();
-        let promise_info = promises_ref.queue.get(promise_index as usize).unwrap();
-        let promise_status = serde_json::to_string(&promise_info.status).unwrap();
-        let promise_status_bytes = promise_status.as_bytes();
+    ) -> Result<(), RuntimeError> {
+        let memory_ref = get_memory(env)?;
+        let promises_ref = env.current_promise_queue.lock();
+        let promise_info = match promises_ref.queue.get(promise_index as usize) {
+            Some(value) => value,
+            None => {
+                return Err(RuntimeError::VmHostError(format!(
+                    "No promise found at index: {}",
+                    promise_index
+                )));
+            }
+        };
 
-        let derefed_ptr = result_data_ptr.deref(memory_ref, 0, result_data_length as u32).unwrap();
+        let promise_status = match serde_json::to_string(&promise_info.status) {
+            Ok(value) => value,
+            Err(error) => return Err(RuntimeError::VmHostError(error.to_string())),
+        };
+
+        let promise_status_bytes = promise_status.as_bytes();
+        let derefed_ptr = match result_data_ptr.deref(memory_ref, 0, result_data_length as u32) {
+            Some(value) => value,
+            None => return Err(RuntimeError::VmHostError("Invalid pointer".to_string())),
+        };
 
         for index in 0..result_data_length {
-            derefed_ptr
-                .get(index as usize)
-                .unwrap()
-                .set(promise_status_bytes[index as usize]);
+            match derefed_ptr.get(index as usize) {
+                Some(value) => value.set(promise_status_bytes[index as usize]),
+                None => return Err(RuntimeError::VmHostError("Writing out of bounds to memory".to_string())),
+            };
         }
+
+        Ok(())
     }
 
     Function::new_native_with_env(store, vm_context, promise_status_write)

@@ -1,5 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
+use parking_lot::Mutex;
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
@@ -20,11 +21,11 @@ use super::{
 #[derive(Clone, Default)]
 pub struct Runtime {}
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct VmResult {}
 
 #[async_trait::async_trait]
-pub trait RunnablePotato {
+pub trait RunnableRuntime {
     async fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: Module,
@@ -40,7 +41,7 @@ pub trait RunnablePotato {
 }
 
 #[async_trait::async_trait]
-impl RunnablePotato for Runtime {
+impl RunnableRuntime for Runtime {
     async fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: Module,
@@ -52,7 +53,7 @@ impl RunnablePotato for Runtime {
             // This queue will be used in the current execution
             // We should not use the same promise_queue otherwise getting results back would
             // be hard to do due the indexes of results (will be hard to refactor)
-            let mut promise_queue = promise_queue.lock().unwrap();
+            let mut promise_queue = promise_queue.lock();
 
             if promise_queue.queue.is_empty() {
                 return Ok(VmResult {});
@@ -73,7 +74,7 @@ impl RunnablePotato for Runtime {
                         let vm_context =
                             VmContext::create_vm_context(current_promise_queue, next_promise_queue.clone());
                         let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module);
-                        let wasmer_instance = Instance::new(&wasm_module, &imports).unwrap();
+                        let wasmer_instance = Instance::new(&wasm_module, &imports)?;
 
                         let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
 

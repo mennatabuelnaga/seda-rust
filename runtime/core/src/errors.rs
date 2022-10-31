@@ -2,7 +2,7 @@ use std::{array::TryFromSliceError, str::Utf8Error};
 
 use error_stack::Report;
 use thiserror::Error;
-use wasmer::{CompileError, ExportError};
+use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::WasiStateCreationError;
 
 #[derive(Debug, Error)]
@@ -16,6 +16,9 @@ pub enum RuntimeError {
     WasmCompileError(Report<CompileError>),
 
     #[error("{0}")]
+    WasmInstantiationError(Report<InstantiationError>),
+
+    #[error("{0}")]
     WasiStateCreationError(Report<WasiStateCreationError>),
 
     #[error("{0}")]
@@ -23,6 +26,9 @@ pub enum RuntimeError {
 
     #[error("Error while running: {0}")]
     ExecutionError(Report<wasmer::RuntimeError>),
+
+    #[error("VM Host Error: {0}")]
+    VmHostError(String),
 }
 
 impl From<Report<Utf8Error>> for RuntimeError {
@@ -40,6 +46,12 @@ impl From<Report<TryFromSliceError>> for RuntimeError {
 impl From<CompileError> for RuntimeError {
     fn from(r: CompileError) -> Self {
         Self::WasmCompileError(r.into())
+    }
+}
+
+impl From<InstantiationError> for RuntimeError {
+    fn from(r: InstantiationError) -> Self {
+        Self::WasmInstantiationError(r.into())
     }
 }
 
