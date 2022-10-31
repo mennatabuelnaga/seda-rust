@@ -1,8 +1,14 @@
 use std::collections::HashMap;
 
-use crate::adapters::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
+use seda_runtime_macros::Adapter;
 
-#[derive(Clone, Default)]
+use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
+
+#[derive(Clone, Default, Adapter)]
+#[adapter(
+	database = DatabaseTestAdapter,
+	http = HttpTestAdapter,
+)]
 pub struct TestAdapters;
 
 #[derive(Default)]
@@ -32,9 +38,4 @@ impl HttpAdapter for HttpTestAdapter {
     async fn fetch(&mut self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
         reqwest::get(url).await
     }
-}
-
-impl HostAdapterTypes for TestAdapters {
-    type Database = DatabaseTestAdapter;
-    type Http = HttpTestAdapter;
 }

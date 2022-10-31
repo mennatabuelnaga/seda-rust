@@ -4,10 +4,12 @@ use parking_lot::Mutex;
 use wasmer::{HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
 use super::PromiseQueue;
+use crate::InMemory;
 
 #[derive(Clone)]
 pub struct VmContext {
     pub memory:                LazyInit<Memory>,
+    pub memory_adapter:        Arc<Mutex<InMemory>>,
     pub promise_queue:         Arc<Mutex<PromiseQueue>>,
     pub current_promise_queue: Arc<Mutex<PromiseQueue>>,
 }
@@ -23,10 +25,12 @@ impl WasmerEnv for VmContext {
 
 impl VmContext {
     pub fn create_vm_context(
+        memory_adapter: Arc<Mutex<InMemory>>,
         current_promise_queue: Arc<Mutex<PromiseQueue>>,
         promise_queue: Arc<Mutex<PromiseQueue>>,
     ) -> VmContext {
         VmContext {
+            memory_adapter,
             memory: LazyInit::new(),
             current_promise_queue,
             promise_queue,

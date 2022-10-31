@@ -5,18 +5,10 @@ use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
 use super::{
-    imports::create_wasm_imports,
-    CallSelfAction,
-    HostAdapterTypes,
-    HostAdapters,
-    Promise,
-    PromiseAction,
-    PromiseQueue,
-    PromiseStatus,
-    Result,
-    VmConfig,
-    VmContext,
+    imports::create_wasm_imports, CallSelfAction, HostAdapterTypes, HostAdapters, Promise, PromiseAction, PromiseQueue,
+    PromiseStatus, Result, VmConfig, VmContext,
 };
+use crate::InMemory;
 
 #[derive(Clone, Default)]
 pub struct Runtime {}
@@ -29,6 +21,7 @@ pub trait RunnableRuntime {
     async fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: Module,
+        memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: Arc<Mutex<PromiseQueue>>,
         host_adapters: HostAdapters<T>,
     ) -> Result<VmResult>;
@@ -36,6 +29,7 @@ pub trait RunnableRuntime {
     async fn start_runtime<T: HostAdapterTypes + Default>(
         &self,
         config: VmConfig,
+        memory_adapter: Arc<Mutex<InMemory>>,
         host_adapters: HostAdapters<T>,
     ) -> Result<VmResult>;
 }
@@ -45,6 +39,7 @@ impl RunnableRuntime for Runtime {
     async fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: Module,
+        memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: Arc<Mutex<PromiseQueue>>,
         host_adapters: HostAdapters<T>,
     ) -> Result<VmResult> {
@@ -71,8 +66,11 @@ impl RunnableRuntime for Runtime {
 
                         let current_promise_queue = Arc::new(Mutex::new(promise_queue.clone()));
 
-                        let vm_context =
-                            VmContext::create_vm_context(current_promise_queue, next_promise_queue.clone());
+                        let vm_context = VmContext::create_vm_context(
+                            memory_adapter.clone(),
+                            current_promise_queue,
+                            next_promise_queue.clone(),
+                        );
                         let imports =
                             create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module)?;
                         let wasmer_instance = Instance::new(&wasm_module, &imports)?;
@@ -104,13 +102,14 @@ impl RunnableRuntime for Runtime {
             }
         }
 
-        let res = self.execute_promise_queue(wasm_module, next_promise_queue, host_adapters);
+        let res = self.execute_promise_queue(wasm_module, memory_adapter.clone(), next_promise_queue, host_adapters);
         res.await
     }
 
     async fn start_runtime<T: HostAdapterTypes + Default>(
         &self,
         config: VmConfig,
+        memory_adapter: Arc<Mutex<InMemory>>,
         host_adapters: HostAdapters<T>,
     ) -> Result<VmResult> {
         let wasm_store = Store::default();
@@ -127,7 +126,12 @@ impl RunnableRuntime for Runtime {
             status: PromiseStatus::Unfulfilled,
         });
 
-        self.execute_promise_queue(wasm_module, Arc::new(Mutex::new(promise_queue)), host_adapters)
-            .await
+        self.execute_promise_queue(
+            wasm_module,
+            memory_adapter,
+            Arc::new(Mutex::new(promise_queue)),
+            host_adapters,
+        )
+        .await
     }
 }

@@ -105,7 +105,7 @@ pub fn adapter(input: TokenStream) -> TokenStream {
     let http = actions.http.unwrap();
 
     let adapter_trait_impl = quote!(
-        impl AdapterTypes for #name {
+        impl HostAdapterTypes for #name {
           type Database = #db;
           type Http = #http;
         }

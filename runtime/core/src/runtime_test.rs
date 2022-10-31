@@ -1,12 +1,18 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, sync::Arc};
 
-use super::{HostAdapters, PromiseStatus, RunnableRuntime, Runtime, TestAdapters, VmConfig};
+use parking_lot::Mutex;
+
+use super::{HostAdapters, InMemory, PromiseStatus, RunnableRuntime, Runtime, TestAdapters, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path_prefix.push("./test_files/promise-wasm-bin.wasm");
 
     fs::read(path_prefix).unwrap()
+}
+
+fn memory_adapter() -> Arc<Mutex<InMemory>> {
+    Arc::new(Mutex::new(InMemory::default()))
 }
 
 #[tokio::test]
@@ -23,6 +29,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
             wasm_binary,
             debug: true,
         },
+        memory_adapter(),
         host_adapter.clone(),
     );
 
@@ -44,12 +51,13 @@ async fn test_bad_wasm_file() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args:         vec!["hello world".to_string()],
+                args: vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func:   None,
-                wasm_binary:  vec![203],
-                debug:        true,
+                start_func: None,
+                wasm_binary: vec![203],
+                debug: true,
             },
+            memory_adapter(),
             host_adapter.clone(),
         )
         .await;
@@ -74,6 +82,7 @@ async fn test_non_existing_function() {
                 wasm_binary,
                 debug: true,
             },
+            memory_adapter(),
             host_adapter.clone(),
         )
         .await;
@@ -99,6 +108,7 @@ async fn test_promise_queue_http_fetch() {
                 wasm_binary,
                 debug: true,
             },
+            memory_adapter(),
             host_adapter.clone(),
         )
         .await;

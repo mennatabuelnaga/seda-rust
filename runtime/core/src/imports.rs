@@ -1,16 +1,11 @@
 use wasmer::{imports, Array, Function, ImportObject, Memory, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
-use super::{Promise, Result, RuntimeError, VmContext};
+use super::{MemoryAdapter, Promise, Result, RuntimeError, VmContext};
 
 /// Wrapper around memory.get_ref to implement the RuntimeError
 fn get_memory(env: &VmContext) -> Result<&Memory> {
-    match env.memory.get_ref() {
-        Some(memory) => Ok(memory),
-        None => Err(RuntimeError::VmHostError(
-            "Memory reference could not be retrieved".to_string(),
-        )),
-    }
+    Ok(env.memory.get_ref().ok_or("Memory reference could not be retrieved")?)
 }
 
 /// Adds a new promise to the promises stack
@@ -91,6 +86,57 @@ pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> 
     Function::new_native_with_env(store, vm_context, promise_status_write)
 }
 
+pub fn read_memory(store: &Store, vm_context: VmContext) -> Function {
+    fn read_from_memory(
+        env: &VmContext,
+        key: WasmPtr<u8, Array>,
+        key_len: i32,
+        result_data_ptr: WasmPtr<u8, Array>,
+        result_data_length: i64,
+    ) -> Result<()> {
+        let memory_ref = get_memory(env)?;
+        let key = key.get_utf8_string(memory_ref, key_len as u32).unwrap();
+
+        let memory_adapter = env.memory_adapter.lock();
+        let read_value: Vec<u8> = memory_adapter.get(&key).unwrap().unwrap_or_default();
+        if result_data_length as usize != read_value.len() {
+            todo!("throw error")
+        }
+
+        let derefed_ptr = result_data_ptr.deref(memory_ref, 0, result_data_length as u32).unwrap();
+        read_value
+            .iter()
+            .enumerate()
+            .take(result_data_length as usize)
+            .for_each(|(index, byte)| derefed_ptr.get(index).unwrap().set(*byte));
+        Ok(())
+    }
+
+    Function::new_native_with_env(store, vm_context, read_from_memory)
+}
+
+pub fn write_memory(store: &Store, vm_context: VmContext) -> Function {
+    fn write_to_memory(
+        env: &VmContext,
+        key: WasmPtr<u8, Array>,
+        key_len: i32,
+        value: WasmPtr<u8, Array>,
+        value_len: i32,
+    ) -> Result<()> {
+        let memory_ref = get_memory(env)?;
+        let key = key.get_utf8_string(memory_ref, key_len as u32).unwrap();
+        let value = value.deref(memory_ref, 0, value_len as u32).unwrap();
+        let value_bytes: Vec<u8> = value.into_iter().map(|wc| wc.get()).collect();
+
+        let mut memory_adapter = env.memory_adapter.lock();
+        memory_adapter.put(&key, value_bytes);
+
+        Ok(())
+    }
+
+    Function::new_native_with_env(store, vm_context, write_to_memory)
+}
+
 pub fn create_wasm_imports(
     store: &Store,
     vm_context: VmContext,
@@ -101,7 +147,9 @@ pub fn create_wasm_imports(
         "env" => {
             "promise_then" => promise_then_import_obj(store, vm_context.clone()),
             "promise_status_length" => promise_status_length_import_obj(store, vm_context.clone()),
-            "promise_status_write" => promise_status_write_import_obj(store, vm_context)
+            "promise_status_write" => promise_status_write_import_obj(store, vm_context.clone()),
+            "read_memory" => read_memory(store, vm_context.clone()),
+            "write_memory" => write_memory(store, vm_context)
         }
     };
 

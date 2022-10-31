@@ -1,10 +1,11 @@
 use std::ops::Deref;
 
 use error_stack::IntoReport;
+use serde::{Deserialize, Serialize};
 
 use super::Result;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bytes(Vec<u8>);
 
 /// We implement Deref over the Bytes type allowing us to avoid a clone for
@@ -21,11 +22,16 @@ pub trait ToBytes {
     fn to_bytes(self) -> Bytes;
 }
 
-pub trait FromBytes
-where
-    Self: Sized,
-{
-    fn from_bytes(bytes: &[u8]) -> Result<Self>;
+impl ToBytes for Bytes {
+    fn to_bytes(self) -> Bytes {
+        self
+    }
+}
+
+impl ToBytes for Vec<u8> {
+    fn to_bytes(self) -> Bytes {
+        Bytes(self)
+    }
 }
 
 impl ToBytes for String {
@@ -34,9 +40,32 @@ impl ToBytes for String {
     }
 }
 
+pub trait FromBytes
+where
+    Self: Sized,
+{
+    fn from_bytes(bytes: &[u8]) -> Result<Self>;
+
+    fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self>;
+}
+
+impl FromBytes for Vec<u8> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        Ok(bytes.to_vec())
+    }
+
+    fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self> {
+        Ok(bytes)
+    }
+}
+
 impl FromBytes for String {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
         Ok(std::str::from_utf8(bytes).into_report()?.into())
+    }
+
+    fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self> {
+        Self::from_bytes(bytes.as_slice())
     }
 }
 
@@ -52,6 +81,10 @@ macro_rules! bytes_impls_le_bytes {
             fn from_bytes(bytes: &[u8]) -> Result<Self> {
                 let bytes: [u8; $num_bytes] = bytes.try_into().into_report()?;
                 Ok(<$type_>::from_le_bytes(bytes))
+            }
+
+            fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self> {
+                Self::from_bytes(bytes.as_slice())
             }
         }
     };
