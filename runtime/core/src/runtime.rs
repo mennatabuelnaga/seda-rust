@@ -73,7 +73,8 @@ impl RunnableRuntime for Runtime {
 
                         let vm_context =
                             VmContext::create_vm_context(current_promise_queue, next_promise_queue.clone());
-                        let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module);
+                        let imports =
+                            create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module)?;
                         let wasmer_instance = Instance::new(&wasm_module, &imports)?;
 
                         let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;

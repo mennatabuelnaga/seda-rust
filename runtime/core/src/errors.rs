@@ -3,7 +3,7 @@ use std::{array::TryFromSliceError, str::Utf8Error};
 use error_stack::Report;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
-use wasmer_wasi::WasiStateCreationError;
+use wasmer_wasi::{WasiError, WasiStateCreationError};
 
 #[derive(Debug, Error)]
 pub enum RuntimeError {
@@ -18,6 +18,8 @@ pub enum RuntimeError {
     #[error("{0}")]
     WasmInstantiationError(Report<InstantiationError>),
 
+    #[error("{0}")]
+    WasiError(Report<WasiError>),
     #[error("{0}")]
     WasiStateCreationError(Report<WasiStateCreationError>),
 
@@ -55,6 +57,12 @@ impl From<InstantiationError> for RuntimeError {
     }
 }
 
+impl From<WasiError> for RuntimeError {
+    fn from(r: WasiError) -> Self {
+        Self::WasiError(r.into())
+    }
+}
+
 impl From<WasiStateCreationError> for RuntimeError {
     fn from(r: WasiStateCreationError) -> Self {
         Self::WasiStateCreationError(r.into())
@@ -70,6 +78,24 @@ impl From<ExportError> for RuntimeError {
 impl From<wasmer::RuntimeError> for RuntimeError {
     fn from(r: wasmer::RuntimeError) -> Self {
         Self::ExecutionError(r.into())
+    }
+}
+
+impl From<serde_json::Error> for RuntimeError {
+    fn from(s: serde_json::Error) -> Self {
+        Self::VmHostError(s.to_string())
+    }
+}
+
+impl From<String> for RuntimeError {
+    fn from(s: String) -> Self {
+        Self::VmHostError(s)
+    }
+}
+
+impl From<&str> for RuntimeError {
+    fn from(s: &str) -> Self {
+        Self::VmHostError(s.into())
     }
 }
 
