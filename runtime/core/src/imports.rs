@@ -1,7 +1,7 @@
 use wasmer::{imports, Array, Function, ImportObject, Memory, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
-use super::{MemoryAdapter, Promise, Result, RuntimeError, VmContext};
+use super::{MemoryAdapter, Result, RuntimeError, VmContext};
 
 /// Wrapper around memory.get_ref to implement the RuntimeError
 fn get_memory(env: &VmContext) -> Result<&Memory> {
@@ -14,15 +14,11 @@ pub fn promise_then_import_obj(store: &Store, vm_context: VmContext) -> Function
         let memory_ref = get_memory(env)?;
         let mut promises_queue_ref = env.promise_queue.lock();
 
-        let promise_data_raw = match ptr.get_utf8_string(memory_ref, length as u32) {
-            Some(data) => data,
-            None => return Err(RuntimeError::VmHostError("Error getting promise data".to_string())),
-        };
+        let promise_data_raw = ptr
+            .get_utf8_string(memory_ref, length as u32)
+            .ok_or("Error getting promise data")?;
 
-        let promise: Promise = match serde_json::from_str(&promise_data_raw) {
-            Ok(prom) => prom,
-            Err(err) => return Err(RuntimeError::VmHostError(err.to_string())),
-        };
+        let promise = serde_json::from_str(&promise_data_raw)?;
 
         promises_queue_ref.add_promise(promise);
 
@@ -40,7 +36,7 @@ pub fn promise_status_length_import_obj(store: &Store, vm_context: VmContext) ->
         let promise_info = promises_queue_ref
             .queue
             .get(promise_index as usize)
-            .ok_or_else(|| RuntimeError::VmHostError(format!("Could not find promise at index: {}", promise_index)))?;
+            .ok_or_else(|| format!("Could not find promise at index: {}", promise_index))?;
 
         // The length depends on the full status enum + result in JSON
         let status = serde_json::to_string(&promise_info.status)?;
@@ -95,20 +91,25 @@ pub fn read_memory(store: &Store, vm_context: VmContext) -> Function {
         result_data_length: i64,
     ) -> Result<()> {
         let memory_ref = get_memory(env)?;
-        let key = key.get_utf8_string(memory_ref, key_len as u32).unwrap();
+        let key = key
+            .get_utf8_string(memory_ref, key_len as u32)
+            .ok_or("Error getting promise data")?;
 
         let memory_adapter = env.memory_adapter.lock();
-        let read_value: Vec<u8> = memory_adapter.get(&key).unwrap().unwrap_or_default();
+        let read_value: Vec<u8> = memory_adapter.get(&key)?.unwrap_or_default();
         if result_data_length as usize != read_value.len() {
             todo!("throw error")
         }
 
-        let derefed_ptr = result_data_ptr.deref(memory_ref, 0, result_data_length as u32).unwrap();
-        read_value
-            .iter()
-            .enumerate()
-            .take(result_data_length as usize)
-            .for_each(|(index, byte)| derefed_ptr.get(index).unwrap().set(*byte));
+        let derefed_ptr = result_data_ptr
+            .deref(memory_ref, 0, result_data_length as u32)
+            .ok_or("Invalid pointer")?;
+        for (index, byte) in read_value.iter().enumerate().take(result_data_length as usize) {
+            derefed_ptr
+                .get(index)
+                .ok_or("Writing out of bounds to memory")?
+                .set(*byte);
+        }
         Ok(())
     }
 
@@ -124,8 +125,10 @@ pub fn write_memory(store: &Store, vm_context: VmContext) -> Function {
         value_len: i32,
     ) -> Result<()> {
         let memory_ref = get_memory(env)?;
-        let key = key.get_utf8_string(memory_ref, key_len as u32).unwrap();
-        let value = value.deref(memory_ref, 0, value_len as u32).unwrap();
+        let key = key
+            .get_utf8_string(memory_ref, key_len as u32)
+            .ok_or("Error getting promise data")?;
+        let value = value.deref(memory_ref, 0, value_len as u32).ok_or("Invalid pointer")?;
         let value_bytes: Vec<u8> = value.into_iter().map(|wc| wc.get()).collect();
 
         let mut memory_adapter = env.memory_adapter.lock();

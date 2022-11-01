@@ -5,8 +5,17 @@ use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
 use super::{
-    imports::create_wasm_imports, CallSelfAction, HostAdapterTypes, HostAdapters, Promise, PromiseAction, PromiseQueue,
-    PromiseStatus, Result, VmConfig, VmContext,
+    imports::create_wasm_imports,
+    CallSelfAction,
+    HostAdapterTypes,
+    HostAdapters,
+    Promise,
+    PromiseAction,
+    PromiseQueue,
+    PromiseStatus,
+    Result,
+    VmConfig,
+    VmContext,
 };
 use crate::InMemory;
 

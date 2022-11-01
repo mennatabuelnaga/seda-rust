@@ -51,11 +51,11 @@ async fn test_bad_wasm_file() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec!["hello world".to_string()],
+                args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func: None,
-                wasm_binary: vec![203],
-                debug: true,
+                start_func:   None,
+                wasm_binary:  vec![203],
+                debug:        true,
             },
             memory_adapter(),
             host_adapter.clone(),
