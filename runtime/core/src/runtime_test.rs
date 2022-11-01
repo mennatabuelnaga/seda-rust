@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
 
-use super::{HostAdapters, InMemory, PromiseStatus, RunnableRuntime, Runtime, TestAdapters, VmConfig};
+use super::{HostAdapters, InMemory, MemoryAdapter, PromiseStatus, RunnableRuntime, Runtime, TestAdapters, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -51,11 +51,11 @@ async fn test_bad_wasm_file() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args:         vec!["hello world".to_string()],
+                args: vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func:   None,
-                wasm_binary:  vec![203],
-                debug:        true,
+                start_func: None,
+                wasm_binary: vec![203],
+                debug: true,
             },
             memory_adapter(),
             host_adapter.clone(),
@@ -129,4 +129,33 @@ async fn test_promise_queue_http_fetch() {
 
     println!("Decoded result {}", result);
     assert_eq!(result, expected_result);
+}
+
+#[tokio::test]
+async fn test_memory_adapter() {
+    let host_adapter = HostAdapters::<TestAdapters>::default();
+    let runtime = Runtime {};
+    let memory_adapter = memory_adapter();
+    let wasm_binary = read_wasm();
+
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args: vec!["memory adapter".to_string()],
+                program_name: "consensus".to_string(),
+                start_func: Some("memory_adapter_test_success".to_string()),
+                wasm_binary,
+                debug: true,
+            },
+            memory_adapter.clone(),
+            host_adapter.clone(),
+        )
+        .await;
+
+    assert!(runtime_execution_result.is_ok());
+
+    let memory_adapter_ref = memory_adapter.lock();
+    let read_value: Result<Option<Vec<u8>>, _> = memory_adapter_ref.get("u8");
+    assert!(read_value.is_ok());
+    assert_eq!(read_value.unwrap(), Some(234u8.to_be_bytes().to_vec()));
 }

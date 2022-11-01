@@ -1,13 +1,11 @@
 use std::str;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use self::raw::promise_then;
+use raw::promise_then;
 
-mod raw;
-
-use serde::Deserialize;
+pub mod raw;
 
 #[derive(Serialize, Deserialize)]
 pub enum PromiseAction {
@@ -20,12 +18,12 @@ pub enum PromiseAction {
 #[derive(Serialize, Deserialize)]
 pub struct CallSelfAction {
     pub function_name: String,
-    pub args:          Vec<String>,
+    pub args: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DatabaseSetAction {
-    pub key:   String,
+    pub key: String,
     pub value: Vec<u8>,
 }
 
@@ -123,7 +121,7 @@ impl Promise {
 
 pub fn db_set(key: &str, value: &str) -> Promise {
     Promise::new(PromiseAction::DatabaseSet(DatabaseSetAction {
-        key:   key.to_string(),
+        key: key.to_string(),
         value: value.to_string().into_bytes(),
     }))
 }
@@ -141,4 +139,28 @@ pub fn call_self(function_name: &str, args: Vec<String>) -> Promise {
 
 pub fn http_fetch(url: &str) -> Promise {
     Promise::new(PromiseAction::Http(HttpAction { url: url.into() }))
+}
+
+pub fn read_memory(key: &str, value_len: usize) -> Vec<u8> {
+    let key_len = key.len() as i64;
+    let mut key = key.to_string().into_bytes();
+    let mut result_data_ptr = vec![0; value_len];
+    unsafe {
+        raw::read_memory(
+            key.as_mut_ptr(),
+            key_len,
+            result_data_ptr.as_mut_ptr(),
+            value_len as i64,
+        );
+    }
+    result_data_ptr
+}
+
+pub fn write_memory(key: &str, mut value: Vec<u8>) {
+    let key_len = key.len() as i64;
+    let mut key = key.to_string().into_bytes();
+    let value_len = value.len() as i64;
+    unsafe {
+        raw::write_memory(key.as_mut_ptr(), key_len, value.as_mut_ptr(), value_len);
+    }
 }

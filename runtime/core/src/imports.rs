@@ -86,19 +86,22 @@ pub fn read_memory(store: &Store, vm_context: VmContext) -> Function {
     fn read_from_memory(
         env: &VmContext,
         key: WasmPtr<u8, Array>,
-        key_len: i32,
+        key_length: i64,
         result_data_ptr: WasmPtr<u8, Array>,
         result_data_length: i64,
     ) -> Result<()> {
         let memory_ref = get_memory(env)?;
         let key = key
-            .get_utf8_string(memory_ref, key_len as u32)
+            .get_utf8_string(memory_ref, key_length as u32)
             .ok_or("Error getting promise data")?;
 
         let memory_adapter = env.memory_adapter.lock();
         let read_value: Vec<u8> = memory_adapter.get(&key)?.unwrap_or_default();
         if result_data_length as usize != read_value.len() {
-            todo!("throw error")
+            Err(format!(
+                "The result data length `{result_data_length}` is not the same length for the value `{}`",
+                read_value.len()
+            ))?;
         }
 
         let derefed_ptr = result_data_ptr
@@ -120,13 +123,13 @@ pub fn write_memory(store: &Store, vm_context: VmContext) -> Function {
     fn write_to_memory(
         env: &VmContext,
         key: WasmPtr<u8, Array>,
-        key_len: i32,
+        key_length: i64,
         value: WasmPtr<u8, Array>,
-        value_len: i32,
+        value_len: i64,
     ) -> Result<()> {
         let memory_ref = get_memory(env)?;
         let key = key
-            .get_utf8_string(memory_ref, key_len as u32)
+            .get_utf8_string(memory_ref, key_length as u32)
             .ok_or("Error getting promise data")?;
         let value = value.deref(memory_ref, 0, value_len as u32).ok_or("Invalid pointer")?;
         let value_bytes: Vec<u8> = value.into_iter().map(|wc| wc.get()).collect();

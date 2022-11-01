@@ -1,8 +1,6 @@
 use std::env;
 
-use promise::http_fetch;
-
-use crate::promise::{call_self, db_get, db_set, Promise};
+use crate::promise::{call_self, db_get, db_set, http_fetch, read_memory, write_memory, Promise};
 
 mod promise;
 
@@ -53,4 +51,16 @@ fn http_fetch_test_success() {
     let value_to_store = String::from_utf8(result).unwrap();
 
     db_set("http_fetch_result", &value_to_store).start();
+}
+
+#[no_mangle]
+fn memory_adapter_test_success() {
+    let key = "u8";
+    let value = 234u8.to_le_bytes().to_vec();
+    let value_len = value.len();
+
+    write_memory(key, value.clone());
+    let read_value = read_memory(key, value_len);
+    println!("read_value: {read_value:?}");
+    assert_eq!(read_value, value);
 }
