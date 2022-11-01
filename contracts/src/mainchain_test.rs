@@ -216,4 +216,58 @@ mod tests {
         assert_eq!(None, contract.get_node_socket_address(U64(1)));
         assert_eq!(get_logs(), vec!["get_node_socket_address for node_id 1"])
     }
+
+    #[test]
+    #[should_panic(expected = "Invalid socket address")]
+    fn register_invalid_characters() {
+        let mut contract = MainchainContract::new();
+
+        // register node
+        testing_env!(get_context_with_deposit("bob_near".to_string()));
+        contract.register_node("0.0.0[".to_string()).unwrap();
+    }
+
+    #[test]
+    fn get_nodes() {
+        let mut contract = MainchainContract::new();
+
+        // register three nodes
+        testing_env!(get_context_with_deposit("bob_near".to_string()));
+        contract.register_node("0.0.0.0:8080".to_string());
+        contract.register_node("1.1.1.1:8080".to_string());
+        contract.register_node("2.2.2.2:8080".to_string());
+        assert_eq!(
+            get_logs(),
+            vec![
+                "bob_near registered node_id 1",
+                "bob_near registered node_id 2",
+                "bob_near registered node_id 3",
+            ]
+        );
+
+        // check the latest 2 nodes
+        testing_env!(get_context_view());
+        let latest_2_nodes = contract.get_nodes(U64(2), U64(0));
+        assert_eq!(latest_2_nodes, "[\"2.2.2.2:8080\",\"1.1.1.1:8080\"]".to_string());
+
+        // check the latest 3 nodes
+        let latest_3_nodes = contract.get_nodes(U64(100), U64(0));
+        assert_eq!(
+            latest_3_nodes,
+            "[\"2.2.2.2:8080\",\"1.1.1.1:8080\",\"0.0.0.0:8080\"]".to_string()
+        );
+
+        // bob deletes the second node
+        testing_env!(get_context("bob_near".to_string()));
+        contract.remove_node(U64(2));
+
+        // check the latest nodes
+        testing_env!(get_context_view());
+        let latest_nodes = contract.get_nodes(U64(100), U64(0));
+        assert_eq!(latest_nodes, "[\"2.2.2.2:8080\",\"0.0.0.0:8080\"]".to_string());
+
+        // check offset of 1
+        let latest_nodes_offset = contract.get_nodes(U64(100), U64(1));
+        assert_eq!(latest_nodes_offset, "[\"0.0.0.0:8080\"]".to_string());
+    }
 }

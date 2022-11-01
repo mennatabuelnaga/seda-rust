@@ -114,6 +114,18 @@ pub async fn get_node_socket_address(node_id: u64) -> Result<()> {
 }
 
 #[tokio::main]
+pub async fn get_nodes(limit: u64, offset: u64) -> Result<()> {
+    let near_server_url = get_env_var("NEAR_SERVER_URL")?;
+    let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;
+
+    let response = view_seda_server("get_nodes", rpc_params![contract_id, limit, offset, near_server_url]).await?;
+
+    println!("response from server: {:?}", response);
+
+    Ok(())
+}
+
+#[tokio::main]
 pub async fn get_node_owner(node_id: u64) -> Result<()> {
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;

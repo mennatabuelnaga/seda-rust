@@ -4,7 +4,14 @@ mod node_commands;
 
 use clap::{Parser, Subcommand};
 use dotenv::dotenv;
-use node_commands::{get_node_owner, get_node_socket_address, register_node, remove_node, set_node_socket_address};
+use node_commands::{
+    get_node_owner,
+    get_node_socket_address,
+    get_nodes,
+    register_node,
+    remove_node,
+    set_node_socket_address,
+};
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -22,6 +29,12 @@ enum Commands {
     RegisterNode {
         #[arg(short, long)]
         socket_address: String,
+    },
+    GetNodes {
+        #[arg(short, long)]
+        limit:  u64,
+        #[arg(short, long, default_value = "0")]
+        offset: u64,
     },
     GetNodeSocketAddress {
         #[arg(short, long)]
@@ -52,6 +65,10 @@ fn main() {
             // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
             Commands::RegisterNode { socket_address } => {
                 register_node(socket_address).unwrap();
+            }
+            // cargo run --bin seda get-nodes --limit 2
+            Commands::GetNodes { limit, offset } => {
+                get_nodes(limit, offset).unwrap();
             }
             // cargo run --bin seda get-node-socket-address --node-id 9
             Commands::GetNodeSocketAddress { node_id } => {

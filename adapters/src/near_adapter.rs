@@ -117,6 +117,28 @@ pub async fn get_node_socket_address(params: Params<'_>) -> Result<String> {
     call_view_method(contract_id, method_name, args, server_addr).await
 }
 
+pub async fn get_nodes(params: Params<'_>) -> Result<String> {
+    let method_name = "get_nodes".to_string();
+    let mut seq = params.sequence();
+    let contract_id: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("contract_id".to_string()))?;
+    let limit: Number = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("limit".to_string()))?;
+    let offset: Number = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("offset".to_string()))?;
+    let server_addr: String = seq
+        .next()
+        .map_err(|_| NearAdapterError::MissingParam("server_addr".to_string()))?;
+
+    let args = json!({"limit": limit.to_string(), "offset": offset.to_string()})
+        .to_string()
+        .into_bytes();
+    call_view_method(contract_id, method_name, args, server_addr).await
+}
+
 pub async fn register_node(params: Params<'_>) -> Result<FinalExecutionStatus> {
     let mut seq = params.sequence();
     let signed_tx: SignedTransaction = seq

@@ -5,6 +5,7 @@ use near_sdk::{
     json_types::U64,
     log,
     near_bindgen,
+    serde_json,
     AccountId,
     BorshStorageKey,
     Promise,
@@ -67,6 +68,14 @@ impl MainchainContract {
     /// Registers a new node while charging for storage usage
     #[payable]
     pub fn register_node(&mut self, socket_address: String) -> Option<String> {
+        // require valid socket address characters
+        for c in socket_address.chars() {
+            assert!(
+                c.is_numeric() || c.is_alphabetic() || c == '.' || c == ':',
+                "Invalid socket address"
+            );
+        }
+
         // keep track of storage usage
         let initial_storage_usage = env::storage_usage();
 
@@ -180,5 +189,18 @@ impl MainchainContract {
             Some(node) => Some(node.socket_address),
             None => None,
         }
+    }
+
+    pub fn get_nodes(&self, limit: U64, offset: U64) -> String {
+        let mut nodes = Vec::new();
+        let mut node_id = self.num_nodes - u64::from(offset);
+        let limit = u64::from(limit);
+        while node_id > 0 && nodes.len() < limit.try_into().unwrap() {
+            if let Some(node) = self.nodes.get(&node_id) {
+                nodes.push(node.socket_address);
+            }
+            node_id -= 1;
+        }
+        serde_json::to_string(&nodes).unwrap()
     }
 }

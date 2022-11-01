@@ -4,6 +4,7 @@ use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 use seda_adapters::near_adapter::{
     get_node_owner,
     get_node_socket_address,
+    get_nodes,
     register_node,
     remove_node,
     set_node_socket_address,
@@ -40,6 +41,11 @@ impl JsonRpcServer {
 
         module.register_async_method("get_node_owner", |params, _| async move {
             let status = get_node_owner(params).await;
+            status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
+        })?;
+
+        module.register_async_method("get_nodes", |params, _| async move {
+            let status = get_nodes(params).await;
             status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
