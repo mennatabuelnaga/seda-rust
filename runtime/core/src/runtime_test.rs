@@ -51,11 +51,11 @@ async fn test_bad_wasm_file() {
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec!["hello world".to_string()],
+                args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func: None,
-                wasm_binary: vec![203],
-                debug: true,
+                start_func:   None,
+                wasm_binary:  vec![203],
+                debug:        true,
             },
             memory_adapter(),
             host_adapter.clone(),
@@ -156,6 +156,18 @@ async fn test_memory_adapter() {
 
     let memory_adapter_ref = memory_adapter.lock();
     let read_value: Result<Option<Vec<u8>>, _> = memory_adapter_ref.get("u8");
+    let expected = 234u8.to_le_bytes().to_vec();
+    let expected_str = format!("{expected:?}");
     assert!(read_value.is_ok());
-    assert_eq!(read_value.unwrap(), Some(234u8.to_be_bytes().to_vec()));
+    assert_eq!(read_value.unwrap(), Some(expected));
+
+    let u8_value = host_adapter.db_get("u8_result");
+    assert!(u8_value.is_some());
+    assert_eq!(u8_value.unwrap(), expected_str);
+
+    let u32_value = host_adapter.db_get("u32_result");
+    let expected = 3467u32.to_le_bytes().to_vec();
+    let expected_str = format!("{expected:?}");
+    assert!(u32_value.is_some());
+    assert_eq!(u32_value.unwrap(), expected_str);
 }

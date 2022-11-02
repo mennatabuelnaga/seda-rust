@@ -141,17 +141,13 @@ pub fn http_fetch(url: &str) -> Promise {
     Promise::new(PromiseAction::Http(HttpAction { url: url.into() }))
 }
 
-pub fn read_memory(key: &str, value_len: usize) -> Vec<u8> {
+pub fn read_memory(key: &str) -> Vec<u8> {
     let key_len = key.len() as i64;
     let mut key = key.to_string().into_bytes();
-    let mut result_data_ptr = vec![0; value_len];
+    let value_len = unsafe { raw::memory_read_length(key.as_mut_ptr(), key_len) };
+    let mut result_data_ptr = vec![0; value_len as usize];
     unsafe {
-        raw::read_memory(
-            key.as_mut_ptr(),
-            key_len,
-            result_data_ptr.as_mut_ptr(),
-            value_len as i64,
-        );
+        raw::read_memory(key.as_mut_ptr(), key_len, result_data_ptr.as_mut_ptr(), value_len);
     }
     result_data_ptr
 }

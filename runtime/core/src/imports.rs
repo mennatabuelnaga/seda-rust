@@ -82,8 +82,8 @@ pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> 
     Function::new_native_with_env(store, vm_context, promise_status_write)
 }
 
-pub fn read_memory(store: &Store, vm_context: VmContext) -> Function {
-    fn read_from_memory(
+pub fn read_memory_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn read_memory(
         env: &VmContext,
         key: WasmPtr<u8, Array>,
         key_length: i64,
@@ -116,11 +116,27 @@ pub fn read_memory(store: &Store, vm_context: VmContext) -> Function {
         Ok(())
     }
 
-    Function::new_native_with_env(store, vm_context, read_from_memory)
+    Function::new_native_with_env(store, vm_context, read_memory)
 }
 
-pub fn write_memory(store: &Store, vm_context: VmContext) -> Function {
-    fn write_to_memory(
+pub fn memory_read_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn memory_read_length(env: &VmContext, key: WasmPtr<u8, Array>, key_length: i64) -> Result<i64> {
+        let memory_ref = get_memory(env)?;
+        let key = key
+            .get_utf8_string(memory_ref, key_length as u32)
+            .ok_or("Error getting promise data")?;
+
+        let memory_adapter = env.memory_adapter.lock();
+        let read_value: Vec<u8> = memory_adapter.get(&key)?.unwrap_or_default();
+
+        Ok(read_value.len() as i64)
+    }
+
+    Function::new_native_with_env(store, vm_context, memory_read_length)
+}
+
+pub fn write_memory_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn write_memory(
         env: &VmContext,
         key: WasmPtr<u8, Array>,
         key_length: i64,
@@ -140,7 +156,7 @@ pub fn write_memory(store: &Store, vm_context: VmContext) -> Function {
         Ok(())
     }
 
-    Function::new_native_with_env(store, vm_context, write_to_memory)
+    Function::new_native_with_env(store, vm_context, write_memory)
 }
 
 pub fn create_wasm_imports(
@@ -154,8 +170,9 @@ pub fn create_wasm_imports(
             "promise_then" => promise_then_import_obj(store, vm_context.clone()),
             "promise_status_length" => promise_status_length_import_obj(store, vm_context.clone()),
             "promise_status_write" => promise_status_write_import_obj(store, vm_context.clone()),
-            "read_memory" => read_memory(store, vm_context.clone()),
-            "write_memory" => write_memory(store, vm_context)
+            "read_memory" => read_memory_import_obj(store, vm_context.clone()),
+            "memory_read_length" => memory_read_length_import_obj(store, vm_context.clone()),
+            "write_memory" => write_memory_import_obj(store, vm_context)
         }
     };
 

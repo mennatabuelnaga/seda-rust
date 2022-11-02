@@ -1,6 +1,6 @@
 use super::{Bytes, FromBytes, Result, ToBytes};
 
-pub trait MemoryAdapter: Send {
+pub trait MemoryAdapter {
     fn get<V>(&self, key: &str) -> Result<Option<V>>
     where
         V: FromBytes;

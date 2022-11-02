@@ -11,7 +11,7 @@ use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
 )]
 pub struct TestAdapters;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct DatabaseTestAdapter {
     data: HashMap<String, String>,
 }
@@ -30,7 +30,7 @@ impl DatabaseAdapter for DatabaseTestAdapter {
     }
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct HttpTestAdapter;
 
 #[async_trait::async_trait]

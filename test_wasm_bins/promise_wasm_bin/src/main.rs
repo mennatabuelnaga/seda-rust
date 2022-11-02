@@ -57,10 +57,22 @@ fn http_fetch_test_success() {
 fn memory_adapter_test_success() {
     let key = "u8";
     let value = 234u8.to_le_bytes().to_vec();
-    let value_len = value.len();
-
     write_memory(key, value.clone());
-    let read_value = read_memory(key, value_len);
+
+    let read_value = read_memory(key);
     println!("read_value: {read_value:?}");
     assert_eq!(read_value, value);
+
+    let key = "u32";
+    let value = 3467u32.to_le_bytes().to_vec();
+    write_memory(key, value);
+    call_self("memory_adapter_callback_test_success", Vec::new()).start();
+}
+
+#[no_mangle]
+fn memory_adapter_callback_test_success() {
+    let read_value = read_memory("u8");
+    db_set("u8_result", &format!("{read_value:?}")).start();
+    let read_value = read_memory("u32");
+    db_set("u32_result", &format!("{read_value:?}")).start();
 }

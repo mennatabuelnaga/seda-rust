@@ -1,7 +1,7 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
+
+use parking_lot::Mutex;
+use tokio::sync::Mutex as AsyncMutex;
 
 pub trait DatabaseAdapter: Send {
     fn set(&mut self, key: &str, value: &str);
@@ -32,8 +32,8 @@ where
     pub memory: VmTypes::Dummy,
 }
 pub trait HostAdapterTypes: Default + Clone {
-    type Database: DatabaseAdapter + Default;
-    type Http: HttpAdapter + Default;
+    type Database: DatabaseAdapter + Default + Clone;
+    type Http: HttpAdapter + Default + Clone;
 }
 
 #[derive(Default, Clone)]
@@ -41,8 +41,8 @@ pub struct HostAdaptersInner<T>
 where
     T: HostAdapterTypes,
 {
-    pub database: T::Database,
-    pub http:     T::Http,
+    pub database: Arc<Mutex<T::Database>>,
+    pub http:     Arc<AsyncMutex<T::Http>>,
 }
 
 #[derive(Clone)]
@@ -50,7 +50,7 @@ pub struct HostAdapters<T>
 where
     T: HostAdapterTypes,
 {
-    inner: Arc<Mutex<HostAdaptersInner<T>>>,
+    inner: HostAdaptersInner<T>,
 }
 
 impl<T> HostAdapters<T>
@@ -59,22 +59,22 @@ where
 {
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(Mutex::new(HostAdaptersInner::<T>::default())),
+            inner: HostAdaptersInner::<T>::default(),
         }
     }
 
     pub fn db_get(&self, key: &str) -> Option<String> {
-        self.inner.lock().unwrap().database.get(key).cloned()
+        self.inner.database.lock().get(key).cloned()
     }
 
     pub fn db_set(&self, key: &str, value: &str) {
-        self.inner.lock().as_mut().unwrap().database.set(key, value);
+        self.inner.database.lock().set(key, value);
     }
 
     pub fn http_fetch(&self, url: &str) -> Result<String, reqwest::Error> {
         tokio::task::block_in_place(move || {
             tokio::runtime::Handle::current()
-                .block_on(async move { self.inner.lock().as_mut().unwrap().http.fetch(url).await?.text().await })
+                .block_on(async move { self.inner.http.lock().await.fetch(url).await?.text().await })
         })
     }
 }
