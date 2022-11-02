@@ -1,6 +1,6 @@
 //! WASI compatible WASM VM
 
-mod adapters;
+pub mod adapters;
 pub use adapters::*;
 
 mod bytes;

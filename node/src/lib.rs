@@ -1,17 +1,39 @@
 mod app;
+mod event_queue;
+mod event_queue_handler;
+mod job_manager;
 mod rpc;
+mod runtime_job;
+mod test_adapters;
+
+use std::sync::Arc;
+
 use actix::prelude::*;
 use app::App;
+use event_queue::EventQueue;
+use parking_lot::RwLock;
 use rpc::JsonRpcServer;
 
 use crate::{app::Shutdown, rpc::Stop};
+
+#[cfg(test)]
+#[path = ""]
+pub mod test {
+    mod event_queue_test;
+    mod job_manager_test;
+}
 
 pub fn run() {
     let system = System::new();
 
     // Initialize actors inside system context
     system.block_on(async {
-        let app = App.start();
+        let app = App {
+            event_queue:       Arc::new(RwLock::new(EventQueue::default())),
+            running_event_ids: Arc::new(RwLock::new(Vec::new())),
+        }
+        .start();
+
         let rpc_server = JsonRpcServer::build()
             .await
             .expect("Error starting jsonrpsee server")

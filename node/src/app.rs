@@ -1,16 +1,27 @@
+use std::sync::Arc;
+
 use actix::prelude::*;
+use parking_lot::RwLock;
+
+use crate::{
+    event_queue::{EventId, EventQueue},
+    job_manager::StartJobManager,
+};
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Shutdown;
 
 // Node Actor definition
-pub struct App;
+pub struct App {
+    pub event_queue:       Arc<RwLock<EventQueue>>,
+    pub running_event_ids: Arc<RwLock<Vec<EventId>>>,
+}
 
 impl Actor for App {
     type Context = Context<Self>;
 
-    fn started(&mut self, _ctx: &mut Self::Context) {
+    fn started(&mut self, ctx: &mut Self::Context) {
         println!("Node starting...");
         let banner = r#"
          _____ __________  ___         ____  __  _____________
@@ -21,7 +32,7 @@ impl Actor for App {
         "#;
         println!("{}", banner);
 
-        // Node starting logic...
+        ctx.notify(StartJobManager);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
