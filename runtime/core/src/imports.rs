@@ -82,8 +82,9 @@ pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> 
     Function::new_native_with_env(store, vm_context, promise_status_write)
 }
 
-pub fn read_memory_import_obj(store: &Store, vm_context: VmContext) -> Function {
-    fn read_memory(
+/// Reads the value from memory as byte array to the wasm result pointer.
+pub fn memory_read_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn memory_read(
         env: &VmContext,
         key: WasmPtr<u8, Array>,
         key_length: i64,
@@ -116,9 +117,10 @@ pub fn read_memory_import_obj(store: &Store, vm_context: VmContext) -> Function 
         Ok(())
     }
 
-    Function::new_native_with_env(store, vm_context, read_memory)
+    Function::new_native_with_env(store, vm_context, memory_read)
 }
 
+/// Reads the value from memory as byte array and sends the number of bytes to WASM.
 pub fn memory_read_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
     fn memory_read_length(env: &VmContext, key: WasmPtr<u8, Array>, key_length: i64) -> Result<i64> {
         let memory_ref = get_memory(env)?;
@@ -135,8 +137,9 @@ pub fn memory_read_length_import_obj(store: &Store, vm_context: VmContext) -> Fu
     Function::new_native_with_env(store, vm_context, memory_read_length)
 }
 
-pub fn write_memory_import_obj(store: &Store, vm_context: VmContext) -> Function {
-    fn write_memory(
+/// Writes the value from WASM to the memory storage object.
+pub fn memory_write_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn memory_write(
         env: &VmContext,
         key: WasmPtr<u8, Array>,
         key_length: i64,
@@ -156,9 +159,10 @@ pub fn write_memory_import_obj(store: &Store, vm_context: VmContext) -> Function
         Ok(())
     }
 
-    Function::new_native_with_env(store, vm_context, write_memory)
+    Function::new_native_with_env(store, vm_context, memory_write)
 }
 
+// Creates the WASM function imports with the stringed names.
 pub fn create_wasm_imports(
     store: &Store,
     vm_context: VmContext,
@@ -170,9 +174,9 @@ pub fn create_wasm_imports(
             "promise_then" => promise_then_import_obj(store, vm_context.clone()),
             "promise_status_length" => promise_status_length_import_obj(store, vm_context.clone()),
             "promise_status_write" => promise_status_write_import_obj(store, vm_context.clone()),
-            "read_memory" => read_memory_import_obj(store, vm_context.clone()),
+            "memory_read" => memory_read_import_obj(store, vm_context.clone()),
             "memory_read_length" => memory_read_length_import_obj(store, vm_context.clone()),
-            "write_memory" => write_memory_import_obj(store, vm_context)
+            "memory_write" => memory_write_import_obj(store, vm_context)
         }
     };
 

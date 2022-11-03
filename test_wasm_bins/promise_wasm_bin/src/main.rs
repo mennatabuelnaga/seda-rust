@@ -1,6 +1,6 @@
 use std::env;
 
-use crate::promise::{call_self, db_get, db_set, http_fetch, read_memory, write_memory, Promise};
+use crate::promise::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
 
 mod promise;
 
@@ -57,22 +57,22 @@ fn http_fetch_test_success() {
 fn memory_adapter_test_success() {
     let key = "u8";
     let value = 234u8.to_le_bytes().to_vec();
-    write_memory(key, value.clone());
+    memory_write(key, value.clone());
 
-    let read_value = read_memory(key);
+    let read_value = memory_read(key);
     println!("read_value: {read_value:?}");
     assert_eq!(read_value, value);
 
     let key = "u32";
     let value = 3467u32.to_le_bytes().to_vec();
-    write_memory(key, value);
+    memory_write(key, value);
     call_self("memory_adapter_callback_test_success", Vec::new()).start();
 }
 
 #[no_mangle]
 fn memory_adapter_callback_test_success() {
-    let read_value = read_memory("u8");
+    let read_value = memory_read("u8");
     db_set("u8_result", &format!("{read_value:?}")).start();
-    let read_value = read_memory("u32");
+    let read_value = memory_read("u32");
     db_set("u32_result", &format!("{read_value:?}")).start();
 }
