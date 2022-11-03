@@ -120,7 +120,8 @@ pub fn memory_read_import_obj(store: &Store, vm_context: VmContext) -> Function 
     Function::new_native_with_env(store, vm_context, memory_read)
 }
 
-/// Reads the value from memory as byte array and sends the number of bytes to WASM.
+/// Reads the value from memory as byte array and sends the number of bytes to
+/// WASM.
 pub fn memory_read_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
     fn memory_read_length(env: &VmContext, key: WasmPtr<u8, Array>, key_length: i64) -> Result<i64> {
         let memory_ref = get_memory(env)?;
