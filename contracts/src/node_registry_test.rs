@@ -9,7 +9,7 @@ mod tests {
         VMContext,
     };
 
-    use crate::mainchain::MainchainContract;
+    use crate::MainchainContract;
 
     fn get_context_view() -> VMContext {
         VMContextBuilder::new().is_view(true).build()

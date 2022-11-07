@@ -1,35 +1,22 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    collections::LookupMap,
     env,
     json_types::U64,
     log,
     near_bindgen,
     serde_json,
     AccountId,
-    BorshStorageKey,
     Promise,
 };
 
-/// LookupMap keys
-#[derive(BorshStorageKey, BorshSerialize)]
-enum MainchainStorageKeys {
-    NumNodes,
-}
+use crate::{MainchainContract, MainchainContractExt};
+
 /// Node information
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Node {
     pub owner:          AccountId,
     pub pending_owner:  Option<AccountId>,
     pub socket_address: String, // ip address and port
-}
-
-/// Contract global state
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct MainchainContract {
-    num_nodes: u64,
-    nodes:     LookupMap<u64, Node>,
 }
 
 /// Contract private methods
@@ -48,23 +35,9 @@ impl MainchainContract {
     }
 }
 
-impl Default for MainchainContract {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Contract public methods
 #[near_bindgen]
 impl MainchainContract {
-    #[init]
-    pub fn new() -> Self {
-        Self {
-            num_nodes: 0,
-            nodes:     LookupMap::new(MainchainStorageKeys::NumNodes),
-        }
-    }
-
     /// Registers a new node while charging for storage usage
     #[payable]
     pub fn register_node(&mut self, socket_address: String) -> Option<String> {
