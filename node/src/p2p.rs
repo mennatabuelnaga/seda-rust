@@ -6,17 +6,28 @@ use std::{
 
 use async_std::io;
 use libp2p::{
+    core::transport::{upgrade, MemoryTransport},
+    floodsub::{self, Floodsub, FloodsubEvent},
     futures::{prelude::*, select, StreamExt},
     gossipsub::{self, Gossipsub, GossipsubEvent, GossipsubMessage, IdentTopic, MessageId, ValidationMode},
     identity::{self},
+    mdns,
     mdns::{Mdns, MdnsConfig, MdnsEvent},
-    swarm::{Swarm, SwarmEvent},
+    mplex,
+    noise::{self, Keypair},
+    swarm::{NetworkBehaviour, Swarm, SwarmEvent},
+    tcp,
+    yamux::{self, YamuxConfig},
     Multiaddr,
     PeerId,
+    Transport,
 };
 
 use super::errors::Result;
-use crate::p2p_behaviour::{SedaBehaviour, SedaBehaviourEvent};
+use crate::{
+    p2p_behaviour::{SedaBehaviour, SedaBehaviourEvent},
+    p2p_utils::build_tcp_transport,
+};
 
 pub struct P2PConfig {
     pub server_address: Option<String>,
@@ -60,7 +71,15 @@ impl P2PServer {
         gossipsub.subscribe(&topic).unwrap();
 
         // Build Swarm
-        let transport = libp2p::development_transport(local_key.clone()).await?;
+        // let transport = libp2p::development_transport(local_key.clone()).await?;
+
+        // Create a random PeerId
+        let key_pair = identity::Keypair::generate_ed25519();
+        let peer_id = PeerId::from(key_pair.public());
+        println!("Local peer id: {peer_id:?}");
+
+        let transport = build_tcp_transport(key_pair);
+
         let seda_behaviour = SedaBehaviour {
             mdns: Mdns::new(MdnsConfig::default()).await.unwrap(),
             gossipsub,

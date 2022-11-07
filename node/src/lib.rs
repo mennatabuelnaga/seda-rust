@@ -5,6 +5,7 @@ mod event_queue_handler;
 mod job_manager;
 mod p2p;
 mod p2p_behaviour;
+mod p2p_utils;
 mod rpc;
 mod runtime_job;
 mod test_adapters;
