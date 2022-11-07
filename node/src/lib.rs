@@ -2,6 +2,7 @@ mod app;
 mod event_queue;
 mod event_queue_handler;
 mod job_manager;
+mod p2p;
 mod rpc;
 mod runtime_job;
 mod test_adapters;
@@ -14,7 +15,7 @@ use event_queue::EventQueue;
 use parking_lot::RwLock;
 use rpc::JsonRpcServer;
 
-use crate::{app::Shutdown, rpc::Stop};
+use crate::{app::Shutdown, p2p::p2p_listen, rpc::Stop};
 
 #[cfg(test)]
 #[path = ""]
@@ -23,7 +24,7 @@ pub mod test {
     mod job_manager_test;
 }
 
-pub fn run() {
+pub fn run(peer_address: Option<String>) {
     let system = System::new();
 
     // Initialize actors inside system context
@@ -34,6 +35,7 @@ pub fn run() {
         }
         .start();
 
+        p2p_listen(peer_address).await.unwrap();
         let rpc_server = JsonRpcServer::build()
             .await
             .expect("Error starting jsonrpsee server")

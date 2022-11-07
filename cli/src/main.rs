@@ -25,7 +25,10 @@ struct Options {
 
 #[derive(Subcommand)]
 enum Commands {
-    Run,
+    Run {
+        #[arg(short, long)]
+        peer_address: Option<String>,
+    },
     RegisterNode {
         #[arg(short, long)]
         socket_address: String,
@@ -75,7 +78,7 @@ fn main() {
                 get_node_socket_address(node_id).unwrap();
             }
             // cargo run --bin seda run
-            Commands::Run => seda_node::run(),
+            Commands::Run { peer_address } => seda_node::run(peer_address),
             // cargo run --bin seda remove-node --node-id 9
             Commands::RemoveNode { node_id } => remove_node(node_id).unwrap(),
             // cargo run --bin seda set-node-socket-address --node-id 9 --socket-address 127.0.0.1:9000

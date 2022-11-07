@@ -9,7 +9,7 @@ RUN apt-get update \
     && apt-get purge -y imagemagick imagemagick-6-common
 
 # Tools
-RUN  apt-get -y install --no-install-recommends vim
+RUN apt-get -y install --no-install-recommends vim
 
 # WASM dependencies + Rustup
 RUN apt-get -y install --no-install-recommends binaryen
@@ -19,3 +19,6 @@ RUN rustup target add wasm32-unknown-unknown
 # Rustfmt with nightly toolchain
 RUN rustup install nightly
 RUN rustup component add rustfmt --toolchain nightly
+
+# Dependencies
+RUN apt-get -y install --no-install-recommends protobuf-compiler 
