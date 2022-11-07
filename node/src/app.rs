@@ -6,6 +6,7 @@ use parking_lot::RwLock;
 use crate::{
     event_queue::{EventId, EventQueue},
     job_manager::StartJobManager,
+    runtime_job::RuntimeWorker,
 };
 
 #[derive(Message)]
@@ -32,7 +33,9 @@ impl Actor for App {
         "#;
         println!("{}", banner);
 
-        ctx.notify(StartJobManager);
+        // TODO: use config param for setting the number of threads
+        let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker);
+        ctx.notify(StartJobManager { runtime_worker });
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {

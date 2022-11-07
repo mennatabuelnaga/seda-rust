@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use actix::{prelude::*, Handler, Message};
 use seda_runtime::{HostAdapters, RunnableRuntime, Runtime, VmConfig};
 
-use crate::{app::App, event_queue::Event, test_adapters::TestAdapters};
+use crate::{event_queue::Event, test_adapters::TestAdapters};
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -11,10 +11,16 @@ pub struct RuntimeJob {
     pub event: Event,
 }
 
-impl Handler<RuntimeJob> for App {
+pub struct RuntimeWorker;
+
+impl Actor for RuntimeWorker {
+    type Context = SyncContext<Self>;
+}
+
+impl Handler<RuntimeJob> for RuntimeWorker {
     type Result = ();
 
-    fn handle(&mut self, _msg: RuntimeJob, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, _msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
         let host_adapters = HostAdapters::<TestAdapters>::default();
         // TODO: Replace the binary with the actual consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -30,11 +36,6 @@ impl Handler<RuntimeJob> for App {
             wasm_binary:  fs::read(path_prefix).unwrap(),
         };
 
-        let runtime_fut = Box::pin(async move {
-            let _result = runtime.start_runtime(vm_config, host_adapters).await;
-        });
-
-        let runtime_actor_future = runtime_fut.into_actor(self);
-        ctx.spawn(runtime_actor_future);
+        let _res = futures::executor::block_on(runtime.start_runtime(vm_config, host_adapters));
     }
 }

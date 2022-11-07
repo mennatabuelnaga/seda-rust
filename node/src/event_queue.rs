@@ -1,6 +1,7 @@
 pub type EventId = String;
 
 #[derive(Clone, Copy, Debug)]
+#[allow(dead_code)]
 pub enum EventData {
     // Tick types
     MainChainTick,

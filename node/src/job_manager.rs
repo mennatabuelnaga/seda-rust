@@ -1,8 +1,11 @@
 use std::time::Duration;
 
-use actix::{AsyncContext, Handler, Message};
+use actix::{Addr, AsyncContext, Handler, Message};
 
-use crate::{app::App, runtime_job::RuntimeJob};
+use crate::{
+    app::App,
+    runtime_job::{RuntimeJob, RuntimeWorker},
+};
 
 const JOB_MANAGER_INTERVAL: u64 = 200;
 
@@ -18,9 +21,11 @@ const JOB_MANAGER_INTERVAL: u64 = 200;
 /// there is no thread currently running with that ID. If not and there is a
 /// thread available, it spins up a new thread and gives the event information
 /// along with some arguments.
-#[derive(Default, Message)]
+#[derive(Message)]
 #[rtype(result = "()")]
-pub struct StartJobManager;
+pub struct StartJobManager {
+    pub runtime_worker: Addr<RuntimeWorker>,
+}
 
 impl Handler<StartJobManager> for App {
     type Result = ();
@@ -29,15 +34,10 @@ impl Handler<StartJobManager> for App {
         let mut event_queue = self.event_queue.write();
         let running_event_ids = self.running_event_ids.read();
 
-        let next_event = match event_queue.get_next(running_event_ids.clone()) {
-            Some(event) => event,
-            None => {
-                ctx.notify_later(msg, Duration::from_millis(JOB_MANAGER_INTERVAL));
-                return;
-            }
-        };
+        if let Some(event) = event_queue.get_next(running_event_ids.clone()) {
+            msg.runtime_worker.do_send(RuntimeJob { event });
+        }
 
-        ctx.notify(RuntimeJob { event: next_event });
         ctx.notify_later(msg, Duration::from_millis(JOB_MANAGER_INTERVAL));
     }
 }
