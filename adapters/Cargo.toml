@@ -5,6 +5,7 @@ edition = "2021"
 
 
 [dependencies]
+async-trait = "0.1.58"
 near-jsonrpc-client = { version="0.4.0", default-features = false, features = ["auth","rustls-tls"] }
 near-jsonrpc-primitives = "0.15.0"
 near-primitives = "0.15.0"
