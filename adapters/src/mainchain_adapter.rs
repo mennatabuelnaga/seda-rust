@@ -1,5 +1,3 @@
-use async_trait;
-use jsonrpsee_types::Params;
 use near_crypto::InMemorySigner;
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
@@ -8,37 +6,15 @@ use near_primitives::{
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
 };
-use serde_json::{from_slice, json, Number};
+use serde_json::from_slice;
 use tokio::time;
 
 use super::errors::{MainChainAdapterError, Result};
-
-pub struct TransactionParams {
-    signer_acc_str: String,
-    signer_sk_str:  String,
-    contract_id:    String,
-    method_name:    String,
-    args:           Vec<u8>,
-    gas:            u64,
-    deposit:        u128,
-}
+use crate::{MainChainAdapterTrait, TransactionParams};
 
 #[derive(Clone, Debug)]
 pub struct MainChainAdapter {
     client: JsonRpcClient,
-}
-
-#[async_trait::async_trait]
-pub trait MainChainAdapterTrait {
-    fn new(rpc_endpoint: String) -> Self;
-    async fn sign_and_send_tx(&self, tx_params: TransactionParams) -> Result<FinalExecutionStatus>;
-    async fn sign_tx(&self, tx_params: TransactionParams) -> Result<SignedTransaction>;
-    async fn send_tx(&self, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus>;
-    async fn view(&self, contract_id: String, method_name: String, args: Vec<u8>) -> Result<String>;
-
-    async fn get_node_owner(&self, params: Params<'_>) -> Result<String>;
-    async fn get_node_socket_address(&self, params: Params<'_>) -> Result<String>;
-    async fn get_nodes(&self, params: Params<'_>) -> Result<String>;
 }
 
 #[async_trait::async_trait]
@@ -47,11 +23,6 @@ impl MainChainAdapterTrait for MainChainAdapter {
         Self {
             client: JsonRpcClient::connect(rpc_endpoint),
         }
-    }
-
-    async fn sign_and_send_tx(&self, tx_params: TransactionParams) -> Result<FinalExecutionStatus> {
-        let signed_tx = self.sign_tx(tx_params).await?;
-        self.send_tx(signed_tx).await
     }
 
     async fn sign_tx(&self, tx_params: TransactionParams) -> Result<SignedTransaction> {
@@ -136,13 +107,13 @@ impl MainChainAdapterTrait for MainChainAdapter {
         }
     }
 
-    async fn view(&self, contract_id: String, method_name: String, args: Vec<u8>) -> Result<String> {
+    async fn view(&self, contract_id: String, method_name: &str, args: Vec<u8>) -> Result<String> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
             request:         QueryRequest::CallFunction {
-                account_id: contract_id.parse()?,
-                method_name,
-                args: FunctionArgs::from(args),
+                account_id:  contract_id.parse()?,
+                method_name: method_name.to_string(),
+                args:        FunctionArgs::from(args),
             },
         };
 
@@ -153,56 +124,5 @@ impl MainChainAdapterTrait for MainChainAdapter {
         } else {
             Err(MainChainAdapterError::CallViewMethod)
         }
-    }
-
-    async fn get_node_owner(&self, params: Params<'_>) -> Result<String> {
-        let method_name = "get_node_owner".to_string();
-        let mut seq = params.sequence();
-
-        let contract_id: String = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("contract_id".to_string()))?;
-        let node_id: Number = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("node_id".to_string()))?;
-
-        let args = json!({"node_id":node_id.to_string()}).to_string().into_bytes();
-
-        self.view(contract_id, method_name, args).await
-    }
-
-    async fn get_node_socket_address(&self, params: Params<'_>) -> Result<String> {
-        let method_name = "get_node_socket_address".to_string();
-        let mut seq = params.sequence();
-        let contract_id: String = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("contract_id".to_string()))?;
-        let node_id: Number = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("node_id".to_string()))?;
-
-        let args = json!({"node_id":node_id.to_string()}).to_string().into_bytes();
-
-        self.view(contract_id, method_name, args).await
-    }
-
-    async fn get_nodes(&self, params: Params<'_>) -> Result<String> {
-        let method_name = "get_nodes".to_string();
-        let mut seq = params.sequence();
-        let contract_id: String = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("contract_id".to_string()))?;
-        let limit: Number = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("limit".to_string()))?;
-        let offset: Number = seq
-            .next()
-            .map_err(|_| MainChainAdapterError::MissingParam("offset".to_string()))?;
-
-        let args = json!({"limit": limit.to_string(), "offset":offset.to_string()})
-            .to_string()
-            .into_bytes();
-
-        self.view(contract_id, method_name, args).await
     }
 }

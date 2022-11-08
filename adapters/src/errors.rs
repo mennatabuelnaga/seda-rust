@@ -20,8 +20,8 @@ pub enum MainChainAdapterError {
     #[error("could not deserialize status to string")]
     BadDeserialization(#[from] serde_json::Error),
 
-    #[error("missing parameter: `{0}` is not set")]
-    MissingParam(String),
+    #[error("Bad Parameters for method `{0}`")]
+    BadParams(String),
 
     #[error("error parsing string to near secretkey")]
     ParseAccountId(#[from] ParseAccountError),
