@@ -23,14 +23,14 @@ impl EventQueue {
         self.items.push(event);
     }
 
-    pub fn get_next(&mut self, skip_ids: Vec<EventId>) -> Option<Event> {
-        for (index, item) in self.items.clone().iter().enumerate() {
-            if skip_ids.contains(&item.id) {
+    pub fn get_next(&mut self, skip_ids: &[String]) -> Option<Event> {
+        for index in 0..self.items.len() {
+            if skip_ids.contains(&self.items[index].id) {
                 continue;
             }
 
-            self.items.remove(index);
-            return Some(item.clone());
+            let item = self.items.remove(index);
+            return Some(item);
         }
 
         None

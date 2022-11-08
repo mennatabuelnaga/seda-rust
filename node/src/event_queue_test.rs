@@ -9,7 +9,7 @@ fn add_item_to_event_queue() {
         data: EventData::MainChainTick,
     });
 
-    let item = queue.get_next(vec![]).unwrap();
+    let item = queue.get_next(&[]).unwrap();
 
     assert_eq!(item.id, "test-id".to_string());
 }
@@ -28,7 +28,7 @@ fn get_item_with_skip() {
         data: EventData::MainChainTick,
     });
 
-    let item = queue.get_next(vec!["test-id".to_string()]).unwrap();
+    let item = queue.get_next(&["test-id".to_string()]).unwrap();
 
     assert_eq!(item.id, "test-id-2".to_string());
 }
@@ -47,9 +47,9 @@ fn get_item_should_empty_queue() {
         data: EventData::MainChainTick,
     });
 
-    let item = queue.get_next(vec![]).unwrap();
-    let item2 = queue.get_next(vec![]).unwrap();
-    let item3 = queue.get_next(vec![]);
+    let item = queue.get_next(&[]).unwrap();
+    let item2 = queue.get_next(&[]).unwrap();
+    let item3 = queue.get_next(&[]);
 
     assert_eq!(item.id, "test-id".to_string());
     assert_eq!(item2.id, "test-id-2".to_string());
@@ -70,8 +70,8 @@ fn get_item_should_empty_queue_with_skip() {
         data: EventData::MainChainTick,
     });
 
-    let item = queue.get_next(vec!["test-id".to_string()]).unwrap();
-    let item2 = queue.get_next(vec!["test-id".to_string()]);
+    let item = queue.get_next(&["test-id".to_string()]).unwrap();
+    let item2 = queue.get_next(&["test-id".to_string()]);
 
     assert_eq!(item.id, "test-id-2".to_string());
     assert!(item2.is_none());

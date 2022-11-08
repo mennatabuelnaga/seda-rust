@@ -36,7 +36,7 @@ impl Handler<StartJobManager> for App {
         let mut event_queue = self.event_queue.write();
         let running_event_ids = self.running_event_ids.read();
 
-        if let Some(event) = event_queue.get_next(running_event_ids.clone()) {
+        if let Some(event) = event_queue.get_next(running_event_ids.as_slice()) {
             msg.runtime_worker.do_send(RuntimeJob { event });
         }
 
