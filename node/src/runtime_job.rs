@@ -1,7 +1,8 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
-use seda_runtime::{HostAdapters, RunnableRuntime, Runtime, VmConfig};
+use parking_lot::Mutex;
+use seda_runtime::{HostAdapters, InMemory, RunnableRuntime, Runtime, VmConfig};
 
 use crate::{event_queue::Event, test_adapters::TestAdapters};
 
@@ -27,6 +28,7 @@ impl Handler<RuntimeJob> for RuntimeWorker {
         path_prefix.push("./test_files/promise-wasm-bin.wasm");
 
         let runtime = Runtime {};
+        let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
 
         let vm_config = VmConfig {
             args:         vec![],
@@ -36,6 +38,6 @@ impl Handler<RuntimeJob> for RuntimeWorker {
             wasm_binary:  fs::read(path_prefix).unwrap(),
         };
 
-        let _res = futures::executor::block_on(runtime.start_runtime(vm_config, host_adapters));
+        let _res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter, host_adapters));
     }
 }
