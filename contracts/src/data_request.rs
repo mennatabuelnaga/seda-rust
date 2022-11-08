@@ -1,4 +1,5 @@
-use near_sdk::{env, near_bindgen};
+use near_primitives::merkle::merklize;
+use near_sdk::{env, log, near_bindgen};
 
 use crate::{MainchainContract, MainchainContractExt};
 
@@ -18,5 +19,17 @@ impl MainchainContract {
             "Insufficient storage, need {}",
             storage_cost
         );
+    }
+
+    pub fn compute_merkle_root(&self) -> String {
+        let initial_gas = env::used_gas();
+
+        // TODO: sort data requests
+        let data_requests: Vec<String> = self.data_request_accumulator.iter().collect();
+        let merkle_root = merklize(&data_requests);
+
+        log!("used gas: {}", u64::from(env::used_gas() - initial_gas));
+
+        merkle_root.0.to_string()
     }
 }
