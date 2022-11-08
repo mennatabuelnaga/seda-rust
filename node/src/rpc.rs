@@ -1,14 +1,7 @@
 use actix::prelude::*;
 use jsonrpsee_core::Error;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
-use seda_adapters::mainchain_adapter::{
-    get_node_owner,
-    get_node_socket_address,
-    get_nodes,
-    register_node,
-    remove_node,
-    set_node_socket_address,
-};
+use seda_adapters::mainchain_adapter::MainChainAdapter;
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -30,11 +23,13 @@ pub struct JsonRpcServer {
 impl JsonRpcServer {
     pub async fn build() -> Result<Self, Error> {
         let mut module = RpcModule::new(());
+
+        let mainchain_adpapter = MainChainAdapter::new(get_env_var("RPC_ENDPOINT"));
         // TODO: refactor module configuration
 
         // register view methods
-
         module.register_async_method("get_node_socket_address", |params, _| async move {
+            let mut seq = params.sequence();
             let status = get_node_socket_address(params).await;
             status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;

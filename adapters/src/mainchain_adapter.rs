@@ -30,7 +30,7 @@ pub struct MainChainAdapter {
 
 #[async_trait::async_trait]
 pub trait MainChainAdapterTrait {
-    fn new(&mut self, rpc_endpoint: String) -> Self;
+    fn new(rpc_endpoint: String) -> Self;
     async fn sign_and_send_tx(&self, tx_params: TransactionParams) -> Result<FinalExecutionStatus>;
     async fn sign_tx(&self, tx_params: TransactionParams) -> Result<SignedTransaction>;
     async fn send_tx(&self, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus>;
@@ -43,7 +43,7 @@ pub trait MainChainAdapterTrait {
 
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for MainChainAdapter {
-    fn new(&mut self, rpc_endpoint: String) -> Self {
+    fn new(rpc_endpoint: String) -> Self {
         Self {
             client: JsonRpcClient::connect(rpc_endpoint),
         }
