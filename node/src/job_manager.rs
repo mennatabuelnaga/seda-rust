@@ -7,8 +7,6 @@ use crate::{
     runtime_job::{RuntimeJob, RuntimeWorker},
 };
 
-const JOB_MANAGER_INTERVAL: u64 = 200;
-
 /// The Job Manager’s job is to take events coming from P2P, tickers, RPC, etc
 /// and give the task to the runtime when there is an available thread. Each
 /// event comes with a ID that corresponds with that task. It’s important that
@@ -27,6 +25,10 @@ pub struct StartJobManager {
     pub runtime_worker: Addr<RuntimeWorker>,
 }
 
+impl StartJobManager {
+    const JOB_MANAGER_INTERVAL: u64 = 200;
+}
+
 impl Handler<StartJobManager> for App {
     type Result = ();
 
@@ -38,6 +40,6 @@ impl Handler<StartJobManager> for App {
             msg.runtime_worker.do_send(RuntimeJob { event });
         }
 
-        ctx.notify_later(msg, Duration::from_millis(JOB_MANAGER_INTERVAL));
+        ctx.notify_later(msg, Duration::from_millis(StartJobManager::JOB_MANAGER_INTERVAL));
     }
 }
