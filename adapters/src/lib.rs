@@ -1,2 +1,2 @@
 mod errors;
-pub mod near_adapter;
+pub mod mainchain_adapter;

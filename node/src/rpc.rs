@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use jsonrpsee_core::Error;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
-use seda_adapters::near_adapter::{
+use seda_adapters::mainchain_adapter::{
     get_node_owner,
     get_node_socket_address,
     get_nodes,
