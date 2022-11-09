@@ -13,6 +13,7 @@ use app::App;
 use event_queue::EventQueue;
 use parking_lot::RwLock;
 use rpc::JsonRpcServer;
+use seda_adapters::MainChainAdapterTrait;
 
 use crate::{app::Shutdown, rpc::Stop};
 
@@ -23,18 +24,18 @@ pub mod test {
     mod job_manager_test;
 }
 
-pub fn run() {
+pub fn run<T: MainChainAdapterTrait>() {
     let system = System::new();
 
     // Initialize actors inside system context
     system.block_on(async {
         let app = App {
-            event_queue:       Arc::new(RwLock::new(EventQueue::default())),
+            event_queue: Arc::new(RwLock::new(EventQueue::default())),
             running_event_ids: Arc::new(RwLock::new(Vec::new())),
         }
         .start();
 
-        let rpc_server = JsonRpcServer::build()
+        let rpc_server = JsonRpcServer::build::<T>("todo get from config")
             .await
             .expect("Error starting jsonrpsee server")
             .start();

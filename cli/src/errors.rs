@@ -19,3 +19,4 @@ pub enum CliError {
     #[error("error parsing string to near AccountId")]
     ParseKey(#[from] ParseKeyError),
 }
+pub type Result<T, E = CliError> = core::result::Result<T, E>;

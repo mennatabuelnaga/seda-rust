@@ -7,12 +7,18 @@ edition = "2021"
 clap = { version = "4.0.15", default-features = true, features = ["derive"] }
 tokio = { version = "1.16", features = ["full"] }
 serde_json = { version = "1" }
-jsonrpsee = { git = "https://github.com/paritytech/jsonrpsee.git", branch = "master", features = ["full"] }
+jsonrpsee = { git = "https://github.com/paritytech/jsonrpsee.git", branch = "master", features = [
+	"full",
+] }
 dotenv = "0.15.0"
-near-jsonrpc-client = { version="0.4.0", default-features = false, features = ["auth","rustls-tls"] }
+near-jsonrpc-client = { version = "0.4.0", default-features = false, features = [
+	"auth",
+	"rustls-tls",
+] }
 near-jsonrpc-primitives = "0.15.0"
 near-primitives = "0.15.0"
 near-crypto = "0.15.0"
+seda-adapters = { path = "../adapters" }
 seda-node = { path = "../node" }
 thiserror = "1.0.37"
 

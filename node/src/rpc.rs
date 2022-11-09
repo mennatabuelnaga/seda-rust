@@ -21,43 +21,39 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn build<T: MainChainAdapterTrait>() -> Result<Self, Error> {
-        let mut module = RpcModule::new(());
-
-        let mainchain_adpapter = T::new(get_env_var("RPC_ENDPOINT"));
+    pub async fn build<T: MainChainAdapterTrait>(server_addr: &str) -> Result<Self, Error> {
+        let mut module = RpcModule::new(T::new_client(server_addr));
         // TODO: refactor module configuration
 
         // register view methods
-        module.register_async_method("get_node_socket_address", |params, _| async move {
-            let mut seq = params.sequence();
-            let status = mainchain_adpapter.get_node_socket_address(params).await;
+        module.register_async_method("get_node_socket_address", |params, ctx| async move {
+            let status = T::get_node_socket_address(ctx, params).await;
             status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        module.register_async_method("get_node_owner", |params, _| async move {
-            let status = mainchain_adpapter.get_node_owner(params).await;
+        module.register_async_method("get_node_owner", |params, ctx| async move {
+            let status = T::get_node_owner(ctx, params).await;
             status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        module.register_async_method("get_nodes", |params, _| async move {
-            let status = mainchain_adpapter.get_nodes(params).await;
+        module.register_async_method("get_nodes", |params, ctx| async move {
+            let status = T::get_nodes(ctx, params).await;
             status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
         // register change methods
-
-        module.register_async_method("register_node", |params, _| async move {
-            let result = register_node(params).await;
+        module.register_async_method("register_node", |params, ctx| async move {
+            let result = T::register_node(ctx, params).await;
             result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        module.register_async_method("remove_node", |params, _| async move {
-            let result = remove_node(params).await;
+        module.register_async_method("remove_node", |params, ctx| async move {
+            let result = T::remove_node(ctx, params).await;
             result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        module.register_async_method("set_node_socket_address", |params, _| async move {
-            let result = set_node_socket_address(params).await;
+        module.register_async_method("set_node_socket_address", |params, ctx| async move {
+            let result = T::set_node_socket_address(ctx, params).await;
             result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 

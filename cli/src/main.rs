@@ -12,6 +12,7 @@ use node_commands::{
     remove_node,
     set_node_socket_address,
 };
+use seda_adapters::MainChainAdapter;
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -64,7 +65,7 @@ fn main() {
         match command {
             // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
             Commands::RegisterNode { socket_address } => {
-                register_node(socket_address).unwrap();
+                register_node::<MainChainAdapter>(socket_address).unwrap();
             }
             // cargo run --bin seda get-nodes --limit 2
             Commands::GetNodes { limit, offset } => {
@@ -75,14 +76,14 @@ fn main() {
                 get_node_socket_address(node_id).unwrap();
             }
             // cargo run --bin seda run
-            Commands::Run => seda_node::run(),
+            Commands::Run => seda_node::run::<MainChainAdapter>(),
             // cargo run --bin seda remove-node --node-id 9
-            Commands::RemoveNode { node_id } => remove_node(node_id).unwrap(),
+            Commands::RemoveNode { node_id } => remove_node::<MainChainAdapter>(node_id).unwrap(),
             // cargo run --bin seda set-node-socket-address --node-id 9 --socket-address 127.0.0.1:9000
             Commands::SetNodeSocketAddress {
                 node_id,
                 socket_address,
-            } => set_node_socket_address(node_id, socket_address).unwrap(),
+            } => set_node_socket_address::<MainChainAdapter>(node_id, socket_address).unwrap(),
             // cargo run --bin seda get-node-owner --node-id 9
             Commands::GetNodeOwner { node_id } => get_node_owner(node_id).unwrap(),
         }
