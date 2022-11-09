@@ -12,26 +12,18 @@ use tokio::time;
 use super::errors::{MainChainAdapterError, Result};
 use crate::{MainChainAdapterTrait, TransactionParams};
 
-#[derive(Clone, Debug)]
-pub struct MainChainAdapter {
-    client: JsonRpcClient,
-}
+#[derive(Debug)]
+pub struct MainChainAdapter;
 
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for MainChainAdapter {
-    fn new(rpc_endpoint: String) -> Self {
-        Self {
-            client: JsonRpcClient::connect(rpc_endpoint),
-        }
-    }
-
-    async fn sign_tx(&self, tx_params: TransactionParams) -> Result<SignedTransaction> {
+    async fn sign_tx(tx_params: TransactionParams) -> Result<SignedTransaction> {
         let signer_account_id: AccountId = tx_params.signer_acc_str.parse()?;
 
         let signer_secret_key: near_crypto::SecretKey = tx_params.signer_sk_str.parse()?;
         let signer = InMemorySigner::from_secret_key(signer_account_id, signer_secret_key);
-        let access_key_query_response = self
-            .client
+        let client = JsonRpcClient::connect("todo");
+        let access_key_query_response = client
             .call(methods::query::RpcQueryRequest {
                 block_reference: BlockReference::latest(),
                 request:         near_primitives::views::QueryRequest::ViewAccessKey {
@@ -63,17 +55,17 @@ impl MainChainAdapterTrait for MainChainAdapter {
         Ok(signed_transaction)
     }
 
-    async fn send_tx(&self, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
+    async fn send_tx(signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
             signed_transaction: signed_tx.clone(),
         };
 
         let sent_at = time::Instant::now();
-        let tx_hash = self.client.call(request).await?;
+        let client = JsonRpcClient::connect("todo");
+        let tx_hash = client.call(request).await?;
 
         loop {
-            let response = self
-                .client
+            let response = client
                 .call(methods::tx::RpcTransactionStatusRequest {
                     transaction_info: TransactionInfo::TransactionId {
                         hash:       tx_hash,
@@ -107,7 +99,7 @@ impl MainChainAdapterTrait for MainChainAdapter {
         }
     }
 
-    async fn view(&self, contract_id: String, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn view(contract_id: String, method_name: &str, args: Vec<u8>) -> Result<String> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
             request:         QueryRequest::CallFunction {
@@ -117,7 +109,8 @@ impl MainChainAdapterTrait for MainChainAdapter {
             },
         };
 
-        let response = self.client.call(request).await?;
+        let client = JsonRpcClient::connect("todo");
+        let response = client.call(request).await?;
 
         if let QueryResponseKind::CallResult(ref result) = response.kind {
             Ok(from_slice::<String>(&result.result)?)
