@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use near_crypto::InMemorySigner;
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
@@ -17,12 +19,67 @@ pub struct MainChainAdapter;
 
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for MainChainAdapter {
-    async fn sign_tx(tx_params: TransactionParams) -> Result<SignedTransaction> {
+    type Client = JsonRpcClient;
+    type SignedTransaction = near_primitives::transaction::SignedTransaction;
+
+    fn new_client(server_addr: &str) -> Self::Client {
+        JsonRpcClient::connect(server_addr)
+    }
+
+    async fn construct_signed_tx(
+        signer_acc_str: &str,
+        signer_sk_str: &str,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+        gas: u64,
+        deposit: u128,
+        server_url: &str,
+    ) -> Result<Self::SignedTransaction> {
+        let client = JsonRpcClient::connect(server_url);
+
+        let signer_account_id: AccountId = signer_acc_str.parse()?;
+
+        let signer_secret_key: near_crypto::SecretKey = signer_sk_str.parse()?;
+        let signer = near_crypto::InMemorySigner::from_secret_key(signer_account_id, signer_secret_key);
+
+        let access_key_query_response = client
+            .call(methods::query::RpcQueryRequest {
+                block_reference: BlockReference::latest(),
+                request:         near_primitives::views::QueryRequest::ViewAccessKey {
+                    account_id: signer.account_id.clone(),
+                    public_key: signer.public_key.clone(),
+                },
+            })
+            .await?;
+
+        let current_nonce = match access_key_query_response.kind {
+            QueryResponseKind::AccessKey(access_key) => access_key.nonce,
+            _ => todo!("FailedToExtractCurrentNonce"),
+        };
+
+        let transaction = Transaction {
+            signer_id:   signer.account_id.clone(),
+            public_key:  signer.public_key.clone(),
+            nonce:       current_nonce + 1,
+            receiver_id: contract_id.parse()?,
+            block_hash:  access_key_query_response.block_hash,
+            actions:     vec![Action::FunctionCall(FunctionCallAction {
+                method_name: method_name.to_string(),
+                args,
+                gas, // 100 TeraGas
+                deposit,
+            })],
+        };
+        let signed_transaction = transaction.sign(&signer);
+        Ok(signed_transaction)
+    }
+
+    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<SignedTransaction> {
         let signer_account_id: AccountId = tx_params.signer_acc_str.parse()?;
 
         let signer_secret_key: near_crypto::SecretKey = tx_params.signer_sk_str.parse()?;
         let signer = InMemorySigner::from_secret_key(signer_account_id, signer_secret_key);
-        let client = JsonRpcClient::connect("todo");
         let access_key_query_response = client
             .call(methods::query::RpcQueryRequest {
                 block_reference: BlockReference::latest(),
@@ -55,13 +112,12 @@ impl MainChainAdapterTrait for MainChainAdapter {
         Ok(signed_transaction)
     }
 
-    async fn send_tx(signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
+    async fn send_tx(client: Arc<Self::Client>, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
             signed_transaction: signed_tx.clone(),
         };
 
         let sent_at = time::Instant::now();
-        let client = JsonRpcClient::connect("todo");
         let tx_hash = client.call(request).await?;
 
         loop {
@@ -99,7 +155,7 @@ impl MainChainAdapterTrait for MainChainAdapter {
         }
     }
 
-    async fn view(contract_id: String, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn view(client: Arc<Self::Client>, contract_id: String, method_name: &str, args: Vec<u8>) -> Result<String> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
             request:         QueryRequest::CallFunction {
@@ -109,7 +165,6 @@ impl MainChainAdapterTrait for MainChainAdapter {
             },
         };
 
-        let client = JsonRpcClient::connect("todo");
         let response = client.call(request).await?;
 
         if let QueryResponseKind::CallResult(ref result) = response.kind {
