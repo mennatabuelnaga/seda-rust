@@ -81,13 +81,13 @@ impl RunnableRuntime for Runtime {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        host_adapters.db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap());
+                        host_adapters.db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap()).unwrap();
 
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let result = host_adapters.db_get(&db_action.key).unwrap();
+                        let result = host_adapters.db_get(&db_action.key).unwrap().unwrap();
 
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }

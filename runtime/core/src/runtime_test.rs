@@ -37,7 +37,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     let vm_result = runtime_execution_result.await;
     assert!(vm_result.is_ok());
 
-    let value = host_adapter.db_get("test_value");
+    let value = host_adapter.db_get("test_value").unwrap();
     assert!(value.is_some());
     assert_eq!(value.unwrap(), "completed");
 }
@@ -115,7 +115,7 @@ async fn test_promise_queue_http_fetch() {
 
     assert!(runtime_execution_result.is_ok());
 
-    let db_result = host_adapter.db_get("http_fetch_result");
+    let db_result = host_adapter.db_get("http_fetch_result").unwrap();
     assert!(db_result.is_some());
 
     let result: PromiseStatus = serde_json::from_str(&db_result.unwrap()).unwrap();
@@ -162,11 +162,11 @@ async fn test_memory_adapter() {
     assert!(read_value.is_ok());
     assert_eq!(read_value.unwrap(), Some(expected));
 
-    let u8_value = host_adapter.db_get("u8_result");
+    let u8_value = host_adapter.db_get("u8_result").unwrap();
     assert!(u8_value.is_some());
     assert_eq!(u8_value.unwrap(), expected_str);
 
-    let u32_value = host_adapter.db_get("u32_result");
+    let u32_value = host_adapter.db_get("u32_result").unwrap();
     let expected = 3467u32.to_le_bytes().to_vec();
     let expected_str = format!("{expected:?}");
     assert!(u32_value.is_some());

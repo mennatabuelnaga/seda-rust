@@ -7,7 +7,6 @@ members = [
 	"runtime/core",
 	"runtime/macros",
 	"adapters",
-	"db-adapter"
 ]
 
 [profile.dev]

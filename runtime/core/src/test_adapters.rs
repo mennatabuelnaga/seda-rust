@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use rusqlite::{Connection, params};
 use seda_runtime_macros::Adapter;
 
 use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
@@ -12,22 +11,45 @@ use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
 pub struct TestAdapters;
 
 #[derive(Clone, Default)]
-pub struct DatabaseTestAdapter {
-    data: HashMap<String, String>,
-}
+pub struct DatabaseTestAdapter {}
 
 impl DatabaseAdapter for DatabaseTestAdapter {
-    fn get(&self, key: &str) -> Option<&String> {
-        self.data.get(key)
+    fn get(&self, key: &str) -> Result<Option<String>, rusqlite::Error> {
+        let conn = Connection::open("./seda_db.db3")?;
+        let key = key.to_string();
+        let mut stmt = conn.prepare("SELECT value FROM data WHERE key = ?1")?;
+        let mut value: Option<String> = None;
+        stmt.query_row([key], |row| {
+            value = row.get(0)?;
+            Ok(())
+        })?;
+        Ok(value)
+    }
+  
+
+    fn set(&mut self, key: &str, value: &str) -> Result<(), rusqlite::Error> {
+        let conn = Connection::open("./seda_db.db3")?;
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS data (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )",
+            (),
+        )?;
+
+        let key = key.to_string();
+        let value = value.to_string();
+        conn.execute(
+            "INSERT INTO data (key, value) VALUES (?1, ?2)",
+            params![key, value],
+        )?;
+        Ok(())
     }
 
-    fn set(&mut self, key: &str, value: &str) {
-        self.data.insert(key.to_string(), value.to_string());
-    }
-
-    fn get_all(&self) -> HashMap<String, String> {
-        self.data.clone()
-    }
+    // fn get_all(&self) -> HashMap<String, String> {
+    //     self.data.clone()
+    // }
 }
 
 #[derive(Clone, Default)]
