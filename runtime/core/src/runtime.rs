@@ -1,22 +1,11 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
+use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::WasiState;
 
-use super::{
-    imports::create_wasm_imports,
-    CallSelfAction,
-    HostAdapterTypes,
-    HostAdapters,
-    Promise,
-    PromiseAction,
-    PromiseQueue,
-    PromiseStatus,
-    Result,
-    VmConfig,
-    VmContext,
-};
+use super::{imports::create_wasm_imports, HostAdapterTypes, HostAdapters, PromiseQueue, Result, VmConfig, VmContext};
 use crate::InMemory;
 
 #[derive(Clone, Default)]

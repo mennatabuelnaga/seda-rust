@@ -1,8 +1,9 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
+use seda_runtime_sdk::PromiseStatus;
 
-use super::{HostAdapters, InMemory, MemoryAdapter, PromiseStatus, RunnableRuntime, Runtime, TestAdapters, VmConfig};
+use super::{HostAdapters, InMemory, MemoryAdapter, RunnableRuntime, Runtime, TestAdapters, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -34,7 +35,6 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     );
 
     let vm_result = runtime_execution_result.await;
-    dbg!("{:?}", &vm_result);
     assert!(vm_result.is_ok());
 
     let value = host_adapter.db_get("test_value");
@@ -112,6 +112,7 @@ async fn test_promise_queue_http_fetch() {
             host_adapter.clone(),
         )
         .await;
+
     assert!(runtime_execution_result.is_ok());
 
     let db_result = host_adapter.db_get("http_fetch_result");

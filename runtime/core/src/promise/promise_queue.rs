@@ -1,6 +1,6 @@
 /// Acts as a wrapper around a vector of promises
 /// This allows us to change to batches easily in the future
-use super::Promise;
+use seda_runtime_sdk::Promise;
 
 #[derive(Clone, Default)]
 pub struct PromiseQueue {

@@ -1,8 +1,6 @@
 use std::env;
 
-use crate::promise::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
-
-mod promise;
+use seda_runtime_sdk::wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
