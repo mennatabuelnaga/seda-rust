@@ -31,6 +31,15 @@ pub enum RuntimeError {
 
     #[error("VM Host Error: {0}")]
     VmHostError(String),
+
+    #[error("Database Error: {0}")]
+    DatabaseError(Report<rusqlite::Error>),
+}
+
+impl From<rusqlite::Error> for RuntimeError {
+    fn from(r: rusqlite::Error) -> Self {
+        Self::DatabaseError(r.into())
+    }
 }
 
 impl From<Report<Utf8Error>> for RuntimeError {

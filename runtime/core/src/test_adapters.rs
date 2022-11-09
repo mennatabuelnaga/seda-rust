@@ -1,6 +1,7 @@
-use rusqlite::{Connection, params};
+use rusqlite::{params, Connection};
 use seda_runtime_macros::Adapter;
 
+use super::RuntimeError;
 use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
 
 #[derive(Clone, Default, Adapter)]
@@ -14,8 +15,7 @@ pub struct TestAdapters;
 pub struct DatabaseTestAdapter {}
 
 impl DatabaseAdapter for DatabaseTestAdapter {
-    fn get(&self, key: &str) -> Result<Option<String>, rusqlite::Error> {
-        let conn = Connection::open("./seda_db.db3")?;
+    fn get(&self, conn: &Connection, key: &str) -> Result<Option<String>, RuntimeError> {
         let key = key.to_string();
         let mut stmt = conn.prepare("SELECT value FROM data WHERE key = ?1")?;
         let mut value: Option<String> = None;
@@ -25,9 +25,16 @@ impl DatabaseAdapter for DatabaseTestAdapter {
         })?;
         Ok(value)
     }
-  
 
-    fn set(&mut self, key: &str, value: &str) -> Result<(), rusqlite::Error> {
+    fn set(&mut self, conn: &Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
+        let key = key.to_string();
+        let value = value.to_string();
+        conn.execute("INSERT INTO data (key, value) VALUES (?1, ?2)", params![key, value])?;
+
+        Ok(())
+    }
+
+    fn connect(&mut self) -> Result<Connection, RuntimeError> {
         let conn = Connection::open("./seda_db.db3")?;
 
         conn.execute(
@@ -38,13 +45,7 @@ impl DatabaseAdapter for DatabaseTestAdapter {
             (),
         )?;
 
-        let key = key.to_string();
-        let value = value.to_string();
-        conn.execute(
-            "INSERT INTO data (key, value) VALUES (?1, ?2)",
-            params![key, value],
-        )?;
-        Ok(())
+        Ok(conn)
     }
 
     // fn get_all(&self) -> HashMap<String, String> {

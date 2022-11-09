@@ -80,17 +80,32 @@ impl RunnableRuntime for Runtime {
                     }
 
                     // Just an example, delete this later
+                    PromiseAction::DatabaseConnect(_db_action) => {
+                        host_adapters.db_connect().unwrap();
+
+                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
+                    }
                     PromiseAction::DatabaseSet(db_action) => {
-                        host_adapters.db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap()).unwrap();
+                        let conn = host_adapters.db_connect().unwrap();
+
+                        host_adapters
+                            .db_set(
+                                &conn,
+                                &db_action.key,
+                                &String::from_utf8(db_action.value.clone()).unwrap(),
+                            )
+                            .unwrap();
 
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let result = host_adapters.db_get(&db_action.key).unwrap().unwrap();
+                        let conn = host_adapters.db_connect().unwrap();
+                        let result = host_adapters.db_get(&conn, &db_action.key).unwrap().unwrap();
 
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }
+
                     PromiseAction::Http(http_action) => {
                         let resp = host_adapters.http_fetch(&http_action.url).unwrap();
 

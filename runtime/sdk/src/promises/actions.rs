@@ -5,6 +5,8 @@ pub enum PromiseAction {
     CallSelf(CallSelfAction),
     DatabaseSet(DatabaseSetAction),
     DatabaseGet(DatabaseGetAction),
+    DatabaseConnect(DatabaseConnectAction),
+
     Http(HttpAction),
 }
 
@@ -24,6 +26,9 @@ pub struct DatabaseSetAction {
 pub struct DatabaseGetAction {
     pub key: String,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct DatabaseConnectAction {}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct HttpAction {

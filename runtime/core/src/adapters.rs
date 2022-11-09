@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
+use rusqlite::Connection;
 use tokio::sync::Mutex as AsyncMutex;
 
+use super::RuntimeError;
 
 pub trait DatabaseAdapter: Send {
-    // fn set(&mut self, key: &str, value: &str);
-    fn set(&mut self, key: &str, value: &str) -> Result<(), rusqlite::Error>;
-    // fn get(&self, key: &str) -> Option<&String>;
-    fn get(&self, key: &str) ->Result<Option<String>, rusqlite::Error>;
-    // fn get_all(&self) -> HashMap<String, String>;
+    fn set(&mut self, conn: &Connection, key: &str, value: &str) -> Result<(), RuntimeError>;
+    fn get(&self, conn: &Connection, key: &str) -> Result<Option<String>, RuntimeError>;
+    fn connect(&mut self) -> Result<Connection, RuntimeError>;
 }
 
 #[async_trait::async_trait]
@@ -66,17 +66,18 @@ where
         }
     }
 
-  
-    pub fn db_get(&self, key: &str) -> Result<Option<String>, rusqlite::Error>{
-        self.inner.database.lock().get(key)
-
+    pub fn db_get(&self, conn: &Connection, key: &str) -> Result<Option<String>, RuntimeError> {
+        self.inner.database.lock().get(conn, key)
     }
-   
 
-    pub fn db_set(&self, key: &str, value: &str) -> Result<(), rusqlite::Error>{
-        self.inner.database.lock().set(key, value)
+    pub fn db_set(&self, conn: &Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
+        self.inner.database.lock().set(conn, key, value)
     }
-   
+
+    pub fn db_connect(&self) -> Result<Connection, RuntimeError> {
+        self.inner.database.lock().connect()
+    }
+
     pub fn http_fetch(&self, url: &str) -> Result<String, reqwest::Error> {
         tokio::task::block_in_place(move || {
             tokio::runtime::Handle::current()
