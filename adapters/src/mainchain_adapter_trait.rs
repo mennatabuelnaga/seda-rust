@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 use jsonrpsee_types::Params;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -29,14 +29,15 @@ pub struct NodeDetails {
     pub offset:      usize,
 }
 
+// TODO once rpc becomes a trait need to replace params type.
 #[async_trait::async_trait]
 pub trait MainChainAdapterTrait: Send + Sync {
     /// The Client type for the adapter specific implementation.
     type Client: Send + Sync + 'static;
     /// The execution status type for the adapter specific implementation.
-    type FinalExecutionStatus: Send + Sync + Serialize + 'static;
+    type FinalExecutionStatus: Debug + Send + Sync + Serialize + 'static;
     /// The signed transaction type for the adapter specific implementation.
-    type SignedTransaction: Send + Sync + Serialize + DeserializeOwned;
+    type SignedTransaction: Debug + Send + Sync + Serialize + DeserializeOwned;
 
     /// Returns an new instance of the client given the server address.
     fn new_client(server_addr: &str) -> Self::Client;

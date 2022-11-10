@@ -15,10 +15,10 @@ use super::errors::{MainChainAdapterError, Result};
 use crate::{MainChainAdapterTrait, TransactionParams};
 
 #[derive(Debug)]
-pub struct MainChainAdapter;
+pub struct NearMainChain;
 
 #[async_trait::async_trait]
-impl MainChainAdapterTrait for MainChainAdapter {
+impl MainChainAdapterTrait for NearMainChain {
     type Client = JsonRpcClient;
     type FinalExecutionStatus = near_primitives::views::FinalExecutionStatus;
     type SignedTransaction = near_primitives::transaction::SignedTransaction;
@@ -37,7 +37,7 @@ impl MainChainAdapterTrait for MainChainAdapter {
         deposit: u128,
         server_url: &str,
     ) -> Result<Self::SignedTransaction> {
-        let client = JsonRpcClient::connect(server_url);
+        let client = Self::new_client(server_url);
 
         let signer_account_id: AccountId = signer_acc_str.parse()?;
 

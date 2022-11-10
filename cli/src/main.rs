@@ -1,12 +1,10 @@
 mod cli;
-use cli::*;
+use cli::{CliOptions, NearCliBackend};
 mod errors;
 use errors::*;
 mod helpers;
 
-use seda_adapters::MainChainAdapter;
-
 #[tokio::main]
 async fn main() -> Result<()> {
-    Options::handle::<MainChainAdapter>().await
+    CliOptions::handle::<NearCliBackend>().await
 }

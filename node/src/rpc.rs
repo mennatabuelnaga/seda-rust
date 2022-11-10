@@ -16,6 +16,7 @@ impl Handler<Stop> for JsonRpcServer {
     }
 }
 
+// TODO genericize and make an adapter
 pub struct JsonRpcServer {
     handle: WsServerHandle,
 }

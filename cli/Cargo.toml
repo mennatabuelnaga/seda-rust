@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-trait = "0.1.58"
 clap = { version = "4.0.15", default-features = true, features = ["derive"] }
 tokio = { version = "1.16", features = ["full"] }
 serde_json = { version = "1" }
