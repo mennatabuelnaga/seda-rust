@@ -27,7 +27,11 @@ struct Options {
 enum Commands {
     Run {
         #[arg(short, long)]
-        peer_address: Option<String>,
+        jsonrpc_server_address: Option<String>,
+        #[arg(short, long)]
+        p2p_server_address:     Option<String>,
+        #[arg(short, long)]
+        known_peers:            Option<Vec<String>>,
     },
     RegisterNode {
         #[arg(short, long)]
@@ -78,7 +82,11 @@ fn main() {
                 get_node_socket_address(node_id).unwrap();
             }
             // cargo run --bin seda run
-            Commands::Run { peer_address } => seda_node::run(peer_address),
+            Commands::Run {
+                jsonrpc_server_address,
+                p2p_server_address,
+                known_peers,
+            } => seda_node::run(jsonrpc_server_address, p2p_server_address, known_peers),
             // cargo run --bin seda remove-node --node-id 9
             Commands::RemoveNode { node_id } => remove_node(node_id).unwrap(),
             // cargo run --bin seda set-node-socket-address --node-id 9 --socket-address 127.0.0.1:9000

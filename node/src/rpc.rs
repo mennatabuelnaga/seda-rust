@@ -28,7 +28,7 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn build() -> Result<Self, Error> {
+    pub async fn build(server_address: &str) -> Result<Self, Error> {
         let mut module = RpcModule::new(());
         // TODO: refactor module configuration
 
@@ -66,7 +66,7 @@ impl JsonRpcServer {
             result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        let server = WsServerBuilder::default().build("127.0.0.1:12345").await?;
+        let server = WsServerBuilder::default().build(server_address).await?;
 
         let handle = server.start(module)?;
 
