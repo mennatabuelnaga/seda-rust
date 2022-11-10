@@ -1,5 +1,6 @@
-use rusqlite::{params, Connection};
+use rusqlite::params;
 use seda_runtime_macros::Adapter;
+use tokio_rusqlite::Connection;
 
 use super::RuntimeError;
 use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
@@ -14,36 +15,54 @@ pub struct TestAdapters;
 #[derive(Clone, Default)]
 pub struct DatabaseTestAdapter {}
 
+#[async_trait::async_trait]
 impl DatabaseAdapter for DatabaseTestAdapter {
-    fn get(&self, conn: &Connection, key: &str) -> Result<Option<String>, RuntimeError> {
+    async fn get(&self, conn: Connection, key: &str) -> Result<Option<String>, RuntimeError> {
         let key = key.to_string();
-        let mut stmt = conn.prepare("SELECT value FROM data WHERE key = ?1")?;
-        let mut value: Option<String> = None;
-        stmt.query_row([key], |row| {
-            value = row.get(0)?;
-            Ok(())
-        })?;
+        let value = conn
+            .call(move |conn| {
+                let mut stmt = conn.prepare("SELECT value FROM data WHERE key = ?1")?;
+                let mut retrieved: Option<String> = None;
+
+                stmt.query_row([key], |row| {
+                    retrieved = row.get(0)?;
+                    Ok(())
+                })?;
+                Ok::<_, RuntimeError>(retrieved)
+            })
+            .await?;
+
         Ok(value)
     }
 
-    fn set(&mut self, conn: &Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
+    async fn set(&mut self, conn: Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
         let key = key.to_string();
         let value = value.to_string();
-        conn.execute("INSERT INTO data (key, value) VALUES (?1, ?2)", params![key, value])?;
+        conn.call(move |conn| {
+            conn.execute("INSERT INTO data (key, value) VALUES (?1, ?2)", params![key, value])?;
+
+            Ok::<_, RuntimeError>(())
+        })
+        .await?;
 
         Ok(())
     }
 
-    fn connect(&mut self) -> Result<Connection, RuntimeError> {
-        let conn = Connection::open("./seda_db.db3")?;
+    async fn connect(&mut self) -> Result<Connection, RuntimeError> {
+        let conn = Connection::open("./seda_db.db3").await?;
 
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS data (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-            )",
-            (),
-        )?;
+        conn.call(|conn| {
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS data (
+                        key TEXT PRIMARY KEY,
+                        value TEXT NOT NULL
+                    )",
+                params![],
+            )?;
+
+            Ok::<_, RuntimeError>(())
+        })
+        .await?;
 
         Ok(conn)
     }

@@ -16,7 +16,7 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
     Arc::new(Mutex::new(InMemory::default()))
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
@@ -37,7 +37,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     let vm_result = runtime_execution_result.await;
     assert!(vm_result.is_ok());
     let conn = host_adapter.db_connect().unwrap();
-    let value = host_adapter.db_get(&conn, "test_value").unwrap();
+    let value = host_adapter.db_get(conn, "test_value").unwrap();
 
     assert!(value.is_some());
     assert_eq!(value.unwrap(), "completed");
@@ -116,7 +116,7 @@ async fn test_promise_queue_http_fetch() {
 
     assert!(runtime_execution_result.is_ok());
     let conn = host_adapter.db_connect().unwrap();
-    let db_result = host_adapter.db_get(&conn, "http_fetch_result").unwrap();
+    let db_result = host_adapter.db_get(conn, "http_fetch_result").unwrap();
 
     assert!(db_result.is_some());
 
@@ -134,7 +134,7 @@ async fn test_promise_queue_http_fetch() {
     assert_eq!(result, expected_result);
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn test_memory_adapter() {
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let runtime = Runtime {};
@@ -164,11 +164,11 @@ async fn test_memory_adapter() {
     assert!(read_value.is_ok());
     assert_eq!(read_value.unwrap(), Some(expected));
     let conn = host_adapter.db_connect().unwrap();
-    let u8_value = host_adapter.db_get(&conn, "u8_result").unwrap();
+    let u8_value = host_adapter.db_get(conn.clone(), "u8_result").unwrap();
     assert!(u8_value.is_some());
     assert_eq!(u8_value.unwrap(), expected_str);
 
-    let u32_value = host_adapter.db_get(&conn, "u32_result").unwrap();
+    let u32_value = host_adapter.db_get(conn.clone(), "u32_result").unwrap();
     let expected = 3467u32.to_le_bytes().to_vec();
     let expected_str = format!("{expected:?}");
     assert!(u32_value.is_some());

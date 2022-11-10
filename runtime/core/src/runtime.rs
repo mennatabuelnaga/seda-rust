@@ -90,7 +90,7 @@ impl RunnableRuntime for Runtime {
 
                         host_adapters
                             .db_set(
-                                &conn,
+                                conn,
                                 &db_action.key,
                                 &String::from_utf8(db_action.value.clone()).unwrap(),
                             )
@@ -101,7 +101,7 @@ impl RunnableRuntime for Runtime {
 
                     PromiseAction::DatabaseGet(db_action) => {
                         let conn = host_adapters.db_connect().unwrap();
-                        let result = host_adapters.db_get(&conn, &db_action.key).unwrap().unwrap();
+                        let result = host_adapters.db_get(conn, &db_action.key).unwrap().unwrap();
 
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }

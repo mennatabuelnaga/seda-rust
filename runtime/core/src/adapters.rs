@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
-use parking_lot::Mutex;
-use rusqlite::Connection;
 use tokio::sync::Mutex as AsyncMutex;
+use tokio_rusqlite::Connection;
 
 use super::RuntimeError;
 
+#[async_trait::async_trait]
 pub trait DatabaseAdapter: Send {
-    fn set(&mut self, conn: &Connection, key: &str, value: &str) -> Result<(), RuntimeError>;
-    fn get(&self, conn: &Connection, key: &str) -> Result<Option<String>, RuntimeError>;
-    fn connect(&mut self) -> Result<Connection, RuntimeError>;
+    async fn connect(&mut self) -> Result<Connection, RuntimeError>;
+    async fn set(&mut self, conn: Connection, key: &str, value: &str) -> Result<(), RuntimeError>;
+    async fn get(&self, conn: Connection, key: &str) -> Result<Option<String>, RuntimeError>;
 }
 
 #[async_trait::async_trait]
@@ -44,7 +44,7 @@ pub struct HostAdaptersInner<T>
 where
     T: HostAdapterTypes,
 {
-    pub database: Arc<Mutex<T::Database>>,
+    pub database: Arc<AsyncMutex<T::Database>>,
     pub http:     Arc<AsyncMutex<T::Http>>,
 }
 
@@ -66,16 +66,24 @@ where
         }
     }
 
-    pub fn db_get(&self, conn: &Connection, key: &str) -> Result<Option<String>, RuntimeError> {
-        self.inner.database.lock().get(conn, key)
+    pub fn db_get(&self, conn: Connection, key: &str) -> Result<Option<String>, RuntimeError> {
+        tokio::task::block_in_place(move || {
+            tokio::runtime::Handle::current()
+                .block_on(async move { self.inner.database.lock().await.get(conn, key).await })
+        })
     }
 
-    pub fn db_set(&self, conn: &Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
-        self.inner.database.lock().set(conn, key, value)
+    pub fn db_set(&self, conn: Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
+        tokio::task::block_in_place(move || {
+            tokio::runtime::Handle::current()
+                .block_on(async move { self.inner.database.lock().await.set(conn, key, value).await })
+        })
     }
 
     pub fn db_connect(&self) -> Result<Connection, RuntimeError> {
-        self.inner.database.lock().connect()
+        tokio::task::block_in_place(move || {
+            tokio::runtime::Handle::current().block_on(async move { self.inner.database.lock().await.connect().await })
+        })
     }
 
     pub fn http_fetch(&self, url: &str) -> Result<String, reqwest::Error> {
