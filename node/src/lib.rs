@@ -24,19 +24,18 @@ pub mod test {
     mod job_manager_test;
 }
 
-
 pub fn run<T: MainChainAdapterTrait>(server_addr: &str) {
     let system = System::new();
 
     // Initialize actors inside system context
     system.block_on(async {
         let app = App {
-            event_queue: Arc::new(RwLock::new(EventQueue::default())),
+            event_queue:       Arc::new(RwLock::new(EventQueue::default())),
             running_event_ids: Arc::new(RwLock::new(Vec::new())),
         }
         .start();
 
-        let rpc_server = JsonRpcServer::build::<T>("todo get from config")
+        let rpc_server = JsonRpcServer::build::<T>(server_addr)
             .await
             .expect("Error starting jsonrpsee server")
             .start();
