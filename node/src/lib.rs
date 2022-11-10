@@ -24,7 +24,8 @@ pub mod test {
     mod job_manager_test;
 }
 
-pub fn run<T: MainChainAdapterTrait>() {
+
+pub fn run<T: MainChainAdapterTrait>(server_addr: &str) {
     let system = System::new();
 
     // Initialize actors inside system context

@@ -20,6 +20,7 @@ pub struct MainChainAdapter;
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for MainChainAdapter {
     type Client = JsonRpcClient;
+    type FinalExecutionStatus = near_primitives::views::FinalExecutionStatus;
     type SignedTransaction = near_primitives::transaction::SignedTransaction;
 
     fn new_client(server_addr: &str) -> Self::Client {
@@ -55,7 +56,7 @@ impl MainChainAdapterTrait for MainChainAdapter {
 
         let current_nonce = match access_key_query_response.kind {
             QueryResponseKind::AccessKey(access_key) => access_key.nonce,
-            _ => todo!("FailedToExtractCurrentNonce"),
+            _ => Err(MainChainAdapterError::FailedToExtractCurrentNonce)?,
         };
 
         let transaction = Transaction {
@@ -155,7 +156,7 @@ impl MainChainAdapterTrait for MainChainAdapter {
         }
     }
 
-    async fn view(client: Arc<Self::Client>, contract_id: String, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
             request:         QueryRequest::CallFunction {

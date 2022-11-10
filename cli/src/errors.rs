@@ -6,8 +6,6 @@ use thiserror::Error;
 pub enum CliError {
     #[error("environment variable `{0}` is not set")]
     MissingEnvVar(String),
-    #[error("failed to extract current nonce")]
-    FailedToExtractCurrentNonce,
     #[error("near json rpc error")]
     JsonRpcError(#[from] near_jsonrpc_client::errors::JsonRpcError<near_jsonrpc_client::methods::query::RpcQueryError>),
     #[error("jsonrpsee client error")]

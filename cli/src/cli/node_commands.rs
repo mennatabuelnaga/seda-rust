@@ -52,7 +52,6 @@ async fn format_tx_and_request_seda_server<T: MainChainAdapterTrait>(
     Ok(response)
 }
 
-#[tokio::main]
 pub async fn register_node<T: MainChainAdapterTrait>(socket_address: String) -> Result<()> {
     let method_name = "register_node";
 
@@ -68,7 +67,6 @@ pub async fn register_node<T: MainChainAdapterTrait>(socket_address: String) -> 
     Ok(())
 }
 
-#[tokio::main]
 pub async fn remove_node<T: MainChainAdapterTrait>(node_id: u64) -> Result<()> {
     let method_name = "remove_node";
 
@@ -84,7 +82,6 @@ pub async fn remove_node<T: MainChainAdapterTrait>(node_id: u64) -> Result<()> {
     Ok(())
 }
 
-#[tokio::main]
 pub async fn set_node_socket_address<T: MainChainAdapterTrait>(node_id: u64, new_socket_address: String) -> Result<()> {
     let method_name = "set_node_socket_address";
 
@@ -102,7 +99,6 @@ pub async fn set_node_socket_address<T: MainChainAdapterTrait>(node_id: u64, new
     Ok(())
 }
 
-#[tokio::main]
 pub async fn get_node_socket_address(node_id: u64) -> Result<()> {
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;
@@ -118,7 +114,6 @@ pub async fn get_node_socket_address(node_id: u64) -> Result<()> {
     Ok(())
 }
 
-#[tokio::main]
 pub async fn get_nodes(limit: u64, offset: u64) -> Result<()> {
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;
@@ -130,7 +125,6 @@ pub async fn get_nodes(limit: u64, offset: u64) -> Result<()> {
     Ok(())
 }
 
-#[tokio::main]
 pub async fn get_node_owner(node_id: u64) -> Result<()> {
     let near_server_url = get_env_var("NEAR_SERVER_URL")?;
     let contract_id = get_env_var("CONTRACT_ACCOUNT_ID")?;
