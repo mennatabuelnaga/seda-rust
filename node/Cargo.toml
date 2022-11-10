@@ -13,3 +13,4 @@ serde_json = "1.0.87"
 jsonrpsee-core = "0.15.1"
 seda-adapters = {path = "../adapters"}
 libp2p = "0.43.0"
+thiserror = "1.0.37"
