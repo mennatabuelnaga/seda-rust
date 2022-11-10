@@ -13,10 +13,11 @@ use std::sync::Arc;
 use actix::prelude::*;
 use app::App;
 use event_queue::EventQueue;
+use p2p::{P2PConfig, P2PServer};
 use parking_lot::RwLock;
 use rpc::JsonRpcServer;
 
-use crate::{app::Shutdown, p2p::p2p_listen, rpc::Stop};
+use crate::{app::Shutdown, rpc::Stop};
 
 #[cfg(test)]
 #[path = ""]
@@ -47,6 +48,22 @@ pub fn run(
             .await
             .expect("Error starting jsonrpsee server")
             .start();
+
+        // P2P Server
+        let p2p_config = P2PConfig {
+            server_address: p2p_server_address,
+            known_peers:    known_peers.unwrap_or_default(),
+        };
+
+        // P2P initialization
+        // TODO: most probably this process should be moved somewhere else
+        tokio::spawn(async move {
+            let mut p2p_server = P2PServer::start_from_config(p2p_config)
+                .await
+                .expect("P2P swarm cannot be started");
+            p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
+            p2p_server.loop_stream().await.expect("P2P listen failed");
+        });
 
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {

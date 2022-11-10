@@ -1,39 +1,76 @@
-use std::{error::Error, ops::Mul};
-
 use libp2p::{
     futures::StreamExt,
-    identity,
-    ping,
-    swarm::{dial_opts::DialOpts, Swarm, SwarmEvent},
+    identity::{self},
+    ping::{self, Behaviour},
+    swarm::{Swarm, SwarmEvent},
     Multiaddr,
-    NetworkBehaviour,
     PeerId,
 };
 
-pub async fn p2p_listen(peer_address: Option<String>) -> Result<(), Box<dyn Error>> {
-    let local_key = identity::Keypair::generate_ed25519();
-    let local_peer_id = PeerId::from(local_key.public());
-    println!("Local peer id: {:?}", local_peer_id);
+use super::errors::Result;
 
-    let transport = libp2p::development_transport(local_key).await?;
-    let behaviour = ping::Behaviour::new(ping::Config::new().with_keep_alive(true));
+pub struct P2PConfig {
+    pub server_address: Option<String>,
+    pub known_peers:    Vec<String>,
+}
 
-    let mut swarm = Swarm::new(transport, behaviour, local_peer_id);
-    swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
+pub struct P2PServer {
+    pub config:    P2PConfig,
+    pub local_key: identity::Keypair,
+    pub swarm:     Swarm<Behaviour>,
+}
 
-    println!("{:?}", std::env::args().nth(2));
+impl P2PServer {
+    pub async fn start_from_config(config: P2PConfig) -> Result<Self> {
+        // Generate Peer ID
+        // TODO: Support peer id from config and storage
+        let local_key = identity::Keypair::generate_ed25519();
+        let local_peer_id = PeerId::from(local_key.public());
+        println!("Local peer id: {:?}", local_peer_id);
 
-    if let Some(addr) = peer_address {
-        let remote: Multiaddr = addr.parse()?;
-        swarm.dial(remote)?;
-        println!("Dialed {}", addr)
+        // Build Swarm
+        let transport = libp2p::development_transport(local_key.clone()).await?;
+        let behaviour = ping::Behaviour::new(ping::Config::new().with_keep_alive(true));
+        let mut swarm = Swarm::new(transport, behaviour, PeerId::from(local_key.public()));
+        swarm.listen_on(
+            config
+                .server_address
+                .as_ref()
+                .unwrap_or(&"/ip4/0.0.0.0/tcp/0".to_string())
+                .parse()?,
+        )?;
+
+        Ok(Self {
+            config,
+            local_key,
+            swarm,
+        })
     }
 
-    loop {
-        match swarm.select_next_some().await {
-            SwarmEvent::NewListenAddr { address, .. } => println!("Listening on {:?}", address),
-            SwarmEvent::Behaviour(event) => println!("{:?}", event),
-            _ => {}
+    pub async fn dial_peers(&mut self) -> Result<()> {
+        self.config.known_peers.iter().for_each(|peer_addr| {
+            if let Ok(remote) = peer_addr.parse::<Multiaddr>() {
+                match self.swarm.dial(remote) {
+                    Ok(_) => {
+                        println!("Dialed {}", peer_addr);
+                    }
+                    Err(error) => println!("Couldn't dial peer ({}): {:?}", peer_addr, error),
+                };
+            } else {
+                println!("Couldn't dial peer with address: {}", peer_addr);
+            }
+        });
+
+        Ok(())
+    }
+
+    pub async fn loop_stream(&mut self) -> Result<()> {
+        loop {
+            match self.swarm.select_next_some().await {
+                SwarmEvent::NewListenAddr { address, .. } => println!("Listening on {:?}", address),
+                SwarmEvent::Behaviour(event) => println!("{:?}", event),
+                _ => {}
+            }
         }
     }
 }
