@@ -12,14 +12,42 @@ use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
 )]
 pub struct TestAdapters;
 
-#[derive(Clone, Default)]
-pub struct DatabaseTestAdapter {}
+#[derive(Clone)]
+pub struct DatabaseTestAdapter {
+    conn: Connection,
+}
+
+impl Default for DatabaseTestAdapter {
+    fn default() -> Self {
+        tokio::task::block_in_place(move || {
+            tokio::runtime::Handle::current().block_on(async move {
+                let conn = Connection::open("./seda_db.db3").await.expect("Couldn't open db conn");
+                conn.call(|conn| {
+                    conn.execute(
+                        "CREATE TABLE IF NOT EXISTS data (
+                                    key TEXT PRIMARY KEY,
+                                    value TEXT NOT NULL
+                                )",
+                        params![],
+                    )
+                    .expect("couldn't create db table");
+
+                    Ok::<_, RuntimeError>(())
+                })
+                .await
+                .expect("Couldn't execute db call");
+                DatabaseTestAdapter { conn }
+            })
+        })
+    }
+}
 
 #[async_trait::async_trait]
 impl DatabaseAdapter for DatabaseTestAdapter {
-    async fn get(&self, conn: Connection, key: &str) -> Result<Option<String>, RuntimeError> {
+    async fn get(&self, key: &str) -> Result<Option<String>, RuntimeError> {
         let key = key.to_string();
-        let value = conn
+        let value = self
+            .conn
             .call(move |conn| {
                 let mut stmt = conn.prepare("SELECT value FROM data WHERE key = ?1")?;
                 let mut retrieved: Option<String> = None;
@@ -35,41 +63,19 @@ impl DatabaseAdapter for DatabaseTestAdapter {
         Ok(value)
     }
 
-    async fn set(&mut self, conn: Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
+    async fn set(&mut self, key: &str, value: &str) -> Result<(), RuntimeError> {
         let key = key.to_string();
         let value = value.to_string();
-        conn.call(move |conn| {
-            conn.execute("INSERT INTO data (key, value) VALUES (?1, ?2)", params![key, value])?;
+        self.conn
+            .call(move |conn| {
+                conn.execute("INSERT INTO data (key, value) VALUES (?1, ?2)", params![key, value])?;
 
-            Ok::<_, RuntimeError>(())
-        })
-        .await?;
+                Ok::<_, RuntimeError>(())
+            })
+            .await?;
 
         Ok(())
     }
-
-    async fn connect(&mut self) -> Result<Connection, RuntimeError> {
-        let conn = Connection::open("./seda_db.db3").await?;
-
-        conn.call(|conn| {
-            conn.execute(
-                "CREATE TABLE IF NOT EXISTS data (
-                        key TEXT PRIMARY KEY,
-                        value TEXT NOT NULL
-                    )",
-                params![],
-            )?;
-
-            Ok::<_, RuntimeError>(())
-        })
-        .await?;
-
-        Ok(conn)
-    }
-
-    // fn get_all(&self) -> HashMap<String, String> {
-    //     self.data.clone()
-    // }
 }
 
 #[derive(Clone, Default)]

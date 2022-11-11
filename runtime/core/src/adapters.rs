@@ -1,15 +1,13 @@
 use std::sync::Arc;
 
 use tokio::sync::Mutex as AsyncMutex;
-use tokio_rusqlite::Connection;
 
 use super::RuntimeError;
 
 #[async_trait::async_trait]
 pub trait DatabaseAdapter: Send {
-    async fn connect(&mut self) -> Result<Connection, RuntimeError>;
-    async fn set(&mut self, conn: Connection, key: &str, value: &str) -> Result<(), RuntimeError>;
-    async fn get(&self, conn: Connection, key: &str) -> Result<Option<String>, RuntimeError>;
+    async fn set(&mut self, key: &str, value: &str) -> Result<(), RuntimeError>;
+    async fn get(&self, key: &str) -> Result<Option<String>, RuntimeError>;
 }
 
 #[async_trait::async_trait]
@@ -66,23 +64,16 @@ where
         }
     }
 
-    pub fn db_get(&self, conn: Connection, key: &str) -> Result<Option<String>, RuntimeError> {
+    pub fn db_get(&self, key: &str) -> Result<Option<String>, RuntimeError> {
         tokio::task::block_in_place(move || {
-            tokio::runtime::Handle::current()
-                .block_on(async move { self.inner.database.lock().await.get(conn, key).await })
+            tokio::runtime::Handle::current().block_on(async move { self.inner.database.lock().await.get(key).await })
         })
     }
 
-    pub fn db_set(&self, conn: Connection, key: &str, value: &str) -> Result<(), RuntimeError> {
+    pub fn db_set(&self, key: &str, value: &str) -> Result<(), RuntimeError> {
         tokio::task::block_in_place(move || {
             tokio::runtime::Handle::current()
-                .block_on(async move { self.inner.database.lock().await.set(conn, key, value).await })
-        })
-    }
-
-    pub fn db_connect(&self) -> Result<Connection, RuntimeError> {
-        tokio::task::block_in_place(move || {
-            tokio::runtime::Handle::current().block_on(async move { self.inner.database.lock().await.connect().await })
+                .block_on(async move { self.inner.database.lock().await.set(key, value).await })
         })
     }
 
