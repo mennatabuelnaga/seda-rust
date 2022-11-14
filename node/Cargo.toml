@@ -19,3 +19,6 @@ serde_json = "1.0.87"
 tokio = { version = "1.21.2", features = ["full"] }
 libp2p = "0.43.0"
 thiserror = "1.0.37"
+
+# This is a temp dependency to see if gossip works. This needs to be removed
+async-std = "1.12.0"

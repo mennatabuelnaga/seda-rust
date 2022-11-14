@@ -4,6 +4,7 @@ mod event_queue;
 mod event_queue_handler;
 mod job_manager;
 mod p2p;
+mod p2p_behaviour;
 mod rpc;
 mod runtime_job;
 mod test_adapters;
@@ -42,7 +43,6 @@ pub fn run(
         }
         .start();
 
-        p2p_listen(peer_address).await.unwrap();
         // Json-RPC Server
         let rpc_server = JsonRpcServer::build(&jsonrpc_server_address.unwrap_or_else(|| "127.0.0.1:12345".to_string()))
             .await
