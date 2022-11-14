@@ -24,8 +24,7 @@ impl MainchainContract {
     pub fn compute_merkle_root(&self) -> CryptoHash {
         let initial_gas = env::used_gas();
 
-        let data_requests: Vec<String> = self.data_request_accumulator.iter().collect();
-        let merkle_root = merklize(&data_requests);
+        let merkle_root = merklize(&self.data_request_accumulator.to_vec());
 
         log!("used gas: {}", u64::from(env::used_gas() - initial_gas));
 
