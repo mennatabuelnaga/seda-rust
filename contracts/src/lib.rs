@@ -2,9 +2,10 @@ pub mod data_request;
 pub mod data_request_test;
 pub mod node_registry;
 pub mod node_registry_test;
+pub mod utils;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    collections::{LookupMap, UnorderedSet},
+    collections::{LookupMap, Vector},
     near_bindgen,
     BorshStorageKey,
 };
@@ -24,7 +25,7 @@ enum MainchainStorageKeys {
 pub struct MainchainContract {
     num_nodes:                u64,
     nodes:                    LookupMap<u64, Node>,
-    data_request_accumulator: UnorderedSet<String>,
+    data_request_accumulator: Vector<String>,
 }
 
 impl Default for MainchainContract {
@@ -41,7 +42,7 @@ impl MainchainContract {
         Self {
             num_nodes:                0,
             nodes:                    LookupMap::new(MainchainStorageKeys::NumNodes),
-            data_request_accumulator: UnorderedSet::new(MainchainStorageKeys::DataRequestAccumulator),
+            data_request_accumulator: Vector::<String>::new(MainchainStorageKeys::DataRequestAccumulator),
         }
     }
 }

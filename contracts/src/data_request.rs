@@ -1,7 +1,7 @@
-use near_primitives::merkle::merklize;
+use near_primitives::hash::CryptoHash;
 use near_sdk::{env, log, near_bindgen};
 
-use crate::{MainchainContract, MainchainContractExt};
+use crate::{utils::merklize, MainchainContract, MainchainContractExt};
 
 /// Contract public methods
 #[near_bindgen]
@@ -10,7 +10,7 @@ impl MainchainContract {
         // keep track of storage usage
         let initial_storage_usage = env::storage_usage();
 
-        self.data_request_accumulator.insert(&data_request);
+        self.data_request_accumulator.push(&data_request);
 
         // check for storage deposit
         let storage_cost = env::storage_byte_cost() * u128::from(env::storage_usage() - initial_storage_usage);
@@ -21,15 +21,14 @@ impl MainchainContract {
         );
     }
 
-    pub fn compute_merkle_root(&self) -> String {
+    pub fn compute_merkle_root(&self) -> CryptoHash {
         let initial_gas = env::used_gas();
 
-        // TODO: sort data requests
         let data_requests: Vec<String> = self.data_request_accumulator.iter().collect();
         let merkle_root = merklize(&data_requests);
 
         log!("used gas: {}", u64::from(env::used_gas() - initial_gas));
 
-        merkle_root.0.to_string()
+        merkle_root
     }
 }
