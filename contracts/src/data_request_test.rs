@@ -25,14 +25,13 @@ mod tests {
 
         // post data request
         testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.post_data_request("data_request_1");
-        contract.post_data_request("data_request_2");
-        contract.post_data_request("data_request_3");
+        contract.post_data_request("data_request_1".to_string());
+        contract.post_data_request("data_request_2".to_string());
+        contract.post_data_request("data_request_3".to_string());
 
         // compute merkle root
         testing_env!(get_context("bob_near".to_string()));
-        let merkle_root = contract.compute_merkle_root();
-        println!("merkle_root: {}", merkle_root);
+        contract.compute_merkle_root();
     }
 
     #[test]
@@ -41,7 +40,7 @@ mod tests {
 
         for i in 0..300 {
             testing_env!(get_context_with_deposit("bob_near".to_string()));
-            contract.post_data_request(format!("data_request_{}", i).as_str());
+            contract.post_data_request(format!("data_request_{}", i));
             testing_env!(get_context("bob_near".to_string()));
             contract.compute_merkle_root();
         }

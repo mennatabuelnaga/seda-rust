@@ -4,8 +4,6 @@ use near_sdk::{
 };
 use sha2::Digest;
 
-/// Modified from nearcore/core/primitives and nearcore/core/primitives-core
-
 #[cfg_attr(feature = "deepsize_feature", derive(deepsize::DeepSizeOf))]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
 pub struct CryptoHash(pub [u8; 32]);
@@ -22,6 +20,9 @@ impl CryptoHash {
     }
 
     /// Calculates hash of borsh-serialised representation of an object.
+    ///
+    /// Note that if you have a slice of objects to serialise, you might
+    /// prefer using [`Self::hash_borsh_slice`] instead.
     pub fn hash_borsh<T: BorshSerialize>(value: &T) -> CryptoHash {
         let mut hasher = sha2::Sha256::default();
         BorshSerialize::serialize(value, &mut hasher).unwrap();
@@ -35,6 +36,7 @@ pub fn combine_hash(hash1: &MerkleHash, hash2: &MerkleHash) -> MerkleHash {
     CryptoHash::hash_borsh(&(hash1, hash2))
 }
 
+/// Modified from nearcore/core/primitives/src/merkle.rs
 pub fn merklize<T: BorshSerialize>(arr: &[T]) -> MerkleHash {
     if arr.is_empty() {
         return MerkleHash::default();
