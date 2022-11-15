@@ -1,4 +1,6 @@
 mod app;
+mod config;
+pub use config::*;
 mod event_queue;
 mod event_queue_handler;
 mod job_manager;

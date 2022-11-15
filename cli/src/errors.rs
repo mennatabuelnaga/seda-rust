@@ -17,5 +17,9 @@ pub enum CliError {
     ParseKey(#[from] ParseKeyError),
     #[error(transparent)]
     MainChainAdapterError(#[from] MainChainAdapterError),
+    #[error("Failed to read/write config file: {0}")]
+    ConfigIoError(#[from] std::io::Error),
+    #[error("Invalid Toml Conversion: {0}")]
+    InvalidTomlConfig(String),
 }
 pub type Result<T, E = CliError> = core::result::Result<T, E>;
