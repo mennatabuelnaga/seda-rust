@@ -1,7 +1,9 @@
 /// TODO: Delete this and replace with actual adapters
-
 use rusqlite::params;
-use seda_runtime::{adapters::{DatabaseAdapter, HostAdapterTypes, HttpAdapter}, RuntimeError};
+use seda_runtime::{
+    adapters::{DatabaseAdapter, HostAdapterTypes, HttpAdapter},
+    RuntimeError,
+};
 use tokio_rusqlite::Connection;
 
 #[derive(Clone, Default)]
