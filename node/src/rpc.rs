@@ -41,20 +41,23 @@ impl JsonRpcServer {
         // TODO: refactor module configuration
 
         // register view methods
-        module.register_async_method("cli", |params, _| async move {
+        module.register_method("cli", move|params, _| {
             println!("hey");
-            // let status = get_node_socket_address(params).await;
-            // status.map_err(|err|
-            // jsonrpsee_core::Error::Custom(err.to_string()))
-            app.send(AddEventToQueue {
-                event: Event {
-                    data: EventData::MainChainTick,
-                    id:   "test".to_string(),
-                },
-            })
-            .await
-            .unwrap();
-            Ok("This works")
+            
+            // tokio::task::block_in_place( || {
+            //     tokio::runtime::Handle::current().block_on(async  {
+            //         app.send(AddEventToQueue {
+            //             event: Event {
+            //                 data: EventData::MainChainTick,
+            //                 id:   "test".to_string(),
+            //             },
+            //         }).await.expect("errorr in register method cli");
+            // })});
+            
+            let x: Vec<String> = params.one::<Vec<String>>().expect("couldn't fetch string vec params");
+            println!("{:?}", x);
+            
+            Ok("This works".to_string())
         })?;
 
         module.register_async_method("get_node_socket_address", |params, _| async move {

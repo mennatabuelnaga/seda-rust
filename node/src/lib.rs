@@ -34,7 +34,7 @@ pub fn run() {
         }
         .start();
 
-        let rpc_server = JsonRpcServer::build(app.clone())
+        let rpc_server = JsonRpcServer::build(Arc::new(app.clone()))
             .await
             .expect("Error starting jsonrpsee server")
             .start();

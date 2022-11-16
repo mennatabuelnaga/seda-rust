@@ -30,7 +30,10 @@ struct Options {
 #[derive(Subcommand)]
 enum Commands {
     Run,
-    Cli,
+    // Cli,
+    Cli {
+        args: Vec<String>,
+    },
     RegisterNode {
         #[arg(short, long)]
         socket_address: String,
@@ -68,11 +71,14 @@ fn main() {
     if let Some(command) = options.command {
         match command {
             Commands::Run => seda_node::run(),
-            Commands::Cli => {
-                let args: Vec<String> = env::args().collect();
+            // Commands::Cli => {
+            //     let args: Vec<String> = env::args().collect();
+            //     call_cli(args).unwrap();
+            // }
+            
+            Commands::Cli {args} => {
                 call_cli(args).unwrap();
-            }
-
+            },
             _ => println!("Nope"),
         }
     } else {
