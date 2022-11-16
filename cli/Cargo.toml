@@ -6,13 +6,10 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1.58"
 clap = { version = "4.0.15", default-features = true, features = ["derive"] }
-serde = { version = "1.0.147", features = ["derive"] }
-tokio = { version = "1.16", features = ["full"] }
-serde_json = { version = "1" }
+dotenv = "0.15.0"
 jsonrpsee = { git = "https://github.com/paritytech/jsonrpsee.git", branch = "master", features = [
 	"full",
 ] }
-dotenv = "0.15.0"
 near-jsonrpc-client = { version = "0.4.0", default-features = false, features = [
 	"auth",
 	"rustls-tls",
@@ -20,9 +17,13 @@ near-jsonrpc-client = { version = "0.4.0", default-features = false, features = 
 near-jsonrpc-primitives = "0.15.0"
 near-primitives = "0.15.0"
 near-crypto = "0.15.0"
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = { version = "1" }
 seda-adapters = { path = "../adapters" }
+seda-config = { path = "../config" }
 seda-node = { path = "../node" }
 thiserror = "1.0.37"
+tokio = { version = "1.16", features = ["full"] }
 toml = "0.5.9"
 
 [[bin]]

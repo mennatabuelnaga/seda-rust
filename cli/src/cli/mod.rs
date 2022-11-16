@@ -1,6 +1,7 @@
 use clap::{arg, command, Parser, Subcommand};
+use seda_config::Config;
 
-use crate::{config::Config, Result};
+use crate::{config::AppConfig, Result};
 mod cli_commands;
 use cli_commands::*;
 mod near_backend;
@@ -12,11 +13,12 @@ pub use near_backend::NearCliBackend;
 #[command(version = "0.1.0")]
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
-		// Todo consider moving this only to relevant commands.
+    // TODO consider moving this only to relevant commands.
+    // but top level lets us not repeat code.
     #[arg(short, long)]
     config_file: Option<std::path::PathBuf>,
     #[command(subcommand)]
-    command: Option<Commands>,
+    command:     Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -32,7 +34,7 @@ enum Commands {
     },
     GetNodes {
         #[arg(short, long)]
-        limit: u64,
+        limit:  u64,
         #[arg(short, long, default_value = "0")]
         offset: u64,
     },
@@ -46,7 +48,7 @@ enum Commands {
     },
     SetNodeSocketAddress {
         #[arg(short, long)]
-        node_id: u64,
+        node_id:        u64,
         #[arg(short, long)]
         socket_address: String,
     },
@@ -90,16 +92,17 @@ impl CliOptions {
         dotenv::dotenv().ok();
 
         match options.command {
-            Some(Commands::GenerateConfig) => return Config::create_template_from_path("./template_config.toml"),
+            Some(Commands::GenerateConfig) => {
+                return AppConfig::<T::MainChainAdapter>::create_template_from_path("./template_config.toml");
+            }
             Some(Commands::Run { server_address }) => {
-                let _config = Config::read_from_path(options.config_file.unwrap())?;
+                let _config = AppConfig::<T::MainChainAdapter>::read_from_path(options.config_file.unwrap())?;
                 seda_node::run::<T::MainChainAdapter>(&server_address);
                 return Ok(());
             }
             _ => {}
         }
-        let _config = Config::read_from_path(options.config_file.unwrap())?;
-
+        let _config = AppConfig::<T::MainChainAdapter>::read_from_path(options.config_file.unwrap())?;
         Self::rest_of_options::<T>(options.command)
     }
 }
