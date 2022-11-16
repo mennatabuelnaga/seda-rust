@@ -136,3 +136,12 @@ pub async fn get_node_owner(node_id: u64) -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::main]
+pub async fn call_cli(args: Vec<String>) -> Result<()> {
+    let response = view_seda_server("cli", rpc_params![args]).await?;
+
+    println!("{}", response);
+
+    Ok(())
+}

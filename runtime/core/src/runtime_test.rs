@@ -172,3 +172,36 @@ async fn test_memory_adapter() {
     assert!(u32_value.is_some());
     assert_eq!(u32_value.unwrap(), expected_str);
 }
+
+fn cli_wasm() -> Vec<u8> {
+    let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path_prefix.push("./test_files/demo-cli.wasm");
+
+    fs::read(path_prefix).unwrap()
+}
+
+#[tokio::test]
+async fn test_cli_demo() {
+    let wasm_binary = cli_wasm();
+    let host_adapter = HostAdapters::<TestAdapters>::default();
+    let runtime = Runtime {};
+
+    let runtime_execution_result = runtime.start_runtime(
+        VmConfig {
+            args: vec!["--help".to_string()],
+            program_name: "consensus".to_string(),
+            start_func: None,
+            wasm_binary,
+            debug: true,
+        },
+        memory_adapter(),
+        host_adapter.clone(),
+    );
+
+    let vm_result = runtime_execution_result.await;
+    assert!(vm_result.is_ok());
+
+    let value = host_adapter.db_get("test_value");
+    assert!(value.is_some());
+    assert_eq!(value.unwrap(), "completed");
+}

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix::prelude::*;
 use jsonrpsee_core::Error;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
@@ -8,6 +10,12 @@ use seda_adapters::near_adapter::{
     register_node,
     remove_node,
     set_node_socket_address,
+};
+
+use crate::{
+    app::App,
+    event_queue::{Event, EventData},
+    event_queue_handler::AddEventToQueue,
 };
 
 #[derive(Message)]
@@ -28,11 +36,26 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn build() -> Result<Self, Error> {
+    pub async fn build(app: Arc<Addr<App>>) -> Result<Self, Error> {
         let mut module = RpcModule::new(());
         // TODO: refactor module configuration
 
         // register view methods
+        module.register_async_method("cli", |params, _| async move {
+            println!("hey");
+            // let status = get_node_socket_address(params).await;
+            // status.map_err(|err|
+            // jsonrpsee_core::Error::Custom(err.to_string()))
+            app.send(AddEventToQueue {
+                event: Event {
+                    data: EventData::MainChainTick,
+                    id:   "test".to_string(),
+                },
+            })
+            .await
+            .unwrap();
+            Ok("This works")
+        })?;
 
         module.register_async_method("get_node_socket_address", |params, _| async move {
             let status = get_node_socket_address(params).await;
