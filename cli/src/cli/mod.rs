@@ -53,25 +53,19 @@ enum Commands {
 }
 
 impl CliOptions {
-    pub async fn handle<T: CliCommands>() -> Result<()> {
-        let options = CliOptions::parse();
-        dotenv::dotenv().ok();
-
-        match options.command {
+    // This is temporary until we move the execution of these to
+    // the runtime.
+    #[tokio::main]
+    async fn rest_of_options<T: CliCommands>(command: Option<Commands>) -> Result<()> {
+        match command {
             // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
-            Some(Commands::RegisterNode { socket_address }) => {
-                T::register_node(socket_address).await?;
-            }
+            Some(Commands::RegisterNode { socket_address }) => T::register_node(socket_address).await?,
             // cargo run --bin seda get-nodes --limit 2
-            Some(Commands::GetNodes { limit, offset }) => {
-                T::get_nodes(limit, offset).await?;
-            }
+            Some(Commands::GetNodes { limit, offset }) => T::get_nodes(limit, offset).await?,
             // cargo run --bin seda get-node-socket-address --node-id 9
-            Some(Commands::GetNodeSocketAddress { node_id }) => {
-                T::get_node_socket_address(node_id).await?;
-            }
+            Some(Commands::GetNodeSocketAddress { node_id }) => T::get_node_socket_address(node_id).await?,
             // cargo run --bin seda run
-            Some(Commands::Run { server_address }) => seda_node::run::<T::MainChainAdapter>(&server_address),
+            Some(Commands::Run { .. }) => unreachable!(),
             // cargo run --bin seda remove-node --node-id 9
             Some(Commands::RemoveNode { node_id }) => T::remove_node(node_id).await?,
             // cargo run --bin seda set-node-socket-address --node-id 9 --socket-address 127.0.0.1:9000
@@ -85,5 +79,17 @@ impl CliOptions {
         }
 
         Ok(())
+    }
+
+    pub fn handle<T: CliCommands>() -> Result<()> {
+        let options = CliOptions::parse();
+        dotenv::dotenv().ok();
+
+        if let Some(Commands::Run { server_address }) = options.command {
+            seda_node::run::<T::MainChainAdapter>(&server_address);
+            return Ok(());
+        }
+
+        Self::rest_of_options::<T>(options.command)
     }
 }

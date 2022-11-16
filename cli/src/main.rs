@@ -4,7 +4,6 @@ mod errors;
 use errors::*;
 mod helpers;
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    CliOptions::handle::<NearCliBackend>().await
+fn main() -> Result<()> {
+    CliOptions::handle::<NearCliBackend>()
 }
