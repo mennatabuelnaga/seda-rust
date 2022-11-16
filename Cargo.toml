@@ -2,6 +2,7 @@
 exclude = ["test_wasm_bins/promise_wasm_bin"]
 members = [
 	"cli",
+	"config",
 	"contracts",
 	"node",
 	"runtime/core",

@@ -14,6 +14,7 @@ jsonrpsee-ws-server = "0.15.1"
 parking_lot = "0.12"
 reqwest = "0.11.12"
 seda-adapters = { path = "../adapters" }
+seda-config = { path = "../config" }
 seda-runtime = { path = "../runtime/core" }
 serde = { version = "1.0.147", features = ["derive"] }
 serde_json = "1.0.87"

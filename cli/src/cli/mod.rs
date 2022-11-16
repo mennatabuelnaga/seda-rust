@@ -1,5 +1,4 @@
 use clap::{arg, command, Parser, Subcommand};
-use seda_config::Config;
 
 use crate::{config::AppConfig, Result};
 mod cli_commands;

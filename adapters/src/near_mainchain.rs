@@ -8,6 +8,8 @@ use near_primitives::{
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
 };
+use seda_config::{env_overwrite, Config};
+use serde::{Deserialize, Serialize};
 use serde_json::from_slice;
 use tokio::time;
 
@@ -17,9 +19,35 @@ use crate::{MainChainAdapterTrait, TransactionParams};
 #[derive(Debug)]
 pub struct NearMainChain;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NearConfig {
+    near_server_url: String,
+}
+
+impl Config for NearConfig {
+    type Error = crate::errors::MainChainAdapterError;
+
+    fn validate(&self) -> Result<(), Self::Error> {
+        todo!()
+    }
+
+    fn overwrite_from_env(&mut self) {
+        env_overwrite!(self.near_server_url, "NEAR_SERVER_URL");
+    }
+}
+
+impl Default for NearConfig {
+    fn default() -> Self {
+        Self {
+            near_server_url: "fill me in".to_string(),
+        }
+    }
+}
+
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for NearMainChain {
     type Client = JsonRpcClient;
+    type Config = NearConfig;
     type FinalExecutionStatus = near_primitives::views::FinalExecutionStatus;
     type SignedTransaction = near_primitives::transaction::SignedTransaction;
 
