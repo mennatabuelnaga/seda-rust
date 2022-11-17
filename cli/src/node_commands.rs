@@ -138,10 +138,20 @@ pub async fn get_node_owner(node_id: u64) -> Result<()> {
 }
 
 #[tokio::main]
-pub async fn call_cli(args: Vec<String>) -> Result<()> {
-    let response = view_seda_server("cli", rpc_params![args]).await?;
+pub async fn call_cli(args: Vec<String>) -> Result<Vec<String>> {
+    // let response = view_seda_server("cli", rpc_params![args]).await?;
 
-    println!("{}", response);
+    // println!("{}", response);
 
-    Ok(())
+    // Ok(())
+    let seda_server_url = get_env_var("SEDA_SERVER_URL")?;
+
+    let client = WsClientBuilder::default().build(&seda_server_url).await?;
+
+    let response: Vec<String> = client.request("cli", rpc_params![args]).await?;
+    for item in response.iter() {
+        print!("{}", item);
+    }
+
+    Ok(response)
 }

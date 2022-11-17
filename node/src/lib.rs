@@ -11,8 +11,10 @@ use std::sync::Arc;
 use actix::prelude::*;
 use app::App;
 use event_queue::EventQueue;
+use job_manager::StartJobManager;
 use parking_lot::RwLock;
 use rpc::JsonRpcServer;
+use runtime_job::RuntimeWorker;
 
 use crate::{app::Shutdown, rpc::Stop};
 
@@ -34,7 +36,13 @@ pub fn run() {
         }
         .start();
 
-        let rpc_server = JsonRpcServer::build(Arc::new(app.clone()))
+        // TODO: use config param for setting the number of threads
+        let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker);
+        app.do_send(StartJobManager {
+            runtime_worker: runtime_worker.clone(),
+        });
+
+        let rpc_server = JsonRpcServer::build(app.clone(), runtime_worker.clone())
             .await
             .expect("Error starting jsonrpsee server")
             .start();

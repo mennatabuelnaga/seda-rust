@@ -1,7 +1,12 @@
-use std::sync::Arc;
+use std::{future, net::SocketAddr, sync::Arc};
 
 use actix::prelude::*;
-use jsonrpsee_core::Error;
+use futures::FutureExt;
+use jsonrpsee::{
+    core::{async_trait, Error},
+    proc_macros::rpc,
+    types::Params,
+};
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 use seda_adapters::near_adapter::{
     get_node_owner,
@@ -11,11 +16,13 @@ use seda_adapters::near_adapter::{
     remove_node,
     set_node_socket_address,
 };
+use tokio::runtime::Builder;
 
 use crate::{
     app::App,
     event_queue::{Event, EventData},
     event_queue_handler::AddEventToQueue,
+    runtime_job::{RuntimeJob, RuntimeWorker},
 };
 
 #[derive(Message)]
@@ -26,77 +33,61 @@ impl Handler<Stop> for JsonRpcServer {
     type Result = ();
 
     fn handle(&mut self, _msg: Stop, _ctx: &mut Context<Self>) {
-        self.handle.to_owned().stop().unwrap().into_actor(self).wait(_ctx);
+        // self.handle.to_owned().stop().unwrap().into_actor(self).wait(_ctx);
         println!("JsonRpcServer stopped!");
     }
 }
 
 pub struct JsonRpcServer {
-    handle: WsServerHandle,
+    // handle: WsServerHandle,
+}
+
+#[rpc(server)]
+pub trait Rpc {
+    #[method(name = "cli")]
+    async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error>;
+}
+
+pub struct RpcServerTwo {
+    app:            Addr<App>,
+    runtime_worker: Addr<RuntimeWorker>,
+}
+
+impl RpcServerTwo {
+    pub fn new(app: Addr<App>, runtime_worker: Addr<RuntimeWorker>) -> Self {
+        Self { app, runtime_worker }
+    }
+}
+
+#[async_trait]
+impl RpcServer for RpcServerTwo {
+    async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error> {
+        println!("{:?}", &args);
+        // let received: Vec<String> = args;
+
+        let result = self
+            .runtime_worker
+            .send(RuntimeJob {
+                event: Event {
+                    id:   "test".to_string(),
+                    data: EventData::CliCall(args),
+                },
+            })
+            .await
+            .unwrap();
+
+        // self.app.send(msg).await.unwrap();
+        Ok(result.vm_result.output)
+    }
 }
 
 impl JsonRpcServer {
-    pub async fn build(app: Arc<Addr<App>>) -> Result<Self, Error> {
-        let mut module = RpcModule::new(());
-        // TODO: refactor module configuration
-
-        // register view methods
-        module.register_method("cli", move|params, _| {
-            println!("hey");
-            
-            // tokio::task::block_in_place( || {
-            //     tokio::runtime::Handle::current().block_on(async  {
-            //         app.send(AddEventToQueue {
-            //             event: Event {
-            //                 data: EventData::MainChainTick,
-            //                 id:   "test".to_string(),
-            //             },
-            //         }).await.expect("errorr in register method cli");
-            // })});
-            
-            let x: Vec<String> = params.one::<Vec<String>>().expect("couldn't fetch string vec params");
-            println!("{:?}", x);
-            
-            Ok("This works".to_string())
-        })?;
-
-        module.register_async_method("get_node_socket_address", |params, _| async move {
-            let status = get_node_socket_address(params).await;
-            status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
-        })?;
-
-        module.register_async_method("get_node_owner", |params, _| async move {
-            let status = get_node_owner(params).await;
-            status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
-        })?;
-
-        module.register_async_method("get_nodes", |params, _| async move {
-            let status = get_nodes(params).await;
-            status.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
-        })?;
-
-        // register change methods
-
-        module.register_async_method("register_node", |params, _| async move {
-            let result = register_node(params).await;
-            result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
-        })?;
-
-        module.register_async_method("remove_node", |params, _| async move {
-            let result = remove_node(params).await;
-            result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
-        })?;
-
-        module.register_async_method("set_node_socket_address", |params, _| async move {
-            let result = set_node_socket_address(params).await;
-            result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
-        })?;
-
+    pub async fn build(app: Addr<App>, runtime_worker: Addr<RuntimeWorker>) -> Result<Self, Error> {
         let server = WsServerBuilder::default().build("127.0.0.1:12345").await?;
+        let rpc = RpcServerTwo::new(app, runtime_worker);
 
-        let handle = server.start(module)?;
-
-        Ok(Self { handle })
+        server.start(rpc.into_rpc())?;
+        Ok(Self {})
     }
 }
 

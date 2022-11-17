@@ -75,10 +75,9 @@ fn main() {
             //     let args: Vec<String> = env::args().collect();
             //     call_cli(args).unwrap();
             // }
-            
-            Commands::Cli {args} => {
+            Commands::Cli { args } => {
                 call_cli(args).unwrap();
-            },
+            }
             _ => println!("Nope"),
         }
     } else {

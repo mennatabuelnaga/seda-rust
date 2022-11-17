@@ -1,8 +1,9 @@
 use actix::{Handler, Message};
+use serde::{Deserialize, Serialize};
 
 use crate::{app::App, event_queue::Event};
 
-#[derive(Message)]
+#[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "()")]
 pub struct AddEventToQueue {
     pub event: Event,
