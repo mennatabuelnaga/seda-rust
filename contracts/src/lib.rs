@@ -1,3 +1,5 @@
+pub mod block;
+pub mod block_test;
 pub mod data_request;
 pub mod data_request_test;
 pub mod merkle;
@@ -10,13 +12,18 @@ use near_sdk::{
     BorshStorageKey,
 };
 
-use crate::node_registry::Node;
+use crate::{
+    block::{Block, BlockHeight, BlockId},
+    node_registry::Node,
+};
 
 /// Collection keys
 #[derive(BorshStorageKey, BorshSerialize)]
 enum MainchainStorageKeys {
     NumNodes,
     DataRequestAccumulator,
+    Blocks,
+    BlocksById,
 }
 
 /// Contract global state
@@ -26,6 +33,9 @@ pub struct MainchainContract {
     num_nodes:                u64,
     nodes:                    LookupMap<u64, Node>,
     data_request_accumulator: Vector<String>,
+    num_blocks:               BlockHeight,
+    blocks:                   LookupMap<BlockHeight, BlockId>,
+    blocks_by_id:             LookupMap<BlockId, Block>,
 }
 
 impl Default for MainchainContract {
@@ -43,6 +53,9 @@ impl MainchainContract {
             num_nodes:                0,
             nodes:                    LookupMap::new(MainchainStorageKeys::NumNodes),
             data_request_accumulator: Vector::<String>::new(MainchainStorageKeys::DataRequestAccumulator),
+            num_blocks:               0,
+            blocks:                   LookupMap::new(MainchainStorageKeys::Blocks),
+            blocks_by_id:             LookupMap::new(MainchainStorageKeys::BlocksById),
         }
     }
 }

@@ -5,7 +5,9 @@ use near_sdk::{
 use sha2::Digest;
 
 #[cfg_attr(feature = "deepsize_feature", derive(deepsize::DeepSizeOf))]
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Ord, BorshSerialize, BorshDeserialize, Serialize, Deserialize,
+)]
 pub struct CryptoHash(pub [u8; 32]);
 
 impl Default for CryptoHash {
@@ -20,9 +22,6 @@ impl CryptoHash {
     }
 
     /// Calculates hash of borsh-serialised representation of an object.
-    ///
-    /// Note that if you have a slice of objects to serialise, you might
-    /// prefer using [`Self::hash_borsh_slice`] instead.
     pub fn hash_borsh<T: BorshSerialize>(value: &T) -> CryptoHash {
         let mut hasher = sha2::Sha256::default();
         BorshSerialize::serialize(value, &mut hasher).unwrap();
