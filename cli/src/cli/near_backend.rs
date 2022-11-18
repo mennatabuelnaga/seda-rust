@@ -19,18 +19,30 @@ impl CliCommands for NearCliBackend {
         args: Vec<u8>,
         deposit: u128,
     ) -> Result<FinalExecutionStatus> {
-        let seda_server_url = config.seda_server_url.as_ref().expect("TODO");
-        let signer_acc_str = config.signer_account_id.as_ref().expect("TODO");
-        let signer_sk_str = config.secret_key.as_ref().expect("TODO");
-        let contract_id = config.contract_account_id.as_ref().expect("TODO");
+        let seda_server_url = config
+            .seda_server_url
+            .as_ref()
+            .ok_or("seda_server_url from cli, env var or config file.")?;
+        let signer_acc_str = config
+            .signer_account_id
+            .as_ref()
+            .ok_or("signer_account_id from cli, env var or config file.")?;
+        let signer_sk_str = config
+            .secret_key
+            .as_ref()
+            .ok_or("secret_key from cli, env var or config file.")?;
+        let contract_id = config
+            .contract_account_id
+            .as_ref()
+            .ok_or("contract_account_id from cli, env var or config file.")?;
         let near_server_url = config
             .main_chain_config
             .as_ref()
-            .expect("TODO")
+            .ok_or("Config [main_chain_config] section.")?
             .near_server_url
             .as_ref()
-            .expect("TODO");
-        let gas = config.gas.expect("TODO");
+            .ok_or("near_server_url from config [main_chain_config] section.")?;
+        let gas = config.gas.ok_or("gas from config.")?;
 
         let signed_tx = Self::MainChainAdapter::construct_signed_tx(
             signer_acc_str,
@@ -55,9 +67,9 @@ impl CliCommands for NearCliBackend {
         let deposit = config
             .deposit_for_register_node
             .as_ref()
-            .expect("TODO")
+            .ok_or("deposit_for_register_node from config file.")?
             .parse()
-            .expect("todo");
+            .expect("deposit_for_register_node from config file was not a valid number.");
 
         let response = Self::format_tx_and_request_seda_server(
             config,
@@ -76,11 +88,14 @@ impl CliCommands for NearCliBackend {
         let near_server_url = config
             .main_chain_config
             .as_ref()
-            .expect("TODO")
+            .ok_or("Config [main_chain_config] section.")?
             .near_server_url
             .as_ref()
-            .expect("TODO");
-        let contract_id = config.seda_server_url.as_ref().expect("TODO");
+            .ok_or("near_server_url from config [main_chain_config] section.")?;
+        let contract_id = config
+            .contract_account_id
+            .as_ref()
+            .ok_or("contract_account_id from cli, env var or config file.")?;
 
         let response = Self::view_seda_server(
             config,
@@ -98,11 +113,14 @@ impl CliCommands for NearCliBackend {
         let near_server_url = config
             .main_chain_config
             .as_ref()
-            .expect("TODO")
+            .ok_or("Config [main_chain_config] section.")?
             .near_server_url
             .as_ref()
-            .expect("TODO");
-        let contract_id = config.contract_account_id.as_ref().expect("TODO");
+            .ok_or("near_server_url from config [main_chain_config] section.")?;
+        let contract_id = config
+            .contract_account_id
+            .as_ref()
+            .ok_or("contract_account_id from cli, env var or config file.")?;
 
         let response = Self::view_seda_server(
             config,
@@ -120,11 +138,14 @@ impl CliCommands for NearCliBackend {
         let near_server_url = config
             .main_chain_config
             .as_ref()
-            .expect("TODO")
+            .ok_or("Config [main_chain_config] section.")?
             .near_server_url
             .as_ref()
-            .expect("TODO");
-        let contract_id = config.contract_account_id.as_ref().expect("TODO");
+            .ok_or("near_server_url from config [main_chain_config] section.")?;
+        let contract_id = config
+            .contract_account_id
+            .as_ref()
+            .ok_or("contract_account_id from cli, env var or config file.")?;
 
         let response = Self::view_seda_server(
             config,

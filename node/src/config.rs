@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 /// The configuration for the seda engine.
 pub struct NodeConfig {
+    // TODO should this be overwritten from
+    // env and cli?
     job_manager_interval_ms: u64,
 }
 

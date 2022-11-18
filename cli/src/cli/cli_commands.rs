@@ -18,7 +18,10 @@ pub trait CliCommands: Send + Sync {
         method: &str,
         params: ArrayParams,
     ) -> Result<String> {
-        let seda_server_url = config.seda_server_url.as_ref().expect("TODO");
+        let seda_server_url = config
+            .seda_server_url
+            .as_ref()
+            .ok_or("seda_server_url from cli, env var or config file.")?;
 
         let client = WsClientBuilder::default().build(&seda_server_url).await?;
 

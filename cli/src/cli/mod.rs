@@ -16,11 +16,11 @@ pub struct CliOptions {
     #[arg(short, long)]
     config_file: Option<std::path::PathBuf>,
     #[command(subcommand)]
-    command:     Option<Commands>,
+    command:     Command,
 }
 
 #[derive(Debug, Subcommand)]
-enum Commands {
+enum Command {
     GenerateConfig,
     Run {
         #[arg(short, long)]
@@ -28,61 +28,61 @@ enum Commands {
     },
     RegisterNode {
         #[arg(short, long)]
-        socket_address:  String,
+        socket_address:      String,
         #[arg(short, long)]
-        seda_server_url: Option<String>,
+        seda_server_url:     Option<String>,
         #[arg(short, long)]
-        account_id:      Option<String>,
+        signer_account_id:   Option<String>,
         #[arg(short, long)]
-        secret_key:      Option<String>,
+        secret_key:          Option<String>,
         #[arg(short, long)]
-        contract_id:     Option<String>,
+        contract_account_id: Option<String>,
     },
     GetNodes {
         #[arg(short, long)]
-        limit:       u64,
+        limit:               u64,
         #[arg(short, long, default_value = "0")]
-        offset:      u64,
+        offset:              u64,
         #[arg(short, long)]
-        contract_id: Option<String>,
+        contract_account_id: Option<String>,
     },
     GetNodeSocketAddress {
         #[arg(short, long)]
-        node_id:     u64,
+        node_id:             u64,
         #[arg(short, long)]
-        contract_id: Option<String>,
+        contract_account_id: Option<String>,
     },
     RemoveNode {
         #[arg(short, long)]
-        node_id:         u64,
+        node_id:             u64,
         #[arg(short, long)]
-        seda_server_url: Option<String>,
+        seda_server_url:     Option<String>,
         #[arg(short, long)]
-        account_id:      Option<String>,
+        signer_account_id:   Option<String>,
         #[arg(short, long)]
-        secret_key:      Option<String>,
+        secret_key:          Option<String>,
         #[arg(short, long)]
-        contract_id:     Option<String>,
+        contract_account_id: Option<String>,
     },
     SetNodeSocketAddress {
         #[arg(short, long)]
-        node_id:         u64,
+        node_id:             u64,
         #[arg(short, long)]
-        socket_address:  String,
+        socket_address:      String,
         #[arg(short, long)]
-        seda_server_url: Option<String>,
+        seda_server_url:     Option<String>,
         #[arg(short, long)]
-        account_id:      Option<String>,
+        signer_account_id:   Option<String>,
         #[arg(short, long)]
-        secret_key:      Option<String>,
+        secret_key:          Option<String>,
         #[arg(short, long)]
-        contract_id:     Option<String>,
+        contract_account_id: Option<String>,
     },
     GetNodeOwner {
         #[arg(short, long)]
-        node_id:     u64,
+        node_id:             u64,
         #[arg(short, long)]
-        contract_id: Option<String>,
+        contract_account_id: Option<String>,
     },
 }
 
@@ -92,72 +92,77 @@ impl CliOptions {
     #[tokio::main]
     async fn rest_of_options<T: CliCommands>(
         mut config: AppConfig<T::MainChainAdapter>,
-        command: Option<Commands>,
+        command: Command,
     ) -> Result<()> {
         match command {
             // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
-            Some(Commands::RegisterNode {
+            Command::RegisterNode {
                 socket_address,
                 seda_server_url,
-                account_id,
+                signer_account_id,
                 secret_key,
-                contract_id,
-            }) => {
+                contract_account_id,
+            } => {
                 overwrite_config_field!(config.seda_server_url, seda_server_url);
-                overwrite_config_field!(config.signer_account_id, account_id);
+                overwrite_config_field!(config.signer_account_id, signer_account_id);
                 overwrite_config_field!(config.secret_key, secret_key);
-                overwrite_config_field!(config.contract_account_id, contract_id);
+                overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::register_node(&config, socket_address).await?
             }
             // cargo run --bin seda get-nodes --limit 2
-            Some(Commands::GetNodes {
+            Command::GetNodes {
                 limit,
                 offset,
-                contract_id,
-            }) => {
-                overwrite_config_field!(config.contract_account_id, contract_id);
+                contract_account_id,
+            } => {
+                overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::get_nodes(&config, limit, offset).await?
             }
             // cargo run --bin seda get-node-socket-address --node-id 9
-            Some(Commands::GetNodeSocketAddress { node_id, contract_id }) => {
-                overwrite_config_field!(config.contract_account_id, contract_id);
+            Command::GetNodeSocketAddress {
+                node_id,
+                contract_account_id,
+            } => {
+                overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::get_node_socket_address(&config, node_id).await?
             }
             // cargo run --bin seda remove-node --node-id 9
-            Some(Commands::RemoveNode {
+            Command::RemoveNode {
                 node_id,
                 seda_server_url,
-                account_id,
+                signer_account_id,
                 secret_key,
-                contract_id,
-            }) => {
+                contract_account_id,
+            } => {
                 overwrite_config_field!(config.seda_server_url, seda_server_url);
-                overwrite_config_field!(config.signer_account_id, account_id);
+                overwrite_config_field!(config.signer_account_id, signer_account_id);
                 overwrite_config_field!(config.secret_key, secret_key);
-                overwrite_config_field!(config.contract_account_id, contract_id);
+                overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::remove_node(&config, node_id).await?
             }
             // cargo run --bin seda set-node-socket-address --node-id 9 --socket-address 127.0.0.1:9000
-            Some(Commands::SetNodeSocketAddress {
+            Command::SetNodeSocketAddress {
                 node_id,
                 socket_address,
                 seda_server_url,
-                account_id,
+                signer_account_id,
                 secret_key,
-                contract_id,
-            }) => {
+                contract_account_id,
+            } => {
                 overwrite_config_field!(config.seda_server_url, seda_server_url);
-                overwrite_config_field!(config.signer_account_id, account_id);
+                overwrite_config_field!(config.signer_account_id, signer_account_id);
                 overwrite_config_field!(config.secret_key, secret_key);
-                overwrite_config_field!(config.contract_account_id, contract_id);
+                overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::set_node_socket_address(&config, node_id, socket_address).await?
             }
             // cargo run --bin seda get-node-owner --node-id 9
-            Some(Commands::GetNodeOwner { node_id, contract_id }) => {
-                overwrite_config_field!(config.contract_account_id, contract_id);
+            Command::GetNodeOwner {
+                node_id,
+                contract_account_id,
+            } => {
+                overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::get_node_owner(&config, node_id).await?
             }
-            None => todo!(),
             // The commands `run` and `generate-config` are already handled.
             _ => unreachable!(),
         }
@@ -170,16 +175,17 @@ impl CliOptions {
         dotenv::dotenv().ok();
 
         match options.command {
-            Some(Commands::GenerateConfig) => {
+            Command::GenerateConfig => {
                 return AppConfig::<T::MainChainAdapter>::create_template_from_path("./template_config.toml");
             }
-            Some(Commands::Run { seda_server_url }) => {
+            Command::Run { seda_server_url } => {
                 let mut config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
                 overwrite_config_field!(config.seda_server_url, seda_server_url);
                 seda_node::run::<T::MainChainAdapter>(
+                    &config.node_config.ok_or("Config [node_config] section")?,
                     &config
                         .seda_server_url
-                        .expect("TODO error: seda_server_url needs to be set"),
+                        .ok_or("seda_server_url from cli, env var or config file.")?,
                 );
                 return Ok(());
             }

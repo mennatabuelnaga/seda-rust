@@ -4,6 +4,14 @@ use seda_adapters::MainChainAdapterError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+pub enum TomlError {
+    #[error("Invalid Toml Deserialization: {0}")]
+    Deserialize(#[from] toml::de::Error),
+    #[error("Invalid Toml Serialization: {0}")]
+    Serialize(#[from] toml::ser::Error),
+}
+
+#[derive(Error, Debug)]
 pub enum CliError {
     #[error("near json rpc error")]
     JsonRpcError(#[from] near_jsonrpc_client::errors::JsonRpcError<near_jsonrpc_client::methods::query::RpcQueryError>),
@@ -15,9 +23,24 @@ pub enum CliError {
     ParseKey(#[from] ParseKeyError),
     #[error(transparent)]
     MainChainAdapterError(#[from] MainChainAdapterError),
-    #[error("Failed to read/write config file: {0}")]
+    #[error("Config io error: {0}")]
     ConfigIoError(#[from] std::io::Error),
-    #[error("Invalid Toml Conversion: {0}")]
-    InvalidTomlConfig(String),
+    #[error("Config error: {0}")]
+    ConfigError(String),
+    #[error(transparent)]
+    InvalidTomlConfig(#[from] TomlError),
 }
+
+impl From<&str> for CliError {
+    fn from(value: &str) -> Self {
+        Self::from(value.to_string())
+    }
+}
+
+impl From<String> for CliError {
+    fn from(value: String) -> Self {
+        Self::ConfigError(value)
+    }
+}
+
 pub type Result<T, E = CliError> = core::result::Result<T, E>;

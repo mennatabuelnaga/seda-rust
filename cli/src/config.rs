@@ -3,11 +3,12 @@ use seda_config::{env_overwrite, Config};
 use seda_node::NodeConfig;
 use serde::{Deserialize, Serialize};
 
-use crate::errors::{CliError, Result};
+use crate::errors::{Result, TomlError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig<T: MainChainAdapterTrait> {
-    // todo these should be optional then
+    // TODO should deposit and gas be overwritten
+    // from cli and env?
     pub deposit_for_register_node: Option<String>,
     pub gas:                       Option<u64>,
     pub secret_key:                Option<String>,
@@ -75,7 +76,7 @@ impl<T: MainChainAdapterTrait> AppConfig<T> {
     pub fn from_read<R: std::io::Read>(buf: &mut R) -> Result<Self> {
         let mut content = String::new();
         buf.read_to_string(&mut content)?;
-        let mut config: Self = toml::from_str(&content).map_err(|err| CliError::InvalidTomlConfig(err.to_string()))?;
+        let mut config: Self = toml::from_str(&content).map_err(TomlError::Deserialize)?;
         config.overwrite_from_env();
         Ok(config)
     }
@@ -98,7 +99,7 @@ impl<T: MainChainAdapterTrait> AppConfig<T> {
     /// For writing a default configuration file.
     pub fn write_template<W: std::io::Write>(buf: &mut W) -> Result<()> {
         let template = Self::template();
-        let content = toml::to_string_pretty(&template).map_err(|err| CliError::InvalidTomlConfig(err.to_string()))?;
+        let content = toml::to_string_pretty(&template).map_err(TomlError::Serialize)?;
         buf.write_all(content.as_bytes())?;
         Ok(())
     }
