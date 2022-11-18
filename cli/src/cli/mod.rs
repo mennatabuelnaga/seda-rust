@@ -1,4 +1,5 @@
 use clap::{arg, command, Parser, Subcommand};
+use seda_config::overwrite_config_field;
 
 use crate::{config::AppConfig, Result};
 mod cli_commands;
@@ -12,15 +13,13 @@ pub use near_backend::NearCliBackend;
 #[command(version = "0.1.0")]
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
-    // TODO consider moving this only to relevant commands.
-    // but top level lets us not repeat code.
     #[arg(short, long)]
     config_file: Option<std::path::PathBuf>,
     #[command(subcommand)]
     command:     Option<Commands>,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 enum Commands {
     GenerateConfig,
     Run {
@@ -29,31 +28,61 @@ enum Commands {
     },
     RegisterNode {
         #[arg(short, long)]
-        socket_address: String,
+        socket_address:  String,
+        #[arg(short, long)]
+        seda_server_url: Option<String>,
+        #[arg(short, long)]
+        account_id:      Option<String>,
+        #[arg(short, long)]
+        secret_key:      Option<String>,
+        #[arg(short, long)]
+        contract_id:     Option<String>,
     },
     GetNodes {
         #[arg(short, long)]
-        limit:  u64,
+        limit:       u64,
         #[arg(short, long, default_value = "0")]
-        offset: u64,
+        offset:      u64,
+        #[arg(short, long)]
+        contract_id: Option<String>,
     },
     GetNodeSocketAddress {
         #[arg(short, long)]
-        node_id: u64,
+        node_id:     u64,
+        #[arg(short, long)]
+        contract_id: Option<String>,
     },
     RemoveNode {
         #[arg(short, long)]
-        node_id: u64,
+        node_id:         u64,
+        #[arg(short, long)]
+        seda_server_url: Option<String>,
+        #[arg(short, long)]
+        account_id:      Option<String>,
+        #[arg(short, long)]
+        secret_key:      Option<String>,
+        #[arg(short, long)]
+        contract_id:     Option<String>,
     },
     SetNodeSocketAddress {
         #[arg(short, long)]
-        node_id:        u64,
+        node_id:         u64,
         #[arg(short, long)]
-        socket_address: String,
+        socket_address:  String,
+        #[arg(short, long)]
+        seda_server_url: Option<String>,
+        #[arg(short, long)]
+        account_id:      Option<String>,
+        #[arg(short, long)]
+        secret_key:      Option<String>,
+        #[arg(short, long)]
+        contract_id:     Option<String>,
     },
     GetNodeOwner {
         #[arg(short, long)]
-        node_id: u64,
+        node_id:     u64,
+        #[arg(short, long)]
+        contract_id: Option<String>,
     },
 }
 
@@ -61,23 +90,73 @@ impl CliOptions {
     // This is temporary until we move the execution of these to
     // the runtime.
     #[tokio::main]
-    async fn rest_of_options<T: CliCommands>(command_runner: T, command: Option<Commands>) -> Result<()> {
+    async fn rest_of_options<T: CliCommands>(
+        mut config: AppConfig<T::MainChainAdapter>,
+        command: Option<Commands>,
+    ) -> Result<()> {
         match command {
             // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
-            Some(Commands::RegisterNode { socket_address }) => command_runner.register_node(socket_address).await?,
+            Some(Commands::RegisterNode {
+                socket_address,
+                seda_server_url,
+                account_id,
+                secret_key,
+                contract_id,
+            }) => {
+                overwrite_config_field!(config.seda_server_url, seda_server_url);
+                overwrite_config_field!(config.signer_account_id, account_id);
+                overwrite_config_field!(config.secret_key, secret_key);
+                overwrite_config_field!(config.contract_account_id, contract_id);
+                T::register_node(&config, socket_address).await?
+            }
             // cargo run --bin seda get-nodes --limit 2
-            Some(Commands::GetNodes { limit, offset }) => command_runner.get_nodes(limit, offset).await?,
+            Some(Commands::GetNodes {
+                limit,
+                offset,
+                contract_id,
+            }) => {
+                overwrite_config_field!(config.contract_account_id, contract_id);
+                T::get_nodes(&config, limit, offset).await?
+            }
             // cargo run --bin seda get-node-socket-address --node-id 9
-            Some(Commands::GetNodeSocketAddress { node_id }) => command_runner.get_node_socket_address(node_id).await?,
+            Some(Commands::GetNodeSocketAddress { node_id, contract_id }) => {
+                overwrite_config_field!(config.contract_account_id, contract_id);
+                T::get_node_socket_address(&config, node_id).await?
+            }
             // cargo run --bin seda remove-node --node-id 9
-            Some(Commands::RemoveNode { node_id }) => command_runner.remove_node(node_id).await?,
+            Some(Commands::RemoveNode {
+                node_id,
+                seda_server_url,
+                account_id,
+                secret_key,
+                contract_id,
+            }) => {
+                overwrite_config_field!(config.seda_server_url, seda_server_url);
+                overwrite_config_field!(config.signer_account_id, account_id);
+                overwrite_config_field!(config.secret_key, secret_key);
+                overwrite_config_field!(config.contract_account_id, contract_id);
+                T::remove_node(&config, node_id).await?
+            }
             // cargo run --bin seda set-node-socket-address --node-id 9 --socket-address 127.0.0.1:9000
             Some(Commands::SetNodeSocketAddress {
                 node_id,
                 socket_address,
-            }) => command_runner.set_node_socket_address(node_id, socket_address).await?,
+                seda_server_url,
+                account_id,
+                secret_key,
+                contract_id,
+            }) => {
+                overwrite_config_field!(config.seda_server_url, seda_server_url);
+                overwrite_config_field!(config.signer_account_id, account_id);
+                overwrite_config_field!(config.secret_key, secret_key);
+                overwrite_config_field!(config.contract_account_id, contract_id);
+                T::set_node_socket_address(&config, node_id, socket_address).await?
+            }
             // cargo run --bin seda get-node-owner --node-id 9
-            Some(Commands::GetNodeOwner { node_id }) => command_runner.get_node_owner(node_id).await?,
+            Some(Commands::GetNodeOwner { node_id, contract_id }) => {
+                overwrite_config_field!(config.contract_account_id, contract_id);
+                T::get_node_owner(&config, node_id).await?
+            }
             None => todo!(),
             // The commands `run` and `generate-config` are already handled.
             _ => unreachable!(),
@@ -96,9 +175,7 @@ impl CliOptions {
             }
             Some(Commands::Run { seda_server_url }) => {
                 let mut config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
-                // todo if arg exists use it, otherwise use one from config which
-                // is overloaded from env if it exists.
-                config.seda_server_url = seda_server_url;
+                overwrite_config_field!(config.seda_server_url, seda_server_url);
                 seda_node::run::<T::MainChainAdapter>(
                     &config
                         .seda_server_url
@@ -110,7 +187,6 @@ impl CliOptions {
         }
 
         let config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
-        let command_runner = T::new(config);
-        Self::rest_of_options(command_runner, options.command)
+        Self::rest_of_options::<T>(config, options.command)
     }
 }

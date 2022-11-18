@@ -8,7 +8,7 @@ use near_primitives::{
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
 };
-use seda_config::Config;
+use seda_config::{env_overwrite, Config};
 use serde::{Deserialize, Serialize};
 use serde_json::from_slice;
 use tokio::time;
@@ -25,12 +25,6 @@ pub struct NearConfig {
 }
 
 impl Config for NearConfig {
-    type Error = crate::errors::MainChainAdapterError;
-
-    fn validate(&self) -> Result<(), Self::Error> {
-        todo!()
-    }
-
     fn template() -> Self {
         Self {
             near_server_url: Some("fill me in".to_string()),
@@ -38,7 +32,7 @@ impl Config for NearConfig {
     }
 
     fn overwrite_from_env(&mut self) {
-        self.near_server_url = std::env::var("NEAR_SERVER_URL").ok();
+        env_overwrite!(self.near_server_url, "NEAR_SERVER_URL");
     }
 }
 

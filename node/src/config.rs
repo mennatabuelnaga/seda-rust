@@ -8,13 +8,6 @@ pub struct NodeConfig {
 }
 
 impl Config for NodeConfig {
-    // TODO
-    type Error = ();
-
-    fn validate(&self) -> Result<(), Self::Error> {
-        todo!()
-    }
-
     fn template() -> Self {
         Self {
             job_manager_interval_ms: 10,

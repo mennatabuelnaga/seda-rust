@@ -1,5 +1,5 @@
 use seda_adapters::MainChainAdapterTrait;
-use seda_config::Config;
+use seda_config::{env_overwrite, Config};
 use seda_node::NodeConfig;
 use serde::{Deserialize, Serialize};
 
@@ -8,8 +8,8 @@ use crate::errors::{CliError, Result};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig<T: MainChainAdapterTrait> {
     // todo these should be optional then
-    pub deposit_for_register_node: String,
-    pub gas:                       u64,
+    pub deposit_for_register_node: Option<String>,
+    pub gas:                       Option<u64>,
     pub secret_key:                Option<String>,
     pub signer_account_id:         Option<String>,
     pub contract_account_id:       Option<String>,
@@ -27,8 +27,8 @@ impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
     fn default() -> Self {
         let mut this = Self {
             node_config:               Some(Default::default()),
-            deposit_for_register_node: (87 * 10_u128.pow(19)).to_string(),
-            gas:                       300_000_000_000_000,
+            deposit_for_register_node: None,
+            gas:                       None,
             secret_key:                None,
             signer_account_id:         None,
             contract_account_id:       None,
@@ -42,17 +42,11 @@ impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
 }
 
 impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
-    type Error = crate::errors::CliError;
-
-    fn validate(&self) -> Result<(), Self::Error> {
-        todo!()
-    }
-
     fn template() -> Self {
         Self {
             node_config:               Some(NodeConfig::template()),
-            deposit_for_register_node: (87 * 10_u128.pow(19)).to_string(),
-            gas:                       300_000_000_000_000,
+            deposit_for_register_node: Some((87 * 10_u128.pow(19)).to_string()),
+            gas:                       Some(300_000_000_000_000),
             secret_key:                Some("fill me in".to_string()),
             signer_account_id:         Some("fill me in".to_string()),
             contract_account_id:       Some("fill me in".to_string()),
@@ -63,10 +57,10 @@ impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
     }
 
     fn overwrite_from_env(&mut self) {
-        self.seda_server_url = std::env::var("SEDA_SERVER_URL").ok();
-        self.signer_account_id = std::env::var("SIGNER_ACCOUNT_ID").ok();
-        self.secret_key = std::env::var("SECRET_KEY").ok();
-        self.contract_account_id = std::env::var("CONTRACT_ACCOUNT_ID").ok();
+        env_overwrite!(self.seda_server_url, "SEDA_SERVER_URL");
+        env_overwrite!(self.signer_account_id, "SIGNER_ACCOUNT_ID");
+        env_overwrite!(self.secret_key, "SECRET_KEY");
+        env_overwrite!(self.contract_account_id, "CONTRACT_ACCOUNT_ID");
         if let Some(main_chain_config) = self.main_chain_config.as_mut() {
             main_chain_config.overwrite_from_env()
         }
