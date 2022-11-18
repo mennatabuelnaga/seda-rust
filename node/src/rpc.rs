@@ -22,8 +22,8 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn build<T: MainChainAdapterTrait>(server_addr: &str) -> Result<Self, Error> {
-        let mut module = RpcModule::new(T::new_client(server_addr));
+    pub async fn build<T: MainChainAdapterTrait>(server_url: &str) -> Result<Self, Error> {
+        let mut module = RpcModule::new(T::new_client(server_url));
         // TODO: refactor module configuration
 
         // register view methods

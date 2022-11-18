@@ -15,13 +15,21 @@ impl Config for NodeConfig {
         todo!()
     }
 
+    fn template() -> Self {
+        Self {
+            job_manager_interval_ms: 10,
+        }
+    }
+
     fn overwrite_from_env(&mut self) {}
 }
 
 impl Default for NodeConfig {
     fn default() -> Self {
-        Self {
+        let mut this = Self {
             job_manager_interval_ms: 10,
-        }
+        };
+        this.overwrite_from_env();
+        this
     }
 }

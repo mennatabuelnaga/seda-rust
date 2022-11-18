@@ -8,7 +8,7 @@ use near_primitives::{
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
 };
-use seda_config::{env_overwrite, Config};
+use seda_config::Config;
 use serde::{Deserialize, Serialize};
 use serde_json::from_slice;
 use tokio::time;
@@ -21,7 +21,7 @@ pub struct NearMainChain;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NearConfig {
-    near_server_url: String,
+    pub near_server_url: Option<String>,
 }
 
 impl Config for NearConfig {
@@ -31,16 +31,22 @@ impl Config for NearConfig {
         todo!()
     }
 
+    fn template() -> Self {
+        Self {
+            near_server_url: Some("fill me in".to_string()),
+        }
+    }
+
     fn overwrite_from_env(&mut self) {
-        env_overwrite!(self.near_server_url, "NEAR_SERVER_URL");
+        self.near_server_url = std::env::var("NEAR_SERVER_URL").ok();
     }
 }
 
 impl Default for NearConfig {
     fn default() -> Self {
-        Self {
-            near_server_url: "fill me in".to_string(),
-        }
+        let mut this = Self { near_server_url: None };
+        this.overwrite_from_env();
+        this
     }
 }
 

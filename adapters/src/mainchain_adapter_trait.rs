@@ -33,7 +33,7 @@ pub struct NodeDetails {
 #[async_trait::async_trait]
 pub trait MainChainAdapterTrait: Debug + Send + Sync {
     /// The Config fields for the adapter specific implementation.
-    type Config: seda_config::Config;
+    type Config: seda_config::Config + Send + Sync;
     /// The Client type for the adapter specific implementation.
     type Client: Send + Sync + 'static;
     /// The execution status type for the adapter specific implementation.
