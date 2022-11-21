@@ -37,7 +37,7 @@ pub fn run() {
         .start();
 
         // TODO: use config param for setting the number of threads
-        let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker);
+        let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker { runtime: None });
         app.do_send(StartJobManager {
             runtime_worker: runtime_worker.clone(),
         });
