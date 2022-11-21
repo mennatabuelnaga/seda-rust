@@ -51,8 +51,13 @@ impl MainChainAdapterTrait for NearMainChain {
     type FinalExecutionStatus = near_primitives::views::FinalExecutionStatus;
     type SignedTransaction = near_primitives::transaction::SignedTransaction;
 
-    fn new_client(server_addr: &str) -> Self::Client {
-        JsonRpcClient::connect(server_addr)
+    fn new_client(config: &Self::Config) -> Result<Self::Client> {
+        Ok(JsonRpcClient::connect(
+            config
+                .near_server_url
+                .as_ref()
+                .ok_or(MainChainAdapterError::MissingNearServerUrlConfig)?,
+        ))
     }
 
     async fn construct_signed_tx(
@@ -65,7 +70,7 @@ impl MainChainAdapterTrait for NearMainChain {
         deposit: u128,
         server_url: &str,
     ) -> Result<Self::SignedTransaction> {
-        let client = Self::new_client(server_url);
+        let client = JsonRpcClient::connect(server_url);
 
         let signer_account_id: AccountId = signer_acc_str.parse()?;
 

@@ -16,17 +16,18 @@ pub struct TransactionParams {
     pub deposit:        u128,
 }
 
-#[derive(Deserialize)]
-pub struct Node {
-    pub contract_id: usize,
-    pub node_id:     usize,
+#[derive(Serialize, Deserialize)]
+#[serde(rename = "")]
+pub struct NodeIds {
+    pub contract_id: String,
+    pub node_id:     u64,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct NodeDetails {
-    pub contract_id: usize,
-    pub limit:       usize,
-    pub offset:      usize,
+    pub contract_id: String,
+    pub limit:       u64,
+    pub offset:      u64,
 }
 
 // TODO once rpc becomes a trait need to replace params type.
@@ -42,7 +43,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
     type SignedTransaction: Debug + Send + Sync + Serialize + DeserializeOwned;
 
     /// Returns an new instance of the client given the server address.
-    fn new_client(server_addr: &str) -> Self::Client;
+    fn new_client(config: &Self::Config) -> Result<Self::Client>;
 
     /// Returns a signed transaction given the necessary information.
     #[allow(clippy::too_many_arguments)]
@@ -81,9 +82,10 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
     /// Default trait function to get the node owner.
     async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
         let method_name = "get_node_owner";
+        dbg!(&params);
         let params = params
-            .one::<Node>()
-            .map_err(|_| MainChainAdapterError::BadParams(method_name.to_string()))?;
+            .one::<NodeIds>()
+            .map_err(|e| MainChainAdapterError::BadParams(format!("{method_name}: {e}")))?;
 
         let args = json!({"node_id": params.node_id.to_string()}).to_string().into_bytes();
 
@@ -94,7 +96,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
     async fn get_node_socket_address(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
         let method_name = "get_node_socket_address";
         let params = params
-            .one::<Node>()
+            .one::<NodeIds>()
             .map_err(|_| MainChainAdapterError::BadParams(method_name.to_string()))?;
 
         let args = json!({"node_id": params.node_id.to_string()}).to_string().into_bytes();

@@ -1,6 +1,8 @@
 mod app;
 mod config;
 pub use config::*;
+mod errors;
+pub use errors::*;
 mod event_queue;
 mod event_queue_handler;
 mod job_manager;
@@ -26,7 +28,7 @@ pub mod test {
     mod job_manager_test;
 }
 
-pub fn run<T: MainChainAdapterTrait>(_config: &NodeConfig, server_addr: &str) {
+pub fn run<T: MainChainAdapterTrait>(node_config: &NodeConfig, main_chain_config: &T::Config) {
     let system = System::new();
 
     // Initialize actors inside system context
@@ -37,10 +39,11 @@ pub fn run<T: MainChainAdapterTrait>(_config: &NodeConfig, server_addr: &str) {
         }
         .start();
 
-        let rpc_server = JsonRpcServer::build::<T>(server_addr)
-            .await
-            .expect("Error starting jsonrpsee server")
-            .start();
+        let rpc_server =
+            JsonRpcServer::build::<T>(main_chain_config, node_config.server_address.as_ref().expect("todo"))
+                .await
+                .expect("Error starting jsonrpsee server")
+                .start();
 
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {

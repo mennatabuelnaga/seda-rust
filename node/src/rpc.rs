@@ -1,7 +1,8 @@
 use actix::prelude::*;
-use jsonrpsee_core::Error;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 use seda_adapters::MainChainAdapterTrait;
+
+use crate::Result;
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -22,8 +23,8 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn build<T: MainChainAdapterTrait>(server_url: &str) -> Result<Self, Error> {
-        let mut module = RpcModule::new(T::new_client(server_url));
+    pub async fn build<T: MainChainAdapterTrait>(main_chain_config: &T::Config, server_url: &str) -> Result<Self> {
+        let mut module = RpcModule::new(T::new_client(main_chain_config)?);
         // TODO: refactor module configuration
 
         // register view methods
@@ -58,7 +59,7 @@ impl JsonRpcServer {
             result.map_err(|err| jsonrpsee_core::Error::Custom(err.to_string()))
         })?;
 
-        let server = WsServerBuilder::default().build("127.0.0.1:12345").await?;
+        let server = WsServerBuilder::default().build(server_url).await?;
 
         let handle = server.start(module)?;
 

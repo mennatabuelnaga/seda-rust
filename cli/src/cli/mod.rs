@@ -24,16 +24,16 @@ enum Command {
     GenerateConfig,
     Run {
         #[arg(short, long)]
-        seda_server_url: Option<String>,
+        server_address: Option<String>,
     },
     RegisterNode {
         #[arg(short, long)]
         socket_address:      String,
-        #[arg(short, long)]
+        #[arg(long)]
         seda_server_url:     Option<String>,
-        #[arg(short, long)]
+        #[arg(long)]
         signer_account_id:   Option<String>,
-        #[arg(short, long)]
+        #[arg(short = 'k', long)]
         secret_key:          Option<String>,
         #[arg(short, long)]
         contract_account_id: Option<String>,
@@ -55,11 +55,11 @@ enum Command {
     RemoveNode {
         #[arg(short, long)]
         node_id:             u64,
-        #[arg(short, long)]
+        #[arg(long)]
         seda_server_url:     Option<String>,
-        #[arg(short, long)]
+        #[arg(long)]
         signer_account_id:   Option<String>,
-        #[arg(short, long)]
+        #[arg(short = 'k', long)]
         secret_key:          Option<String>,
         #[arg(short, long)]
         contract_account_id: Option<String>,
@@ -69,11 +69,11 @@ enum Command {
         node_id:             u64,
         #[arg(short, long)]
         socket_address:      String,
-        #[arg(short, long)]
+        #[arg(long)]
         seda_server_url:     Option<String>,
-        #[arg(short, long)]
+        #[arg(long)]
         signer_account_id:   Option<String>,
-        #[arg(short, long)]
+        #[arg(short = 'k', long)]
         secret_key:          Option<String>,
         #[arg(short, long)]
         contract_account_id: Option<String>,
@@ -178,14 +178,15 @@ impl CliOptions {
             Command::GenerateConfig => {
                 return AppConfig::<T::MainChainAdapter>::create_template_from_path("./template_config.toml");
             }
-            Command::Run { seda_server_url } => {
-                let mut config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
-                overwrite_config_field!(config.seda_server_url, seda_server_url);
+            Command::Run { server_address } => {
+                let config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
+                let mut node_config = config.node_config.ok_or("Missing config [node_config] section")?;
+                overwrite_config_field!(node_config.server_address, server_address);
                 seda_node::run::<T::MainChainAdapter>(
-                    &config.node_config.ok_or("Config [node_config] section")?,
+                    &node_config,
                     &config
-                        .seda_server_url
-                        .ok_or("seda_server_url from cli, env var or config file.")?,
+                        .main_chain_config
+                        .ok_or("Missing config [main_chain_config] section")?,
                 );
                 return Ok(());
             }
