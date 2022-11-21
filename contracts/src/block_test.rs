@@ -25,7 +25,7 @@ mod tests {
 
         // check current block
         testing_env!(get_context("bob_near".to_string()));
-        assert_eq!(contract.get_latest_block(), CryptoHash::default());
+        assert_eq!(contract.get_latest_block_id(), CryptoHash::default());
 
         // post data request
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -38,6 +38,6 @@ mod tests {
 
         // check current block
         testing_env!(get_context("bob_near".to_string()));
-        assert_ne!(contract.get_latest_block(), CryptoHash::default());
+        assert_ne!(contract.get_latest_block_id(), CryptoHash::default());
     }
 }

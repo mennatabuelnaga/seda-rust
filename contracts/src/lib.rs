@@ -22,7 +22,7 @@ use crate::{
 enum MainchainStorageKeys {
     NumNodes,
     DataRequestAccumulator,
-    Blocks,
+    BlockIdsByHeight,
     BlocksById,
 }
 
@@ -34,7 +34,7 @@ pub struct MainchainContract {
     nodes:                    LookupMap<u64, Node>,
     data_request_accumulator: Vector<String>,
     num_blocks:               BlockHeight,
-    blocks:                   LookupMap<BlockHeight, BlockId>,
+    block_ids_by_height:      LookupMap<BlockHeight, BlockId>,
     blocks_by_id:             LookupMap<BlockId, Block>,
 }
 
@@ -54,7 +54,7 @@ impl MainchainContract {
             nodes:                    LookupMap::new(MainchainStorageKeys::NumNodes),
             data_request_accumulator: Vector::<String>::new(MainchainStorageKeys::DataRequestAccumulator),
             num_blocks:               0,
-            blocks:                   LookupMap::new(MainchainStorageKeys::Blocks),
+            block_ids_by_height:      LookupMap::new(MainchainStorageKeys::BlockIdsByHeight),
             blocks_by_id:             LookupMap::new(MainchainStorageKeys::BlocksById),
         }
     }
