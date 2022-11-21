@@ -21,7 +21,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let mut runtime = Runtime::new();
-    runtime.init(wasm_binary);
+    runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime.start_runtime(
         VmConfig {
@@ -47,7 +47,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 async fn test_bad_wasm_file() {
     let host_adapter = HostAdapters::<TestAdapters>::default();
     let mut runtime = Runtime::new();
-    runtime.init(vec![203]);
+    runtime.init(vec![203]).unwrap();
 
     let runtime_execution_result = runtime
         .start_runtime(
@@ -178,30 +178,4 @@ fn cli_wasm() -> Vec<u8> {
     path_prefix.push("./test_files/demo-cli.wasm");
 
     fs::read(path_prefix).unwrap()
-}
-
-#[tokio::test]
-async fn test_cli_demo() {
-    let wasm_binary = cli_wasm();
-    let host_adapter = HostAdapters::<TestAdapters>::default();
-    let mut runtime = Runtime::new();
-    runtime.init(wasm_binary);
-
-    let runtime_execution_result = runtime.start_runtime(
-        VmConfig {
-            args:         vec!["--help".to_string()],
-            program_name: "consensus".to_string(),
-            start_func:   None,
-            debug:        true,
-        },
-        memory_adapter(),
-        host_adapter.clone(),
-    );
-
-    let vm_result = runtime_execution_result.await;
-    assert!(vm_result.is_ok());
-
-    let value = host_adapter.db_get("test_value");
-    assert!(value.is_some());
-    assert_eq!(value.unwrap(), "completed");
 }

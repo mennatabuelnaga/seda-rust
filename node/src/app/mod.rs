@@ -5,19 +5,35 @@ use parking_lot::RwLock;
 
 use crate::{
     event_queue::{EventId, EventQueue},
-    job_manager::StartJobManager,
     rpc::JsonRpcServer,
     runtime_job::RuntimeWorker,
 };
 
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct Shutdown;
+mod job_manager;
+pub mod shutdown;
 
 // Node Actor definition
 pub struct App {
     pub event_queue:       Arc<RwLock<EventQueue>>,
     pub running_event_ids: Arc<RwLock<Vec<EventId>>>,
+    pub runtime_worker:    Addr<RuntimeWorker>,
+    pub rpc_server:        JsonRpcServer,
+}
+
+impl App {
+    pub async fn new(worker_threads: usize) -> Self {
+        let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker { runtime: None });
+        let rpc_server = JsonRpcServer::start(runtime_worker.clone())
+            .await
+            .expect("Error starting jsonrpsee server");
+
+        App {
+            event_queue: Default::default(),
+            running_event_ids: Default::default(),
+            runtime_worker,
+            rpc_server,
+        }
+    }
 }
 
 impl Actor for App {
@@ -34,23 +50,11 @@ impl Actor for App {
         "#;
         println!("{}", banner);
 
-        // // TODO: use config param for setting the number of threads
-        // let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker);
-        // ctx.notify(StartJobManager { runtime_worker });
+        println!("Starting Job Manager...");
+        ctx.notify(job_manager::StartJobManager);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         println!("Node stopped");
-    }
-}
-
-// Simple message handler for Ping message
-impl Handler<Shutdown> for App {
-    type Result = ();
-
-    fn handle(&mut self, _msg: Shutdown, _ctx: &mut Context<Self>) {
-        // Node stopping logic (for gracefull shutdown)
-
-        System::current().stop();
     }
 }

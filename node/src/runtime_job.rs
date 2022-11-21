@@ -27,12 +27,12 @@ pub struct RuntimeWorker {
 impl Actor for RuntimeWorker {
     type Context = SyncContext<Self>;
 
-    fn started(&mut self, ctx: &mut Self::Context) {
+    fn started(&mut self, _ctx: &mut Self::Context) {
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path_prefix.push("./test_files/demo-cli.wasm");
 
         let mut runtime = Runtime::new();
-        runtime.init(fs::read(path_prefix).unwrap());
+        runtime.init(fs::read(path_prefix).unwrap()).unwrap();
 
         self.runtime = Some(runtime);
     }
