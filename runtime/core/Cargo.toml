@@ -8,7 +8,10 @@ edition = "2021"
 [dependencies]
 actix = "0.13.0"
 async-trait = "0.1.58"
+<<<<<<< HEAD
 futures = "0.3.25"
+=======
+>>>>>>> d6a9830 (refactor(runtime): clean up deps)
 parking_lot = "0.12"
 seda-http-adapters = { path = "../../adapters/http" }
 seda-runtime-adapters = { path = "../../adapters/runtime" }
@@ -17,8 +20,6 @@ seda-runtime-sdk = { path = "../sdk" }
 seda-runtime-macros = { path = "../macros" }
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 serde_json = "1.0"
-reqwest = "0.11.12"
-rusqlite = { version = "0.28.0", features = ["bundled"] }
 thiserror = "1.0.37"
 toml = { version = "0.5.9", default-features = false }
 wasmer = "2.3.0"
