@@ -41,10 +41,8 @@ impl MainchainContract {
         // keep track of storage usage
         let initial_storage_usage = env::storage_usage();
 
-        self.num_blocks += 1;
-
         let header = BlockHeader {
-            height:     self.num_blocks,
+            height:     self.num_blocks + 1,
             state_root: CryptoHash::default(), // TODO
         };
 
@@ -62,6 +60,7 @@ impl MainchainContract {
         });
 
         // store block
+        self.num_blocks += 1;
         self.blocks_by_id.insert(&block_id, &block);
         self.block_ids_by_height.insert(&self.num_blocks, &block_id);
 
