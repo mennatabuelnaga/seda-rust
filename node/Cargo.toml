@@ -23,3 +23,4 @@ tokio = { version = "1.21.2", features = ["full"] }
 rusqlite = { version = "0.28.0", features = ["bundled"] }
 tokio-rusqlite = "0.3.0"
 thiserror = "1.0.37"
+tracing = "0.1.37"

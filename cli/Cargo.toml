@@ -21,10 +21,12 @@ serde = { version = "1.0.147", features = ["derive"] }
 serde_json = { version = "1" }
 seda-adapters = { path = "../adapters" }
 seda-config = { path = "../config" }
+seda-logger = { path = "../logger" }
 seda-node = { path = "../node" }
 thiserror = "1.0.37"
 tokio = { version = "1.16", features = ["full"] }
 toml = "0.5.9"
+tracing = "0.1.37"
 
 [[bin]]
 name = "seda"

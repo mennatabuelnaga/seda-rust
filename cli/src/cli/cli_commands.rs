@@ -4,6 +4,7 @@ use jsonrpsee::{
 };
 use seda_adapters::MainChainAdapterTrait;
 use serde_json::json;
+use tracing::debug;
 
 use crate::{config::AppConfig, Result};
 
@@ -50,7 +51,7 @@ pub trait CliCommands: Send + Sync {
         )
         .await?;
 
-        println!("response from server: {:?}", response);
+        debug!("response from server: {:?}", response);
 
         Ok(())
     }
@@ -72,7 +73,7 @@ pub trait CliCommands: Send + Sync {
         )
         .await?;
 
-        println!("response from server: {:?}", response);
+        debug!("response from server: {:?}", response);
 
         Ok(())
     }

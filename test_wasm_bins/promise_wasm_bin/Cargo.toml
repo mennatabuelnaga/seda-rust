@@ -12,4 +12,6 @@ opt-level = 'z'
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-seda-runtime-sdk = { path = "../../runtime/sdk"}
+seda-logger = { path = "../../logger" }
+seda-runtime-sdk = { path = "../../runtime/sdk" }
+tracing = "0.1.37"

@@ -4,6 +4,7 @@ members = [
 	"cli",
 	"config",
 	"contracts",
+	"logger",
 	"node",
 	"runtime/core",
 	"runtime/macros",
@@ -22,7 +23,6 @@ incremental = false
 lto = "thin"
 opt-level = 3
 panic = "abort"
-split-debuginfo = '...'
 strip = true
 
 [profile.release-docker]

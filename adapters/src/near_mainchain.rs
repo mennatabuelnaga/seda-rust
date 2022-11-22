@@ -12,6 +12,7 @@ use seda_config::{env_overwrite, Config};
 use serde::{Deserialize, Serialize};
 use serde_json::from_slice;
 use tokio::time;
+use tracing::info;
 
 use super::errors::{MainChainAdapterError, Result};
 use crate::{MainChainAdapterTrait, TransactionParams};
@@ -179,9 +180,9 @@ impl MainChainAdapterTrait for NearMainChain {
                     _ => return Err(MainChainAdapterError::CallChangeMethod(err.to_string())),
                 },
                 Ok(response) => {
-                    println!("response gotten after: {}s", delta);
+                    info!("response gotten after: {}s", delta);
 
-                    println!("response.status: {:#?}", response.status);
+                    info!("response.status: {:#?}", response.status);
 
                     return Ok(response.status);
                 }

@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use actix::prelude::*;
 use parking_lot::RwLock;
+use tracing::info;
 
 use crate::{
     event_queue::{EventId, EventQueue},
@@ -23,7 +24,7 @@ impl Actor for App {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        println!("Node starting...");
+        info!("Node starting...");
         let banner = r#"
          _____ __________  ___         ____  __  _____________
         / ___// ____/ __ \/   |       / __ \/ / / / ___/_  __/
@@ -31,7 +32,7 @@ impl Actor for App {
        ___/ / /___/ /_/ / ___ /_____/ _, _/ /_/ /___/ // /
       /____/_____/_____/_/  |_|    /_/ |_|\____//____//_/
         "#;
-        println!("{}", banner);
+        info!("{}", banner);
 
         // TODO: use config param for setting the number of threads
         let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker);
@@ -39,7 +40,7 @@ impl Actor for App {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        println!("Node stopped");
+        info!("Node stopped");
     }
 }
 

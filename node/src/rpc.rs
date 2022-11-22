@@ -1,6 +1,7 @@
 use actix::prelude::*;
 use jsonrpsee_ws_server::{RpcModule, WsServerBuilder, WsServerHandle};
 use seda_adapters::MainChainAdapterTrait;
+use tracing::info;
 
 use crate::Result;
 
@@ -13,7 +14,6 @@ impl Handler<Stop> for JsonRpcServer {
 
     fn handle(&mut self, _msg: Stop, _ctx: &mut Context<Self>) {
         self.handle.to_owned().stop().unwrap().into_actor(self).wait(_ctx);
-        println!("JsonRpcServer stopped!");
     }
 }
 
@@ -71,10 +71,10 @@ impl Actor for JsonRpcServer {
     type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        println!("JsonRpcServer starting...");
+        info!("JsonRpcServer starting...");
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        println!("JsonRpcServer stopped");
+        info!("JsonRpcServer stopped");
     }
 }

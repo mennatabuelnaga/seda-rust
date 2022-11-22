@@ -18,6 +18,7 @@ use event_queue::EventQueue;
 use parking_lot::RwLock;
 use rpc::JsonRpcServer;
 use seda_adapters::MainChainAdapterTrait;
+use tracing::{error, info};
 
 use crate::{app::Shutdown, rpc::Stop};
 
@@ -48,10 +49,10 @@ pub fn run<T: MainChainAdapterTrait>(node_config: &NodeConfig, main_chain_config
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {
             tokio::signal::ctrl_c().await.expect("failed to listen for event");
-            println!("\nStopping the node gracefully...");
+            info!("\nStopping the node gracefully...");
 
             if let Err(error) = rpc_server.send(Stop).await {
-                println!("Error while stopping RPC server ({}).", error);
+                error!("Error while stopping RPC server ({}).", error);
             }
 
             app.do_send(Shutdown);

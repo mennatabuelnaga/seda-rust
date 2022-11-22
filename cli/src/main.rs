@@ -4,6 +4,6 @@ mod config;
 mod errors;
 use errors::Result;
 
-fn main() -> Result<()> {
-    CliOptions::handle::<NearCliBackend>()
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    seda_logger::init(|| Ok(CliOptions::handle::<NearCliBackend>()?))
 }

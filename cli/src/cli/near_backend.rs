@@ -2,6 +2,7 @@ use jsonrpsee::{core::client::ClientT, rpc_params, ws_client::WsClientBuilder};
 use near_primitives::views::FinalExecutionStatus;
 use seda_adapters::{MainChainAdapterTrait, NearMainChain, NodeDetails, NodeIds};
 use serde_json::json;
+use tracing::debug;
 
 use super::cli_commands::CliCommands;
 use crate::{config::AppConfig, errors::Result};
@@ -78,7 +79,7 @@ impl CliCommands for NearCliBackend {
         )
         .await?;
 
-        println!("response from server: {:?}", response);
+        debug!("response from server: {:?}", response);
 
         Ok(())
     }
@@ -96,7 +97,7 @@ impl CliCommands for NearCliBackend {
         )
         .await?;
 
-        println!("response from server: {:?}", response);
+        debug!("response from server: {:?}", response);
 
         Ok(())
     }
@@ -118,7 +119,7 @@ impl CliCommands for NearCliBackend {
         )
         .await?;
 
-        println!("response from server: {:?}", response);
+        debug!("response from server: {:?}", response);
 
         Ok(())
     }
@@ -132,7 +133,7 @@ impl CliCommands for NearCliBackend {
         let response =
             Self::view_seda_server(config, "get_node_owner", rpc_params![NodeIds { contract_id, node_id }]).await?;
 
-        println!("response from server: {:?}", response);
+        debug!("response from server: {:?}", response);
 
         Ok(())
     }
