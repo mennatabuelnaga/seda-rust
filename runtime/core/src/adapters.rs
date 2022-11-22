@@ -10,7 +10,7 @@ pub trait DatabaseAdapter: Send {
 }
 
 #[async_trait::async_trait]
-pub trait HttpAdapter: Send {
+pub trait HttpAdapter: Send + 'static {
     // TODO: add headers + methods
     async fn fetch(&mut self, url: &str) -> Result<reqwest::Response, reqwest::Error>;
 }
@@ -72,10 +72,22 @@ where
     }
 
     pub fn http_fetch(&self, url: &str) -> Result<String, reqwest::Error> {
-        tokio::task::block_in_place(move || {
-            tokio::runtime::Handle::current()
-                .block_on(async move { self.inner.http.lock().await.fetch(url).await?.text().await })
-        })
+        let system = actix::System::current();
+        let http = self.inner.http.clone();
+        let url = url.to_string();
+        let (sender, mut receiver) = tokio::sync::mpsc::channel(1);
+
+        system.arbiter().spawn(async move {
+            sender
+                .send(match http.lock().await.fetch(&url).await {
+                    Ok(something) => something.text().await,
+                    Err(e) => Err(e),
+                })
+                .await
+                .expect("Panicked: Could not received http fetch response: reason `channel failed`.");
+        });
+
+        receiver.blocking_recv().unwrap() // .ok_or(todo!("todo convert toour error type")
     }
 }
 

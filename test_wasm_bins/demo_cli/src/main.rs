@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use seda_runtime_sdk::wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -13,6 +14,7 @@ struct Options {
 #[derive(Subcommand)]
 enum Commands {
     Run,
+    Hello,
 }
 
 fn main() {
@@ -20,7 +22,20 @@ fn main() {
 
     if let Some(command) = options.command {
         match command {
-            Commands::Run => println!("DSAasd"),
+            Commands::Run => {
+                http_fetch("https://swapi.dev/api/people/2/")
+                    .start()
+                    .then(call_self("http_fetch_result", vec![]));
+            }
+            Commands::Hello => {
+                println!("Hello World from inside wasm");
+            }
         }
     }
+}
+
+#[no_mangle]
+fn http_fetch_result() {
+    Promise::result(0);
+    println!("Result!");
 }
