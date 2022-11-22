@@ -66,12 +66,8 @@ impl MainchainContract {
         self.nodes.insert(&node_id, &node);
 
         // check for storage deposit
-        let storage_cost = env::storage_byte_cost() * u128::from(env::storage_usage() - initial_storage_usage);
-        assert!(
-            storage_cost <= env::attached_deposit(),
-            "Insufficient storage, need {}",
-            storage_cost
-        );
+        self.assert_storage_deposit(initial_storage_usage);
+
         Some(self.num_nodes.to_string())
     }
 
