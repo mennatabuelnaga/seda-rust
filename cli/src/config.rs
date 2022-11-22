@@ -1,4 +1,4 @@
-use seda_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::{env_overwrite, Config};
 use seda_logger::LoggerConfig;
 use seda_node::NodeConfig;

@@ -1,4 +1,4 @@
-use seda_adapters::MainChainAdapterError;
+use seda_chain_adapters::MainChainAdapterError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

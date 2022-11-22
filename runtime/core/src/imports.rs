@@ -1,7 +1,8 @@
+use seda_runtime_adapters::MemoryAdapter;
 use wasmer::{imports, Array, Function, ImportObject, Memory, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
-use super::{MemoryAdapter, Result, RuntimeError, VmContext};
+use super::{Result, RuntimeError, VmContext};
 
 /// Wrapper around memory.get_ref to implement the RuntimeError
 fn get_memory(env: &VmContext) -> Result<&Memory> {

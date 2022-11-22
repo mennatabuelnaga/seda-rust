@@ -1,0 +1,16 @@
+[package]
+name = "seda-storage-adapters"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.58"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
+tokio = { version = "1.21.2", features = [
+	"rt",
+	"macros",
+	"sync",
+	"rt-multi-thread",
+] }
+tokio-rusqlite = "0.3.0"
+thiserror = "1.0.37"

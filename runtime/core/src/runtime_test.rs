@@ -1,10 +1,11 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
+use seda_runtime_adapters::{InMemory, MemoryAdapter};
 use seda_runtime_sdk::PromiseStatus;
 
-use super::{InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
-use crate::{test::test_adapters::RuntimeTestAdapter, HostAdapter};
+use super::{RunnableRuntime, Runtime, VmConfig};
+use crate::{HostAdapter, RuntimeTestAdapter};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -65,7 +66,7 @@ async fn test_bad_wasm_file() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[should_panic(expected = "Missing export non_existing_function")]
+#[should_panic(expected = "non_existing_function")]
 async fn test_non_existing_function() {
     let wasm_binary = read_wasm();
     let mut runtime = Runtime::new();

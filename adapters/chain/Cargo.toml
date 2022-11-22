@@ -1,8 +1,7 @@
 [package]
-name = "seda-adapters"
+name = "seda-chain-adapters"
 version = "0.1.0"
 edition = "2021"
-
 
 [dependencies]
 async-trait = "0.1.58"

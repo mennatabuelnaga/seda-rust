@@ -2,7 +2,7 @@ use jsonrpsee::{
     core::{client::ClientT, params::ArrayParams, rpc_params},
     ws_client::WsClientBuilder,
 };
-use seda_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::MainChainAdapterTrait;
 use serde_json::json;
 use tracing::debug;
 

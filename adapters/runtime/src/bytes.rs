@@ -1,6 +1,5 @@
 use std::ops::Deref;
 
-use error_stack::IntoReport;
 use serde::{Deserialize, Serialize};
 
 use super::Result;
@@ -61,7 +60,7 @@ impl FromBytes for Vec<u8> {
 
 impl FromBytes for String {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        Ok(std::str::from_utf8(bytes).into_report()?.into())
+        Ok(std::str::from_utf8(bytes)?.into())
     }
 
     fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self> {
@@ -79,7 +78,7 @@ macro_rules! bytes_impls_le_bytes {
 
         impl FromBytes for $type_ {
             fn from_bytes(bytes: &[u8]) -> Result<Self> {
-                let bytes: [u8; $num_bytes] = bytes.try_into().into_report()?;
+                let bytes: [u8; $num_bytes] = bytes.try_into()?;
                 Ok(<$type_>::from_le_bytes(bytes))
             }
 

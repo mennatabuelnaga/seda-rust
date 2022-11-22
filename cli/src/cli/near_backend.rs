@@ -1,6 +1,6 @@
 use jsonrpsee::{core::client::ClientT, rpc_params, ws_client::WsClientBuilder};
 use near_primitives::views::FinalExecutionStatus;
-use seda_adapters::{MainChainAdapterTrait, NearMainChain, NodeDetails, NodeIds};
+use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain, NodeDetails, NodeIds};
 use serde_json::json;
 use tracing::debug;
 

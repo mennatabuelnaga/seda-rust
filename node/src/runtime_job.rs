@@ -4,6 +4,7 @@ use actix::{prelude::*, Handler, Message};
 use futures::executor;
 use parking_lot::Mutex;
 use seda_runtime::{InMemory, RunnableRuntime, Runtime, VmConfig, VmResult};
+use seda_runtime_adapters::InMemory;
 
 use crate::{
     event_queue::{Event, EventData},

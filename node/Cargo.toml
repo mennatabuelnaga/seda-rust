@@ -13,7 +13,10 @@ jsonrpsee = {version = "0.15.1", features = ["server", "macros"] }
 jsonrpsee-ws-server = "0.15.1"
 parking_lot = "0.12"
 reqwest = "0.11.12"
-seda-adapters = { path = "../adapters" }
+seda-chain-adapters = { path = "../adapters/chain" }
+seda-http-adapters = { path = "../adapters/http" }
+seda-runtime-adapters = { path = "../adapters/runtime" }
+seda-storage-adapters = { path = "../adapters/storage" }
 seda-config = { path = "../config" }
 seda-runtime = { path = "../runtime/core" }
 serde = { version = "1.0.147", features = ["derive"] }

@@ -1,6 +1,6 @@
-use std::{array::TryFromSliceError, str::Utf8Error};
-
-use error_stack::Report;
+use seda_http_adapters::HttpAdapterError;
+use seda_runtime_adapters::RuntimeAdapterError;
+use seda_storage_adapters::StorageAdapterError;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
@@ -14,28 +14,29 @@ pub enum RuntimeError {
     NumBytesConversion(Report<TryFromSliceError>),
 
     #[error("{0}")]
-    WasmCompileError(Report<CompileError>),
+    WasmCompileError(#[from] CompileError),
 
     #[error("{0}")]
-    WasmInstantiationError(Report<InstantiationError>),
+    WasmInstantiationError(Box<InstantiationError>),
 
     #[error("{0}")]
-    WasiError(Report<WasiError>),
+    WasiError(#[from] WasiError),
+    #[error("{0}")]
+    WasiStateCreationError(#[from] WasiStateCreationError),
 
     #[error("{0}")]
-    WasiStateCreationError(Report<WasiStateCreationError>),
-
-    #[error("{0}")]
-    FunctionNotFound(Report<ExportError>),
+    FunctionNotFound(#[from] ExportError),
 
     #[error("Error while running: {0}")]
-    ExecutionError(Report<wasmer::RuntimeError>),
+    ExecutionError(#[from] wasmer::RuntimeError),
 
     #[error("VM Host Error: {0}")]
     VmHostError(String),
 
-    #[error("Database Error: {0}")]
-    DatabaseError(Report<rusqlite::Error>),
+    #[error("Storage Adapter Error: {0}")]
+    StorageAdapterError(#[from] StorageAdapterError),
+    #[error("Http Adapter Error: {0}")]
+    HttpAdapterError(#[from] HttpAdapterError),
 
     #[error("{0}")]
     WasiFsError(FsError),
@@ -47,57 +48,9 @@ pub enum RuntimeError {
     FromUtf8Error(std::string::FromUtf8Error),
 }
 
-impl From<rusqlite::Error> for RuntimeError {
-    fn from(r: rusqlite::Error) -> Self {
-        Self::DatabaseError(r.into())
-    }
-}
-
-impl From<Report<Utf8Error>> for RuntimeError {
-    fn from(r: Report<Utf8Error>) -> Self {
-        Self::StringBytesConversion(r)
-    }
-}
-
-impl From<Report<TryFromSliceError>> for RuntimeError {
-    fn from(r: Report<TryFromSliceError>) -> Self {
-        Self::NumBytesConversion(r)
-    }
-}
-
-impl From<CompileError> for RuntimeError {
-    fn from(r: CompileError) -> Self {
-        Self::WasmCompileError(r.into())
-    }
-}
-
 impl From<InstantiationError> for RuntimeError {
     fn from(r: InstantiationError) -> Self {
-        Self::WasmInstantiationError(r.into())
-    }
-}
-
-impl From<WasiError> for RuntimeError {
-    fn from(r: WasiError) -> Self {
-        Self::WasiError(r.into())
-    }
-}
-
-impl From<WasiStateCreationError> for RuntimeError {
-    fn from(r: WasiStateCreationError) -> Self {
-        Self::WasiStateCreationError(r.into())
-    }
-}
-
-impl From<ExportError> for RuntimeError {
-    fn from(r: ExportError) -> Self {
-        Self::FunctionNotFound(r.into())
-    }
-}
-
-impl From<wasmer::RuntimeError> for RuntimeError {
-    fn from(r: wasmer::RuntimeError) -> Self {
-        Self::ExecutionError(r.into())
+        Self::WasmInstantiationError(Box::new(r))
     }
 }
 

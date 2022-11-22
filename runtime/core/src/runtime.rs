@@ -1,13 +1,14 @@
 use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
+use seda_runtime_adapters::InMemory;
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
-use crate::{HostAdapter, InMemory};
+use crate::HostAdapter;
 
 #[derive(Clone)]
 pub struct Runtime {

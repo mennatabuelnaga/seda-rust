@@ -1,6 +1,11 @@
 [workspace]
 exclude = ["test_wasm_bins/demo_cli","test_wasm_bins/promise_wasm_bin"]
 members = [
+	"adapters/chain",
+	"adapters/http",
+	"adapters/p2p",
+	"adapters/runtime",
+	"adapters/storage",
 	"cli",
 	"config",
 	"contracts",
@@ -8,7 +13,6 @@ members = [
 	"node",
 	"runtime/core",
 	"runtime/macros",
-	"adapters",
 ]
 
 [profile.dev]
