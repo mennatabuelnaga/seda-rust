@@ -1,7 +1,7 @@
 use actix::{Handler, Message};
 use serde::{Deserialize, Serialize};
 
-use crate::{app::App, event_queue::Event};
+use crate::{ event_queue::Event, app::App};
 
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "()")]

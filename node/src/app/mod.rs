@@ -14,7 +14,6 @@ use crate::{
 mod job_manager;
 mod shutdown;
 pub use shutdown::Shutdown;
-
 // Node Actor definition
 pub struct App {
     pub event_queue:       Arc<RwLock<EventQueue>>,
