@@ -9,6 +9,10 @@ mod event_queue_handler;
 mod rpc;
 mod runtime_adapter;
 mod runtime_job;
+<<<<<<< HEAD
+=======
+mod test_adapters;
+>>>>>>> 3fc8b2e (refactor(node): restructure app actor and rpc)
 
 use actix::prelude::*;
 use app::App;

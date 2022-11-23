@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use actix::prelude::*;
 use parking_lot::RwLock;
+<<<<<<< HEAD
 use tracing::info;
+=======
+>>>>>>> 3fc8b2e (refactor(node): restructure app actor and rpc)
 
 use crate::{
     event_queue::{EventId, EventQueue},
@@ -11,8 +14,12 @@ use crate::{
 };
 
 mod job_manager;
+<<<<<<< HEAD
 mod shutdown;
 pub use shutdown::Shutdown;
+=======
+pub mod shutdown;
+>>>>>>> 3fc8b2e (refactor(node): restructure app actor and rpc)
 
 // Node Actor definition
 pub struct App {
