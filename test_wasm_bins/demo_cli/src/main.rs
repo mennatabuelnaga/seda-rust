@@ -23,7 +23,11 @@ enum Commands {
     HttpFetch { url: String },
 =======
     Run,
+<<<<<<< HEAD
 >>>>>>> 3433719 (feat(cli): use runtime for cli commands)
+=======
+    Hello,
+>>>>>>> 49cd2da (fix(runtime): Fix issue where http could not be called due missing tokio runtime)
 }
 
 fn main() {
@@ -32,12 +36,20 @@ fn main() {
     if let Some(command) = options.command {
         match command {
 <<<<<<< HEAD
+<<<<<<< HEAD
             Commands::HttpFetch { url } => {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
+=======
+            Commands::Run => {
+                http_fetch("https://swapi.dev/api/people/2/")
+                    .start()
+                    .then(call_self("http_fetch_result", vec![]));
+>>>>>>> 49cd2da (fix(runtime): Fix issue where http could not be called due missing tokio runtime)
             }
             Commands::Hello => {
                 println!("Hello World from inside wasm");
             }
+<<<<<<< HEAD
         }
     }
 }
@@ -59,3 +71,14 @@ fn http_fetch_result() {
     }
 }
 >>>>>>> 3433719 (feat(cli): use runtime for cli commands)
+=======
+        }
+    }
+}
+
+#[no_mangle]
+fn http_fetch_result() {
+    Promise::result(0);
+    println!("Result!");
+}
+>>>>>>> 49cd2da (fix(runtime): Fix issue where http could not be called due missing tokio runtime)
