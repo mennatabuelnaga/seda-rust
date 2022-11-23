@@ -1,7 +1,7 @@
 use clap::{arg, command, Parser, Subcommand};
 use seda_config::overwrite_config_field;
 
-use crate::{config::AppConfig, Result};
+use crate::{config::AppConfig, errors::CliError, Result};
 mod cli_commands;
 use cli_commands::*;
 mod near_backend;
@@ -180,20 +180,22 @@ impl CliOptions {
             }
             Command::Run { server_address } => {
                 let config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
-                let mut node_config = config.node_config.ok_or("Missing config [node_config] section")?;
+                let mut node_config = config.node.ok_or("Missing config [node_config] section")?;
                 overwrite_config_field!(node_config.server_address, server_address);
-                seda_node::run::<T::MainChainAdapter>(
-                    &node_config,
-                    &config
-                        .main_chain_config
-                        .ok_or("Missing config [main_chain_config] section")?,
-                );
-                return Ok(());
+                return seda_logger::init(config.logging.unwrap_or_default(), || {
+                    seda_node::run::<T::MainChainAdapter>(
+                        &node_config,
+                        &config.main_chain.ok_or("Missing config [main_chain_config] section")?,
+                    );
+                    Ok::<_, CliError>(())
+                });
             }
             _ => {}
         }
 
         let config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
-        Self::rest_of_options::<T>(config, options.command)
+        seda_logger::init(config.logging.clone().unwrap_or_default(), || {
+            Self::rest_of_options::<T>(config, options.command)
+        })
     }
 }

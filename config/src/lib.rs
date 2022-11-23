@@ -4,7 +4,7 @@ use serde::{de::DeserializeOwned, Serialize};
 macro_rules! overwrite_config_field {
     ($field:expr, $value:expr) => {
         if let Some(var) = $value {
-            $field.replace(var);
+            $field.replace(var.into());
         }
     };
 }

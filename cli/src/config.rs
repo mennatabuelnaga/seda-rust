@@ -1,5 +1,6 @@
 use seda_adapters::MainChainAdapterTrait;
 use seda_config::{env_overwrite, Config};
+use seda_logger::LoggerConfig;
 use seda_node::NodeConfig;
 use serde::{Deserialize, Serialize};
 
@@ -20,14 +21,20 @@ pub struct AppConfig<T: MainChainAdapterTrait> {
     // TODO better name main_chain_config to appropriate
     // mainchain name. Can be done once we do conditional
     // compilation to select mainchain
-    pub main_chain_config: Option<T::Config>,
-    pub node_config:       Option<seda_node::NodeConfig>,
+    pub main_chain: Option<T::Config>,
+    pub node:       Option<seda_node::NodeConfig>,
+    pub logging:    Option<LoggerConfig>,
+}
+
+impl<T: MainChainAdapterTrait> AsRef<AppConfig<T>> for AppConfig<T> {
+    fn as_ref(&self) -> &AppConfig<T> {
+        self
+    }
 }
 
 impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
     fn default() -> Self {
         let mut this = Self {
-            node_config:               Some(Default::default()),
             deposit_for_register_node: None,
             gas:                       None,
             secret_key:                None,
@@ -35,7 +42,9 @@ impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
             contract_account_id:       None,
             public_key:                None,
             seda_server_url:           None,
-            main_chain_config:         Some(Default::default()),
+            node:                      Some(Default::default()),
+            main_chain:                Some(Default::default()),
+            logging:                   Some(Default::default()),
         };
         this.overwrite_from_env();
         this
@@ -45,7 +54,6 @@ impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
 impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
     fn template() -> Self {
         Self {
-            node_config:               Some(NodeConfig::template()),
             deposit_for_register_node: Some((87 * 10_u128.pow(19)).to_string()),
             gas:                       Some(300_000_000_000_000),
             secret_key:                Some("fill me in".to_string()),
@@ -53,7 +61,9 @@ impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
             contract_account_id:       Some("fill me in".to_string()),
             public_key:                Some("fill me in".to_string()),
             seda_server_url:           Some("fill me in".to_string()),
-            main_chain_config:         Some(T::Config::template()),
+            node:                      Some(NodeConfig::template()),
+            main_chain:                Some(T::Config::template()),
+            logging:                   Some(LoggerConfig::template()),
         }
     }
 
@@ -62,11 +72,14 @@ impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
         env_overwrite!(self.signer_account_id, "SIGNER_ACCOUNT_ID");
         env_overwrite!(self.secret_key, "SECRET_KEY");
         env_overwrite!(self.contract_account_id, "CONTRACT_ACCOUNT_ID");
-        if let Some(main_chain_config) = self.main_chain_config.as_mut() {
+        if let Some(main_chain_config) = self.main_chain.as_mut() {
             main_chain_config.overwrite_from_env()
         }
-        if let Some(node_config) = self.node_config.as_mut() {
+        if let Some(node_config) = self.node.as_mut() {
             node_config.overwrite_from_env()
+        }
+        if let Some(logging_config) = self.logging.as_mut() {
+            logging_config.overwrite_from_env()
         }
     }
 }

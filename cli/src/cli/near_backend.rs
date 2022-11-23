@@ -37,7 +37,7 @@ impl CliCommands for NearCliBackend {
             .as_ref()
             .ok_or("contract_account_id from cli, env var or config file.")?;
         let near_server_url = config
-            .main_chain_config
+            .main_chain
             .as_ref()
             .ok_or("Config [main_chain_config] section.")?
             .near_server_url
