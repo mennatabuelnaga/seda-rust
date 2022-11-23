@@ -11,9 +11,6 @@ pub struct VmConfig {
     /// Arguments to pass to the WASM binary
     pub args: Vec<String>,
 
-    /// The WASM binary as a byte array
-    pub wasm_binary: Vec<u8>,
-
     pub debug: bool,
 }
 

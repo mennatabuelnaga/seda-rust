@@ -20,15 +20,15 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
-    let runtime = Runtime {};
+    let mut runtime = Runtime::new();
+    runtime.init(wasm_binary);
 
     let runtime_execution_result = runtime.start_runtime(
         VmConfig {
-            args: vec!["hello world".to_string()],
+            args:         vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func: None,
-            wasm_binary,
-            debug: true,
+            start_func:   None,
+            debug:        true,
         },
         memory_adapter(),
         host_adapter.clone(),
@@ -46,7 +46,8 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 #[should_panic(expected = "input bytes aren't valid utf-8")]
 async fn test_bad_wasm_file() {
     let host_adapter = HostAdapters::<TestAdapters>::default();
-    let runtime = Runtime {};
+    let mut runtime = Runtime::new();
+    runtime.init(vec![203]);
 
     let runtime_execution_result = runtime
         .start_runtime(
@@ -54,7 +55,6 @@ async fn test_bad_wasm_file() {
                 args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
                 start_func:   None,
-                wasm_binary:  vec![203],
                 debug:        true,
             },
             memory_adapter(),
@@ -71,16 +71,16 @@ async fn test_bad_wasm_file() {
 async fn test_non_existing_function() {
     let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
-    let runtime = Runtime {};
+    let mut runtime = Runtime::new();
+    runtime.init(wasm_binary);
 
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec!["hello world".to_string()],
+                args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func: Some("non_existing_function".to_string()),
-                wasm_binary,
-                debug: true,
+                start_func:   Some("non_existing_function".to_string()),
+                debug:        true,
             },
             memory_adapter(),
             host_adapter.clone(),
@@ -97,16 +97,16 @@ async fn test_promise_queue_http_fetch() {
 
     let wasm_binary = read_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
-    let runtime = Runtime {};
+    let mut runtime = Runtime::new();
+    runtime.init(wasm_binary);
 
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec![fetch_url.clone()],
+                args:         vec![fetch_url.clone()],
                 program_name: "consensus".to_string(),
-                start_func: Some("http_fetch_test".to_string()),
-                wasm_binary,
-                debug: true,
+                start_func:   Some("http_fetch_test".to_string()),
+                debug:        true,
             },
             memory_adapter(),
             host_adapter.clone(),
@@ -135,18 +135,18 @@ async fn test_promise_queue_http_fetch() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_memory_adapter() {
     let host_adapter = HostAdapters::<TestAdapters>::default();
-    let runtime = Runtime {};
+    let mut runtime = Runtime::new();
     let memory_adapter = memory_adapter();
     let wasm_binary = read_wasm();
+    runtime.init(wasm_binary);
 
     let runtime_execution_result = runtime
         .start_runtime(
             VmConfig {
-                args: vec!["memory adapter".to_string()],
+                args:         vec!["memory adapter".to_string()],
                 program_name: "consensus".to_string(),
-                start_func: Some("memory_adapter_test_success".to_string()),
-                wasm_binary,
-                debug: true,
+                start_func:   Some("memory_adapter_test_success".to_string()),
+                debug:        true,
             },
             memory_adapter.clone(),
             host_adapter.clone(),
@@ -183,15 +183,15 @@ fn cli_wasm() -> Vec<u8> {
 async fn test_cli_demo() {
     let wasm_binary = cli_wasm();
     let host_adapter = HostAdapters::<TestAdapters>::default();
-    let runtime = Runtime {};
+    let mut runtime = Runtime::new();
+    runtime.init(wasm_binary);
 
     let runtime_execution_result = runtime.start_runtime(
         VmConfig {
-            args: vec!["--help".to_string()],
+            args:         vec!["--help".to_string()],
             program_name: "consensus".to_string(),
-            start_func: None,
-            wasm_binary,
-            debug: true,
+            start_func:   None,
+            debug:        true,
         },
         memory_adapter(),
         host_adapter.clone(),

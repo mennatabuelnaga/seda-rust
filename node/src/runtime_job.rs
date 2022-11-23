@@ -20,10 +20,22 @@ pub struct RuntimeJob {
     pub event: Event,
 }
 
-pub struct RuntimeWorker;
+pub struct RuntimeWorker {
+    pub runtime: Option<Runtime>,
+}
 
 impl Actor for RuntimeWorker {
     type Context = SyncContext<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path_prefix.push("./test_files/demo-cli.wasm");
+
+        let mut runtime = Runtime::new();
+        runtime.init(fs::read(path_prefix).unwrap());
+
+        self.runtime = Some(runtime);
+    }
 }
 
 impl Handler<RuntimeJob> for RuntimeWorker {
@@ -32,10 +44,7 @@ impl Handler<RuntimeJob> for RuntimeWorker {
     fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
         let host_adapters = HostAdapters::<TestAdapters>::default();
         // TODO: Replace the binary with the actual consensus binary
-        let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path_prefix.push("./test_files/promise-wasm-bin.wasm");
 
-        let runtime = Runtime {};
         let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
 
         let args: Vec<String> = match msg.event.data {
@@ -48,8 +57,9 @@ impl Handler<RuntimeJob> for RuntimeWorker {
             program_name: "test".to_string(),
             debug: false,
             start_func: None,
-            wasm_binary: fs::read(path_prefix).unwrap(),
         };
+
+        let runtime = self.runtime.as_ref().unwrap();
 
         let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter, host_adapters)).unwrap();
 
