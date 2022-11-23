@@ -1,4 +1,5 @@
 mod app;
+use app::App;
 mod errors;
 pub use errors::*;
 mod event_queue;
@@ -7,7 +8,6 @@ mod rpc;
 mod runtime_job;
 
 use actix::prelude::*;
-use app::App;
 use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::CONFIG;
 use seda_p2p_adapters::libp2p::P2PServer;

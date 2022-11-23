@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use actix::{AsyncContext, Handler, Message};
+use actix::{AsyncContext, Handler, Message, Addr};
 
-use crate::{app::App, runtime_job::RuntimeJob};
+use crate::{app::App, runtime_job::{RuntimeJob, RuntimeWorker}};
 
 /// The Job Manager’s job is to take events coming from P2P, tickers, RPC, etc
 /// and give the task to the runtime when there is an available thread. Each
@@ -37,4 +37,10 @@ impl Handler<StartJobManager> for App {
 
         ctx.notify_later(msg, Duration::from_millis(StartJobManager::JOB_MANAGER_INTERVAL));
     }
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct RuntimeCall {
+    pub runtime_worker: Addr<RuntimeWorker>,
 }

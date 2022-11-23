@@ -6,7 +6,7 @@ use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use wasmer::{Instance, Module, Store};
-use wasmer_wasi::{Pipe, WasiState};
+use wasmer_wasi::{Pipe, Stdout, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
 use crate::RuntimeError;
