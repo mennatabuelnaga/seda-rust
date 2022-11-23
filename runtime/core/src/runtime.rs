@@ -25,7 +25,7 @@ pub trait RunnableRuntime {
     fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
-    async fn execute_promise_queue<T: HostAdapterTypes + Default>(
+    fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
@@ -59,7 +59,7 @@ impl RunnableRuntime for Runtime {
         Ok(())
     }
 
-    async fn execute_promise_queue<T: HostAdapterTypes + Default>(
+    fn execute_promise_queue<T: HostAdapterTypes + Default>(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
@@ -161,7 +161,8 @@ impl RunnableRuntime for Runtime {
             host_adapters,
             output,
         );
-        res.await
+
+        res
     }
 
     async fn start_runtime<T: HostAdapterTypes + Default>(
@@ -185,16 +186,17 @@ impl RunnableRuntime for Runtime {
 
         let mut output: Vec<String> = vec![];
 
-        let exit_code = self
-            .execute_promise_queue(
-                wasm_module,
-                memory_adapter,
-                Arc::new(Mutex::new(promise_queue)),
-                host_adapters,
-                &mut output,
-            )
-            .await?;
+        let result = self.execute_promise_queue(
+            wasm_module,
+            memory_adapter,
+            Arc::new(Mutex::new(promise_queue)),
+            host_adapters,
+            &mut output,
+        );
 
-        Ok(VmResult { output, exit_code })
+        Ok(VmResult {
+            output,
+            exit_code: result.unwrap_or(1),
+        })
     }
 }

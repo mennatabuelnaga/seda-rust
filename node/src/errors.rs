@@ -4,7 +4,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum NodeError {
     #[error(transparent)]
-    RPCError(#[from] jsonrpsee_core::Error),
+    RPCError(#[from] jsonrpsee::core::Error),
     #[error(transparent)]
     MainChainError(#[from] MainChainAdapterError),
 }

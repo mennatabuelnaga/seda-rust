@@ -26,6 +26,9 @@ enum Command {
         #[arg(short, long)]
         server_address: Option<String>,
     },
+    Cli {
+        args: Vec<String>,
+    },
     RegisterNode {
         #[arg(short, long)]
         socket_address:      String,
@@ -163,6 +166,7 @@ impl CliOptions {
                 overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::get_node_owner(&config, node_id).await?
             }
+            Command::Cli { args } => T::call_cli(&config, args).await?,
             // The commands `run` and `generate-config` are already handled.
             _ => unreachable!(),
         }

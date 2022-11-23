@@ -3262,6 +3262,7 @@ dependencies = [
 name = "seda-runtime"
 version = "0.1.0"
 dependencies = [
+ "actix",
  "async-trait",
  "error-stack",
  "mockall",

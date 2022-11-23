@@ -11,7 +11,8 @@ use crate::{
 };
 
 mod job_manager;
-pub mod shutdown;
+mod shutdown;
+pub use shutdown::Shutdown;
 
 // Node Actor definition
 pub struct App {

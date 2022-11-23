@@ -11,10 +11,6 @@ mod test_adapters;
 
 use actix::prelude::*;
 use app::App;
-use event_queue::EventQueue;
-use parking_lot::RwLock;
-use rpc::JsonRpcServer;
-use runtime_job::RuntimeWorker;
 use seda_adapters::MainChainAdapterTrait;
 use tracing::{error, info};
 

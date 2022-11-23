@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
+use futures::executor;
 use parking_lot::Mutex;
 use seda_runtime::{HostAdapters, InMemory, RunnableRuntime, Runtime, VmConfig, VmResult};
 
@@ -41,7 +42,7 @@ impl Actor for RuntimeWorker {
 impl Handler<RuntimeJob> for RuntimeWorker {
     type Result = RuntimeJobResult;
 
-    fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: RuntimeJob, ctx: &mut Self::Context) -> Self::Result {
         let host_adapters = HostAdapters::<TestAdapters>::default();
         // TODO: Replace the binary with the actual consensus binary
 
@@ -62,6 +63,14 @@ impl Handler<RuntimeJob> for RuntimeWorker {
         let runtime = self.runtime.as_ref().unwrap();
 
         let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter, host_adapters)).unwrap();
+
+        // let handle = tokio::runtime::Handle::current();
+        // let res = handle
+        //     .block_on(runtime.start_runtime(vm_config, memory_adapter,
+        // host_adapters))     .unwrap();
+
+        // let res = runtime.start_runtime(vm_config, memory_adapter,
+        // host_adapters).unwrap();
 
         RuntimeJobResult { vm_result: res }
     }
