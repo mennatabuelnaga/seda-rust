@@ -4,7 +4,11 @@ use parking_lot::Mutex;
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use wasmer::{Instance, Module, Store};
+<<<<<<< HEAD
 use wasmer_wasi::{Pipe, WasiState};
+=======
+use wasmer_wasi::{Pipe, Stdout, WasiState};
+>>>>>>> 3433719 (feat(cli): use runtime for cli commands)
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
 use crate::{HostAdapter, InMemory};

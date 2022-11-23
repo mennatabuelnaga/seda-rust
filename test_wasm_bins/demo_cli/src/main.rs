@@ -18,8 +18,12 @@ struct Options {
 
 #[derive(Subcommand)]
 enum Commands {
+<<<<<<< HEAD
     Hello,
     HttpFetch { url: String },
+=======
+    Run,
+>>>>>>> 3433719 (feat(cli): use runtime for cli commands)
 }
 
 fn main() {
@@ -27,6 +31,7 @@ fn main() {
 
     if let Some(command) = options.command {
         match command {
+<<<<<<< HEAD
             Commands::HttpFetch { url } => {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
             }
@@ -48,3 +53,9 @@ fn http_fetch_result() {
 
     println!("Value: {value_to_print}");
 }
+=======
+            Commands::Run => println!("DSAasd"),
+        }
+    }
+}
+>>>>>>> 3433719 (feat(cli): use runtime for cli commands)
