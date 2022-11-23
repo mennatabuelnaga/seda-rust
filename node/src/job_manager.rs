@@ -43,3 +43,9 @@ impl Handler<StartJobManager> for App {
         ctx.notify_later(msg, Duration::from_millis(StartJobManager::JOB_MANAGER_INTERVAL));
     }
 }
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct RuntimeCall {
+    pub runtime_worker: Addr<RuntimeWorker>,
+}

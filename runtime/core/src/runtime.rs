@@ -1,9 +1,10 @@
-use std::sync::Arc;
+use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
+use serde::{Deserialize, Serialize};
 use wasmer::{Instance, Module, Store};
-use wasmer_wasi::WasiState;
+use wasmer_wasi::{Pipe, Stdout, WasiState};
 
 use super::{imports::create_wasm_imports, HostAdapterTypes, HostAdapters, PromiseQueue, Result, VmConfig, VmContext};
 use crate::InMemory;
@@ -11,8 +12,10 @@ use crate::InMemory;
 #[derive(Clone, Default)]
 pub struct Runtime {}
 
-#[derive(Clone, Default, Debug)]
-pub struct VmResult {}
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub struct VmResult {
+    pub output: Vec<String>,
+}
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
@@ -22,6 +25,7 @@ pub trait RunnableRuntime {
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: Arc<Mutex<PromiseQueue>>,
         host_adapters: HostAdapters<T>,
+        mut output: Vec<String>,
     ) -> Result<VmResult>;
 
     async fn start_runtime<T: HostAdapterTypes + Default>(
@@ -40,6 +44,7 @@ impl RunnableRuntime for Runtime {
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: Arc<Mutex<PromiseQueue>>,
         host_adapters: HostAdapters<T>,
+        mut output: Vec<String>,
     ) -> Result<VmResult> {
         let next_promise_queue = Arc::new(Mutex::new(PromiseQueue::new()));
         {
@@ -49,7 +54,7 @@ impl RunnableRuntime for Runtime {
             let mut promise_queue = promise_queue.lock();
 
             if promise_queue.queue.is_empty() {
-                return Ok(VmResult {});
+                return Ok(VmResult { output });
             }
 
             for index in 0..promise_queue.queue.len() {
@@ -58,8 +63,11 @@ impl RunnableRuntime for Runtime {
                 match &promise_queue.queue[index].action {
                     PromiseAction::CallSelf(call_action) => {
                         let wasm_store = Store::default();
+                        let output_pipe = Pipe::new();
+
                         let mut wasi_env = WasiState::new(&call_action.function_name)
                             .args(call_action.args.clone())
+                            .stdout(Box::new(output_pipe))
                             .finalize()?;
 
                         let current_promise_queue = Arc::new(Mutex::new(promise_queue.clone()));
@@ -69,6 +77,7 @@ impl RunnableRuntime for Runtime {
                             current_promise_queue,
                             next_promise_queue.clone(),
                         );
+
                         let imports =
                             create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, &wasm_module)?;
                         let wasmer_instance = Instance::new(&wasm_module, &imports)?;
@@ -76,6 +85,17 @@ impl RunnableRuntime for Runtime {
                         let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
 
                         main_func.call(&[])?;
+
+                        // let mut buf = String::new();
+                        // .read_to_string(&mut buf)?;
+                        let mut state = wasi_env.state();
+                        let wasi_stdout = state.fs.stdout_mut().unwrap().as_mut().unwrap();
+                        // Then we can read from it!
+                        let mut buf = String::new();
+                        wasi_stdout.read_to_string(&mut buf).unwrap();
+
+                        output.push(buf);
+
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
@@ -103,7 +123,13 @@ impl RunnableRuntime for Runtime {
             }
         }
 
-        let res = self.execute_promise_queue(wasm_module, memory_adapter.clone(), next_promise_queue, host_adapters);
+        let res = self.execute_promise_queue(
+            wasm_module,
+            memory_adapter.clone(),
+            next_promise_queue,
+            host_adapters,
+            output,
+        );
         res.await
     }
 
@@ -132,6 +158,7 @@ impl RunnableRuntime for Runtime {
             memory_adapter,
             Arc::new(Mutex::new(promise_queue)),
             host_adapters,
+            vec![],
         )
         .await
     }

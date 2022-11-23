@@ -1476,12 +1476,26 @@ dependencies = [
 [[package]]
 name = "jsonrpsee"
 version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bd0d559d5e679b1ab2f869b486a11182923863b1b3ee8b421763cdd707b783a"
+dependencies = [
+ "jsonrpsee-core 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonrpsee-http-server",
+ "jsonrpsee-proc-macros 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonrpsee-types 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonrpsee-ws-server",
+ "tracing",
+]
+
+[[package]]
+name = "jsonrpsee"
+version = "0.15.1"
 source = "git+https://github.com/paritytech/jsonrpsee.git?branch=master#c4fafffd18287a0474eba7fd11c2aa02e12825ca"
 dependencies = [
  "jsonrpsee-client-transport",
  "jsonrpsee-core 0.15.1 (git+https://github.com/paritytech/jsonrpsee.git?branch=master)",
  "jsonrpsee-http-client",
- "jsonrpsee-proc-macros",
+ "jsonrpsee-proc-macros 0.15.1 (git+https://github.com/paritytech/jsonrpsee.git?branch=master)",
  "jsonrpsee-server",
  "jsonrpsee-types 0.15.1 (git+https://github.com/paritytech/jsonrpsee.git?branch=master)",
  "jsonrpsee-wasm-client",
@@ -1527,6 +1541,7 @@ dependencies = [
  "futures-util",
  "globset",
  "http",
+ "hyper",
  "jsonrpsee-types 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static",
  "parking_lot",
@@ -1585,6 +1600,36 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "jsonrpsee-http-server"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03802f0373a38c2420c70b5144742d800b509e2937edc4afb116434f07120117"
+dependencies = [
+ "futures-channel",
+ "futures-util",
+ "hyper",
+ "jsonrpsee-core 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonrpsee-types 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-futures",
+]
+
+[[package]]
+name = "jsonrpsee-proc-macros"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd67957d4280217247588ac86614ead007b301ca2fa9f19c19f880a536f029e3"
+dependencies = [
+ "proc-macro-crate 1.2.1",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -3146,7 +3191,7 @@ dependencies = [
  "async-trait",
  "clap",
  "dotenv",
- "jsonrpsee",
+ "jsonrpsee 0.15.1 (git+https://github.com/paritytech/jsonrpsee.git?branch=master)",
  "near-crypto 0.15.0",
  "near-jsonrpc-client",
  "near-jsonrpc-primitives",
@@ -3197,7 +3242,7 @@ dependencies = [
  "actix",
  "async-trait",
  "futures",
- "jsonrpsee-core 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "jsonrpsee 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "jsonrpsee-ws-server",
  "parking_lot",
  "reqwest",

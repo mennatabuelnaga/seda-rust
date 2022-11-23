@@ -1,19 +1,22 @@
+use serde::{Deserialize, Serialize};
+
 pub type EventId = String;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub enum EventData {
     // Tick types
     MainChainTick,
+    CliCall(Vec<String>),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Event {
     pub id:   EventId,
     pub data: EventData,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct EventQueue {
     items: Vec<Event>,
 }

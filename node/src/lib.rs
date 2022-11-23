@@ -15,8 +15,10 @@ use std::sync::Arc;
 use actix::prelude::*;
 use app::App;
 use event_queue::EventQueue;
+use job_manager::StartJobManager;
 use parking_lot::RwLock;
 use rpc::JsonRpcServer;
+use runtime_job::RuntimeWorker;
 use seda_adapters::MainChainAdapterTrait;
 use tracing::{error, info};
 
@@ -39,6 +41,12 @@ pub fn run<T: MainChainAdapterTrait>(node_config: &NodeConfig, main_chain_config
             running_event_ids: Arc::new(RwLock::new(Vec::new())),
         }
         .start();
+
+        // TODO: use config param for setting the number of threads
+        let runtime_worker = SyncArbiter::start(2, move || RuntimeWorker);
+        app.do_send(StartJobManager {
+            runtime_worker: runtime_worker.clone(),
+        });
 
         let rpc_server =
             JsonRpcServer::build::<T>(main_chain_config, node_config.server_address.as_ref().expect("todo"))
