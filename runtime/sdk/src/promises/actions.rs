@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Chain;
+use crate::chain::Chain;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PromiseAction {

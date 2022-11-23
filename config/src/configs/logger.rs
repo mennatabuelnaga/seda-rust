@@ -7,13 +7,13 @@ use crate::{env_overwrite, Config};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 /// The configuration for the logger.
 pub struct LoggerConfig {
-    pub log_file_path: Option<PathBuf>,
+    pub log_file_path: PathBuf,
 }
 
 impl Config for LoggerConfig {
     fn template() -> Self {
         Self {
-            log_file_path: Some(std::env::current_dir().expect("Failed to get current directory")),
+            log_file_path: std::env::current_dir().expect("Failed to get current directory"),
         }
     }
 
@@ -24,7 +24,9 @@ impl Config for LoggerConfig {
 
 impl Default for LoggerConfig {
     fn default() -> Self {
-        let mut this = Self { log_file_path: None };
+        let mut this = Self {
+            log_file_path: std::env::current_dir().expect("Failed to get current directory"),
+        };
         this.overwrite_from_env();
         this
     }

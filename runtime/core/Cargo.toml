@@ -19,6 +19,7 @@ wasmer-wasi = { workspace = true }
 tracing = { workspace = true }
 rusqlite = { workspace = true }
 borsh = { workspace = true }
+tokio = { workspace = true }
 
 [dev-dependencies]
 reqwest = { workspace = true }

@@ -19,12 +19,8 @@ impl HostAdapter for RuntimeAdapter {
         // Safe to unwrap here, it's already been checked.
         let config = config.as_ref();
         Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(
-                config.another_chain.as_ref().expect("TODO clean up when de-optioning."),
-            )?)),
-            near_client:    Client::Near(Arc::new(NearMainChain::new_client(
-                config.near_chain.as_ref().expect("TODO clean up when de-optioning."),
-            )?)),
+            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another_chain)?)),
+            near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near_chain)?)),
         })
     }
 

@@ -35,12 +35,10 @@ pub fn run<T: MainChainAdapterTrait>() {
         // P2P initialization
         // TODO: most probably this process should be moved somewhere else
         actix::spawn(async move {
-            let mut p2p_server = P2PServer::start_from_config(
-                &config.node.as_ref().unwrap().p2p_server_address,
-                &config.node.as_ref().unwrap().p2p_known_peers,
-            )
-            .await
-            .expect("P2P swarm cannot be started");
+            let mut p2p_server =
+                P2PServer::start_from_config(&config.node.p2p_server_address, &config.node.p2p_known_peers)
+                    .await
+                    .expect("P2P swarm cannot be started");
             p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
             p2p_server.loop_stream().await.expect("P2P listen failed");
         });

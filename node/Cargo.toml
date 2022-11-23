@@ -21,3 +21,7 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+seda-runtime-sdk = { workspace = true }
+rusqlite = { workspace = true }
+tokio-rusqlite = { workspace = true }
+dotenv = { workspace = true }

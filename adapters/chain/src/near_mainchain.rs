@@ -26,12 +26,7 @@ impl MainChainAdapterTrait for NearMainChain {
     type Config = NearConfig;
 
     fn new_client(config: &Self::Config) -> Result<Self::Client> {
-        Ok(JsonRpcClient::connect(
-            config
-                .chain_rpc_url
-                .as_ref()
-                .ok_or(MainChainAdapterError::MissingNearServerUrlConfig)?,
-        ))
+        Ok(JsonRpcClient::connect(&config.chain_rpc_url))
     }
 
     async fn construct_signed_tx(

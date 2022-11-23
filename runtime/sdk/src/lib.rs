@@ -1,6 +1,6 @@
 mod chain;
-pub use chain::Chain;
 mod promises;
+pub use chain::Chain;
 
 #[cfg(feature = "wasm")]
 pub mod wasm;

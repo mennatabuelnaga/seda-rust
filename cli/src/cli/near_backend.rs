@@ -17,34 +17,14 @@ pub struct NearCliBackend;
 impl CliCommands for NearCliBackend {
     async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>, deposit: u128) -> Result<Vec<u8>> {
         let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
-        let seda_server_url = config
-            .seda_server_url
-            .as_ref()
-            .ok_or("seda_server_url from cli, env var or config file.")?;
-        let signer_acc_str = node_config
-            .signer_account_id
-            .as_ref()
-            .ok_or("signer_account_id from cli, env var or config file.")?;
-        let signer_sk_str = node_config
-            .secret_key
-            .as_ref()
-            .ok_or("secret_key from cli, env var or config file.")?;
-        let contract_id = node_config
-            .contract_account_id
-            .as_ref()
-            .ok_or("contract_account_id from cli, env var or config file.")?;
-        let chain_rpc_url = config
-            .near_chain
-            .as_ref()
-            .ok_or("Config [near_chain] section.")?
-            .chain_rpc_url
-            .as_ref()
-            .ok_or("chain_rpc_url from config [near_chain] section.")?;
+        let node_config = &config.node;
+        let seda_server_url = &config.seda_server_url;
+        let signer_acc_str = &node_config.signer_account_id;
+        let signer_sk_str = &node_config.secret_key;
+        let contract_id = &node_config.contract_account_id;
+        let chain_rpc_url = &config.near_chain.chain_rpc_url;
         let gas = node_config
             .gas
-            .as_ref()
-            .ok_or("gas from config.")?
             .parse()
             .map_err(|e| format!("gas from config file was not a valid number: '{e}'."))?;
 
@@ -69,13 +49,11 @@ impl CliCommands for NearCliBackend {
         let method_name = "register_node";
 
         let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
+        let node_config = &config.node;
         let deposit = node_config
-            .deposit_for_register_node
-            .as_ref()
-            .ok_or("deposit_for_register_node from config file.")?
+            .deposit
             .parse()
-            .map_err(|e| format!("deposit_for_register_node from config file was not a valid number: '{e}'."))?;
+            .map_err(|e| format!("deposit from config file was not a valid number: '{e}'."))?;
 
         let response = Self::format_tx_and_request_seda_server(
             method_name,
@@ -91,14 +69,17 @@ impl CliCommands for NearCliBackend {
 
     async fn get_node_socket_address(node_id: u64) -> Result<()> {
         let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
-        let contract_id = node_config
-            .contract_account_id
-            .clone()
-            .ok_or("contract_account_id from cli, env var or config file.")?;
+        let node_config = &config.node;
+        let contract_id = &node_config.contract_account_id;
 
-        let response =
-            Self::view_seda_server("get_node_socket_address", rpc_params![NodeIds { contract_id, node_id }]).await?;
+        let response = Self::view_seda_server(
+            "get_node_socket_address",
+            rpc_params![NodeIds {
+                contract_id: contract_id.to_string(),
+                node_id
+            }],
+        )
+        .await?;
 
         debug!("response from server: {:?}", response);
 
@@ -107,16 +88,13 @@ impl CliCommands for NearCliBackend {
 
     async fn get_nodes(limit: u64, offset: u64) -> Result<()> {
         let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
-        let contract_id = node_config
-            .contract_account_id
-            .clone()
-            .ok_or("contract_account_id from cli, env var or config file.")?;
+        let node_config = &config.node;
+        let contract_id = &node_config.contract_account_id;
 
         let response = Self::view_seda_server(
             "get_nodes",
             rpc_params![NodeDetails {
-                contract_id,
+                contract_id: contract_id.to_string(),
                 limit,
                 offset
             }],
@@ -130,13 +108,17 @@ impl CliCommands for NearCliBackend {
 
     async fn get_node_owner(node_id: u64) -> Result<()> {
         let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
-        let contract_id = node_config
-            .contract_account_id
-            .clone()
-            .ok_or("contract_account_id from cli, env var or config file.")?;
+        let node_config = &config.node;
+        let contract_id = &node_config.contract_account_id;
 
-        let response = Self::view_seda_server("get_node_owner", rpc_params![NodeIds { contract_id, node_id }]).await?;
+        let response = Self::view_seda_server(
+            "get_node_owner",
+            rpc_params![NodeIds {
+                contract_id: contract_id.to_string(),
+                node_id
+            }],
+        )
+        .await?;
 
         debug!("response from server: {:?}", response);
 
