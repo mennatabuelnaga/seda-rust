@@ -1,5 +1,6 @@
 mod app;
 mod config;
+mod host;
 pub use config::*;
 mod errors;
 pub use errors::*;

@@ -1,4 +1,4 @@
-use std::{io::Read, sync::Arc};
+use std::{future::Future, io::Read, process::Output, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
@@ -13,6 +13,8 @@ use crate::InMemory;
 pub struct Runtime {
     wasm_module: Option<Module>,
 }
+
+type Callback = fn();
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct VmResult {
@@ -34,12 +36,16 @@ pub trait RunnableRuntime {
         output: &mut Vec<String>,
     ) -> Result<u8>;
 
-    async fn start_runtime<T: HostAdapterTypes + Default>(
+    async fn start_runtime<T: HostAdapterTypes + Default, F: Send, Fut: Send>(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
         host_adapters: HostAdapters<T>,
-    ) -> Result<VmResult>;
+        callback: F,
+    ) -> Result<VmResult>
+    where
+        F: FnOnce() -> Fut,
+        Fut: Future<Output = ()>;
 }
 
 #[async_trait::async_trait]
@@ -165,12 +171,18 @@ impl RunnableRuntime for Runtime {
         res
     }
 
-    async fn start_runtime<T: HostAdapterTypes + Default>(
+    async fn start_runtime<T: HostAdapterTypes + Default, F: Send, Fut: Send>(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
         host_adapters: HostAdapters<T>,
-    ) -> Result<VmResult> {
+        callback: F,
+    ) -> Result<VmResult>
+    where
+        F: FnOnce() -> Fut,
+        Fut: Future<Output = ()>,
+    {
+        callback().await;
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 

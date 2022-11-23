@@ -7,6 +7,7 @@ use seda_runtime::{HostAdapters, InMemory, RunnableRuntime, Runtime, VmConfig, V
 
 use crate::{
     event_queue::{Event, EventData},
+    host::{DatabaseGet, Host},
     test_adapters::TestAdapters,
 };
 
@@ -61,8 +62,29 @@ impl Handler<RuntimeJob> for RuntimeWorker {
         };
 
         let runtime = self.runtime.as_ref().unwrap();
+        let x = ctx.address();
+        let host_actor = Host::from_registry();
 
-        let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter, host_adapters)).unwrap();
+        let res =
+            futures::executor::block_on(
+                runtime.start_runtime(vm_config, memory_adapter, host_adapters, || async {
+                    // match msg {
+                    //     DatabaseGet => host_actor.send(DatabaseGet);
+                    // }
+
+                    let result = host_actor.send(DatabaseGet { key: "sd".to_string() }).await;
+
+                    // let result = reqwest::get("https://swapi.dev/api/people/2/")
+                    //     .await
+                    //     .unwrap()
+                    //     .text()
+                    //     .await
+                    //     .unwrap();
+
+                    println!("YOOODODSODSOSODSOSDO {:?}", result);
+                }),
+            )
+            .unwrap();
 
         // let handle = tokio::runtime::Handle::current();
         // let res = handle
@@ -75,3 +97,24 @@ impl Handler<RuntimeJob> for RuntimeWorker {
         RuntimeJobResult { vm_result: res }
     }
 }
+
+// #[derive(Message)]
+// #[rtype(result = "String")]
+// pub struct SayHello;
+
+// impl Handler<SayHello> for RuntimeWorker {
+//     type Result = String;
+
+//     fn handle(&mut self, _msg: SayHello, ctx: &mut Self::Context) ->
+// Self::Result {         println!("-----> Yelloooooww");
+//         let res = futures::executor::block_on(reqwest::get("https://swapi.dev/api/people/2/"));
+
+//         let host_addr = Host::from_registry();
+
+//         // host_addr.do_send(Host::)
+
+//         println!("----> Ressss: {:?}", res);
+
+//         "-----> Yelloooooww".to_string()
+//     }
+// }
