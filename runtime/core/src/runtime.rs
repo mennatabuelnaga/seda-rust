@@ -16,7 +16,8 @@ pub struct Runtime {
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct VmResult {
-    pub output: Vec<String>,
+    pub output:    Vec<String>,
+    pub exit_code: u8,
 }
 
 #[async_trait::async_trait]
@@ -31,7 +32,7 @@ pub trait RunnableRuntime {
         promise_queue: Arc<Mutex<PromiseQueue>>,
         host_adapters: HostAdapters<T>,
         output: &mut Vec<String>,
-    ) -> Result<()>;
+    ) -> Result<u8>;
 
     async fn start_runtime<T: HostAdapterTypes + Default>(
         &self,
@@ -47,6 +48,8 @@ impl RunnableRuntime for Runtime {
         Self { wasm_module: None }
     }
 
+    /// Initializes the runtime, this speeds up VM execution by caching WASM
+    /// binary parsing
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()> {
         let wasm_store = Store::default();
         let wasm_module = Module::new(&wasm_store, wasm_binary)?;
@@ -63,7 +66,7 @@ impl RunnableRuntime for Runtime {
         promise_queue: Arc<Mutex<PromiseQueue>>,
         host_adapters: HostAdapters<T>,
         output: &mut Vec<String>,
-    ) -> Result<()> {
+    ) -> Result<u8> {
         let next_promise_queue = Arc::new(Mutex::new(PromiseQueue::new()));
         {
             // This queue will be used in the current execution
@@ -72,7 +75,7 @@ impl RunnableRuntime for Runtime {
             let mut promise_queue = promise_queue.lock();
 
             if promise_queue.queue.is_empty() {
-                return Ok(());
+                return Ok(0);
             }
 
             for index in 0..promise_queue.queue.len() {
@@ -106,8 +109,8 @@ impl RunnableRuntime for Runtime {
                         let runtime_result = main_func.call(&[]);
 
                         {
-                            // We need to use the wasi_state twice so this
-                            // puts into scope the wasi_state so the mutex gets unlocked after
+                            // We need to use the wasi_state twice (which is not clonable) so this
+                            // puts into scope the wasi_state so the MutexGuard gets unlocked after
                             let mut wasi_state = wasi_env.state();
                             let wasi_stdout = wasi_state.fs.stdout_mut()?.as_mut().unwrap();
                             let mut stdout_buffer = String::new();
@@ -121,9 +124,9 @@ impl RunnableRuntime for Runtime {
                         wasi_stderr.read_to_string(&mut stderr_buffer)?;
                         output.push(stderr_buffer);
 
-                        // Unwrap the error here since we've captured the output
+                        // Unwrap the error here after capturing the output
+                        // otherwise the output would get lost
                         runtime_result?;
-
                         promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
@@ -182,7 +185,7 @@ impl RunnableRuntime for Runtime {
 
         let mut output: Vec<String> = vec![];
 
-        let result = self
+        let exit_code = self
             .execute_promise_queue(
                 wasm_module,
                 memory_adapter,
@@ -190,8 +193,8 @@ impl RunnableRuntime for Runtime {
                 host_adapters,
                 &mut output,
             )
-            .await;
+            .await?;
 
-        Ok(VmResult { output })
+        Ok(VmResult { output, exit_code })
     }
 }

@@ -117,7 +117,7 @@ impl From<&str> for RuntimeError {
 
 impl From<FsError> for RuntimeError {
     fn from(e: FsError) -> Self {
-        Self::WasiFsError(e.into())
+        Self::WasiFsError(e)
     }
 }
 
