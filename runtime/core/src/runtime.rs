@@ -7,14 +7,17 @@ use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, HostAdapterTypes, HostAdapters, PromiseQueue, Result, VmConfig, VmContext};
-use crate::InMemory;
+use crate::{promise::promise_queue, InMemory};
 
 #[derive(Clone)]
 pub struct Runtime {
     wasm_module: Option<Module>,
 }
 
-type Callback = fn();
+#[async_trait::async_trait]
+pub trait ExampleTrait: Send {
+    async fn my_callback();
+}
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct VmResult {
@@ -27,25 +30,23 @@ pub trait RunnableRuntime {
     fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
-    fn execute_promise_queue<T: HostAdapterTypes + Default>(
+    async fn execute_promise_queue<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
-        promise_queue: Arc<Mutex<PromiseQueue>>,
+        promise_queue: PromiseQueue,
         host_adapters: HostAdapters<T>,
         output: &mut Vec<String>,
+        // callback: F,
     ) -> Result<u8>;
 
-    async fn start_runtime<T: HostAdapterTypes + Default, F: Send, Fut: Send>(
+    async fn start_runtime<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
         host_adapters: HostAdapters<T>,
-        callback: F,
-    ) -> Result<VmResult>
-    where
-        F: FnOnce() -> Fut,
-        Fut: Future<Output = ()>;
+        // callback: F,
+    ) -> Result<VmResult>;
 }
 
 #[async_trait::async_trait]
@@ -65,27 +66,29 @@ impl RunnableRuntime for Runtime {
         Ok(())
     }
 
-    fn execute_promise_queue<T: HostAdapterTypes + Default>(
+    async fn execute_promise_queue<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
-        promise_queue: Arc<Mutex<PromiseQueue>>,
+        promise_queue: PromiseQueue,
         host_adapters: HostAdapters<T>,
         output: &mut Vec<String>,
+        // callback: F,
     ) -> Result<u8> {
-        let next_promise_queue = Arc::new(Mutex::new(PromiseQueue::new()));
+        let mut next_promise_queue = PromiseQueue::new();
+        let mut promise_queue_mut = promise_queue.clone();
+
         {
             // This queue will be used in the current execution
             // We should not use the same promise_queue otherwise getting results back would
             // be hard to do due the indexes of results (will be hard to refactor)
-            let mut promise_queue = promise_queue.lock();
 
             if promise_queue.queue.is_empty() {
                 return Ok(0);
             }
 
             for index in 0..promise_queue.queue.len() {
-                promise_queue.queue[index].status = PromiseStatus::Pending;
+                promise_queue_mut.queue[index].status = PromiseStatus::Pending;
 
                 match &promise_queue.queue[index].action {
                     PromiseAction::CallSelf(call_action) => {
@@ -99,12 +102,13 @@ impl RunnableRuntime for Runtime {
                             .stderr(Box::new(stderr_pipe))
                             .finalize()?;
 
-                        let current_promise_queue = Arc::new(Mutex::new(promise_queue.clone()));
+                        let current_promise_queue = Arc::new(Mutex::new(promise_queue_mut.clone()));
+                        let next_queue = Arc::new(Mutex::new(PromiseQueue::new()));
 
                         let vm_context = VmContext::create_vm_context(
                             memory_adapter.clone(),
                             current_promise_queue,
-                            next_promise_queue.clone(),
+                            next_queue.clone(),
                         );
 
                         let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, wasm_module)?;
@@ -133,7 +137,8 @@ impl RunnableRuntime for Runtime {
                         // Unwrap the error here after capturing the output
                         // otherwise the output would get lost
                         runtime_result?;
-                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
+                        next_promise_queue = next_queue.lock().clone();
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     // Just an example, delete this later
@@ -142,47 +147,49 @@ impl RunnableRuntime for Runtime {
                             .db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap())
                             .unwrap();
 
-                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(vec![]);
+                        // let _r = callback().await;
+                        let r = Ex::my_callback().await;
+
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
                         let result = host_adapters.db_get(&db_action.key).unwrap().unwrap();
 
-                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(result.to_string().into_bytes());
+                        promise_queue_mut.queue[index].status =
+                            PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }
 
                     PromiseAction::Http(http_action) => {
                         let resp = host_adapters.http_fetch(&http_action.url).unwrap();
+                        let r = Ex::my_callback().await;
 
-                        promise_queue.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
                 }
             }
         }
 
-        let res = self.execute_promise_queue(
+        let res = self.execute_promise_queue::<T, Ex>(
             wasm_module,
             memory_adapter.clone(),
             next_promise_queue,
             host_adapters,
             output,
+            // callback,
         );
 
-        res
+        res.await
     }
 
-    async fn start_runtime<T: HostAdapterTypes + Default, F: Send, Fut: Send>(
+    async fn start_runtime<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
         host_adapters: HostAdapters<T>,
-        callback: F,
-    ) -> Result<VmResult>
-    where
-        F: FnOnce() -> Fut,
-        Fut: Future<Output = ()>,
-    {
-        callback().await;
+        // callback: F,
+    ) -> Result<VmResult> {
+        // callback().await;
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
@@ -198,13 +205,16 @@ impl RunnableRuntime for Runtime {
 
         let mut output: Vec<String> = vec![];
 
-        let result = self.execute_promise_queue(
-            wasm_module,
-            memory_adapter,
-            Arc::new(Mutex::new(promise_queue)),
-            host_adapters,
-            &mut output,
-        );
+        let result = self
+            .execute_promise_queue::<T, Ex>(
+                wasm_module,
+                memory_adapter,
+                promise_queue,
+                host_adapters,
+                &mut output,
+                // callback,
+            )
+            .await;
 
         Ok(VmResult {
             output,

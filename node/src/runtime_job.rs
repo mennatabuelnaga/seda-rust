@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 use actix::{prelude::*, Handler, Message};
 use futures::executor;
 use parking_lot::Mutex;
-use seda_runtime::{HostAdapters, InMemory, RunnableRuntime, Runtime, VmConfig, VmResult};
+use seda_runtime::{ExampleTrait, HostAdapters, InMemory, RunnableRuntime, Runtime, VmConfig, VmResult};
 
 use crate::{
     event_queue::{Event, EventData},
@@ -40,6 +40,33 @@ impl Actor for RuntimeWorker {
     }
 }
 
+pub struct Example;
+
+#[async_trait::async_trait]
+impl ExampleTrait for Example {
+    async fn my_callback() -> () {
+        // match msg {
+        //     DatabaseGet => host_actor.send(DatabaseGet);
+        // }
+
+        let host_actor = Host::from_registry();
+
+        let result = host_actor.send(DatabaseGet { key: "sd".to_string() }).await;
+
+        // let result = reqwest::get("https://swapi.dev/api/people/2/")
+        //     .await
+        //     .unwrap()
+        //     .text()
+        //     .await
+        //     .unwrap();
+
+        println!("YOOODODSODSOSODSOSDO {:?}", result);
+
+        // result
+        ()
+    }
+}
+
 impl Handler<RuntimeJob> for RuntimeWorker {
     type Result = RuntimeJobResult;
 
@@ -65,26 +92,32 @@ impl Handler<RuntimeJob> for RuntimeWorker {
         let x = ctx.address();
         let host_actor = Host::from_registry();
 
-        let res =
-            futures::executor::block_on(
-                runtime.start_runtime(vm_config, memory_adapter, host_adapters, || async {
-                    // match msg {
-                    //     DatabaseGet => host_actor.send(DatabaseGet);
-                    // }
+        let example = Example;
 
-                    let result = host_actor.send(DatabaseGet { key: "sd".to_string() }).await;
+        let res = futures::executor::block_on(
+            runtime.start_runtime::<TestAdapters, Example>(vm_config, memory_adapter, host_adapters), /* runtime.start_runtime(vm_config,
+                                                                                         * memory_adapter, host_adapters, ||
+                                                                                         * async {
+                                                                                         *     // match msg {
+                                                                                         *     //     DatabaseGet => host_actor.send(DatabaseGet);
+                                                                                         *     // } */
 
-                    // let result = reqwest::get("https://swapi.dev/api/people/2/")
-                    //     .await
-                    //     .unwrap()
-                    //     .text()
-                    //     .await
-                    //     .unwrap();
+                                                                                        /*     let result =
+                                                                                         * host_actor.send(DatabaseGet { key:
+                                                                                         * "sd".to_string() }).await; */
 
-                    println!("YOOODODSODSOSODSOSDO {:?}", result);
-                }),
-            )
-            .unwrap();
+                                                                                        /*     // let result = reqwest::get("https://swapi.dev/api/people/2/")
+                                                                                         *     //     .await
+                                                                                         *     //     .unwrap()
+                                                                                         *     //     .text()
+                                                                                         *     //     .await
+                                                                                         *     //     .unwrap(); */
+
+                                                                             /*     println!("YOOODODSODSOSODSOSDO
+                                                                              * {:?}", result);
+                                                                                         * }), */
+        )
+        .unwrap();
 
         // let handle = tokio::runtime::Handle::current();
         // let res = handle

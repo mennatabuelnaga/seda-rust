@@ -105,3 +105,50 @@ where
         Self::new()
     }
 }
+
+///////////////
+#[async_trait::async_trait]
+pub trait SuperHttpAdapter: Send + 'static {
+    // TODO: add headers + methods
+    async fn fetch(&mut self, url: &str) -> Result<String, ()>;
+}
+
+pub trait SuperHostAdapterTypes: Send + Default + Clone + Copy {
+    type Database: DatabaseAdapter + Default + Clone + Send + Copy;
+    type Http: SuperHttpAdapter + Default + Clone + Send + Copy;
+}
+
+#[derive(Clone, Copy)]
+pub struct SuperAdapter<T>
+where
+    T: SuperHostAdapterTypes,
+{
+    pub database: T::Database,
+    pub http:     T::Http,
+}
+
+impl<T> Default for SuperAdapter<T>
+where
+    T: SuperHostAdapterTypes,
+{
+    fn default() -> Self {
+        Self {
+            database: T::Database::default(),
+            http:     T::Http::default(),
+        }
+    }
+}
+
+pub struct DatabaseGetCall {
+    pub key: String,
+}
+
+pub struct DatabaseSetCall {
+    pub key:   String,
+    pub value: String,
+}
+
+pub enum AdapterMethodCall {
+    DatabaseGet(DatabaseGetCall),
+    DatabaseSet(String),
+}

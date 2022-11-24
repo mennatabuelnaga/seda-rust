@@ -30,7 +30,7 @@ impl Handler<DatabaseGet> for Host {
         println!("Heyhhehhehehehe");
 
         let fut = async {
-            let x = reqwest::get("https://swapi.dev/api/people/2/")
+            let x = reqwest::get("https://pokeapi.co/api/v2/pokemon/ditto")
                 .await
                 .unwrap()
                 .text()
