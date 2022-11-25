@@ -1,8 +1,49 @@
-use actix::prelude::*;
-use serde::{Deserialize, Serialize};
+mod db_set;
+mod db_get;
+mod http_fetch;
+pub use db_get::DatabaseGet;
+pub use db_set::DatabaseSet;
+pub use http_fetch::HttpFetch;
 
-#[derive(Default)]
-pub struct Host;
+
+use actix::prelude::*;
+use futures::executor;
+use rusqlite::params;
+use tokio_rusqlite::Connection;
+
+use crate::NodeError;
+
+// #[derive(Default)]
+pub struct Host{
+    db_conn: Connection
+}
+
+impl Default for Host {
+    fn default() -> Self {
+        executor::block_on(async move {
+            let db_conn = Connection::open("./seda_db.db3").await.expect("Couldn't open db conn");        
+            db_conn.call(|db_conn| {
+                db_conn.execute(
+                    "CREATE TABLE IF NOT EXISTS data (
+                                key TEXT PRIMARY KEY,
+                                value TEXT NOT NULL
+                            )",
+                    params![],
+                )
+                .expect("couldn't create db table");
+
+                Ok::<_, NodeError>(())
+            })
+            .await
+            .expect("Couldn't execute db call");
+            Host { db_conn }
+        })
+
+    }
+}
+
+
+
 
 impl Actor for Host {
     type Context = Context<Self>;
@@ -17,35 +58,3 @@ impl actix::Supervised for Host {}
 
 impl SystemService for Host {}
 
-#[derive(Message, Serialize, Deserialize)]
-#[rtype(result = "String")]
-pub struct DatabaseGet {
-    pub key: String,
-}
-
-impl Handler<DatabaseGet> for Host {
-    type Result = ResponseActFuture<Self, String>;
-
-    fn handle(&mut self, msg: DatabaseGet, ctx: &mut Self::Context) -> Self::Result {
-        println!("Heyhhehhehehehe");
-
-        let fut = async {
-            let x = reqwest::get("https://pokeapi.co/api/v2/pokemon/ditto")
-                .await
-                .unwrap()
-                .text()
-                .await
-                .unwrap();
-
-            return x;
-        };
-
-        // let result = futures::executor::block_on(fut);
-        // let x = ctx.wait(fut.into_actor(self));
-
-        // println!("{:?}", result);
-        // "Hey".to_string()
-
-        Box::pin(fut.into_actor(self))
-    }
-}

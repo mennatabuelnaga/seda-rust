@@ -1,6 +1,7 @@
 use rusqlite::params;
 use seda_runtime_macros::Adapter;
 use tokio_rusqlite::Connection;
+use futures::executor;
 
 use super::RuntimeError;
 use crate::{DatabaseAdapter, HostAdapterTypes, HttpAdapter};
@@ -19,29 +20,26 @@ pub struct DatabaseTestAdapter {
 
 impl Default for DatabaseTestAdapter {
     fn default() -> Self {
-        tokio::task::block_in_place(move || {
-            tokio::runtime::Handle::current().block_on(async move {
-                let conn = Connection::open("./seda_db.db3").await.expect("Couldn't open db conn");
-                conn.call(|conn| {
-                    conn.execute(
-                        "CREATE TABLE IF NOT EXISTS data (
-                                    key TEXT PRIMARY KEY,
-                                    value TEXT NOT NULL
-                                )",
-                        params![],
-                    )
-                    .expect("couldn't create db table");
+        executor::block_on(async move {
+            let conn = Connection::open("./seda_db.db3").await.expect("Couldn't open db conn");
+            conn.call(|conn| {
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS data (
+                                key TEXT PRIMARY KEY,
+                                value TEXT NOT NULL
+                            )",
+                    params![],
+                )
+                .expect("couldn't create db table");
 
-                    Ok::<_, RuntimeError>(())
-                })
-                .await
-                .expect("Couldn't execute db call");
-                DatabaseTestAdapter { conn }
+                Ok::<_, RuntimeError>(())
             })
+            .await
+            .expect("Couldn't execute db call");
+            DatabaseTestAdapter { conn }
         })
     }
 }
-
 #[async_trait::async_trait]
 impl DatabaseAdapter for DatabaseTestAdapter {
     async fn get(&self, key: &str) -> Result<Option<String>, RuntimeError> {

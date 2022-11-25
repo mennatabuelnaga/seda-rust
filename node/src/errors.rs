@@ -7,6 +7,8 @@ pub enum NodeError {
     RPCError(#[from] jsonrpsee::core::Error),
     #[error(transparent)]
     MainChainError(#[from] MainChainAdapterError),
+    #[error(transparent)]
+    DatabaseError(#[from] rusqlite::Error),
 }
 
 pub type Result<T, E = NodeError> = core::result::Result<T, E>;

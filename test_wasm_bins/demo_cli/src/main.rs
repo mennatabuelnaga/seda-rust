@@ -13,8 +13,8 @@ struct Options {
 
 #[derive(Subcommand)]
 enum Commands {
-    Run,
     Hello,
+    HttpFetch {url: String}
 }
 
 fn main() {
@@ -22,8 +22,8 @@ fn main() {
 
     if let Some(command) = options.command {
         match command {
-            Commands::Run => {
-                http_fetch("https://swapi.dev/api/people/2/")
+            Commands::HttpFetch {url} => {
+                http_fetch(url)
                     .start()
                     .then(call_self("http_fetch_result", vec![]));
             }
@@ -36,6 +36,13 @@ fn main() {
 
 #[no_mangle]
 fn http_fetch_result() {
-    Promise::result(0);
-    println!("Result!");
+    let result = Promise::result(0);
+    let value_to_store = String::from_utf8(result).unwrap();
+
+    db_set("http_fetch_result", &value_to_store).start();
+
+    println!("http_fetch_result success!");
 }
+
+
+
