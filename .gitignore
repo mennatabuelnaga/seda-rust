@@ -13,9 +13,13 @@ target/
 
 # Vscode files
 /.vscode/
+<<<<<<< HEAD
 
 # Generated log files
 *.log.*
 
 # generated sqlite test db
 **/*.db3
+=======
+.db3
+>>>>>>> feat(runtime-sdk): Return PromiseStatus for Promise::result()

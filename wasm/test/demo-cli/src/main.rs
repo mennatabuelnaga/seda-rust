@@ -1,14 +1,12 @@
 use std::str;
 
 use clap::{Parser, Subcommand};
-<<<<<<< HEAD
+
 use seda_runtime_sdk::{
     wasm::{call_self, http_fetch, Promise},
     PromiseStatus,
 };
-=======
-use seda_runtime_sdk::wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
->>>>>>> fix(runtime): Fix issue where http could not be called due missing tokio runtime
+
 
 #[derive(Parser)]
 #[command(name = "seda")]
