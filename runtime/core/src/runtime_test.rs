@@ -69,7 +69,7 @@ async fn test_bad_wasm_file() {
 async fn test_non_existing_function() {
     let wasm_binary = read_wasm();
     let mut runtime = Runtime::new();
-    runtime.init(wasm_binary);
+    runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
         .start_runtime::<RuntimeTestAdapter>(
@@ -93,7 +93,7 @@ async fn test_promise_queue_http_fetch() {
 
     let wasm_binary = read_wasm();
     let mut runtime = Runtime::new();
-    runtime.init(wasm_binary);
+    runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
         .start_runtime::<RuntimeTestAdapter>(
@@ -132,7 +132,7 @@ async fn test_memory_adapter() {
     let mut runtime = Runtime::new();
     let memory_adapter = memory_adapter();
     let wasm_binary = read_wasm();
-    runtime.init(wasm_binary);
+    runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
         .start_runtime::<RuntimeTestAdapter>(

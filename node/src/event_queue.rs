@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 pub type EventId = String;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[allow(dead_code)]
 pub enum EventData {
     // Tick types
     MainChainTick,

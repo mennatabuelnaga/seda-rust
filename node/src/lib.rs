@@ -9,7 +9,6 @@ mod event_queue_handler;
 mod rpc;
 mod runtime_adapter;
 mod runtime_job;
-mod test_adapters;
 
 use actix::prelude::*;
 use app::App;

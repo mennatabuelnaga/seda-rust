@@ -1,7 +1,10 @@
 use std::str;
 
 use clap::{Parser, Subcommand};
-use seda_runtime_sdk::wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
+use seda_runtime_sdk::{
+    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
+    PromiseStatus,
+};
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -37,17 +40,11 @@ fn main() {
 #[no_mangle]
 fn http_fetch_result() {
     let result = Promise::result(0);
-    let value_to_store = String::from_utf8(result).unwrap();
 
-    println!("http_fetch_result success!");
-    db_set("http_result", &value_to_store)
-        .start()
-        .then(db_get("http_result"))
-        .then(call_self("write_done", vec![]));
-}
+    let value_to_print: String = match result {
+        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        _ => "Promise failed..".to_string(),
+    };
 
-#[no_mangle]
-fn write_done() {
-    let result_data = Promise::result(1);
-    println!("Done writing");
+    println!("Value: {value_to_print}");
 }

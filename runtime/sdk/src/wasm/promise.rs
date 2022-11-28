@@ -56,8 +56,7 @@ impl Promise {
     }
 
     /// Returns the result of a promise action
-    /// TODO: Return the PromiseStatus
-    pub fn result(index: i32) -> Vec<u8> {
+    pub fn result(index: i32) -> PromiseStatus {
         let promise_result_length = unsafe { raw::promise_status_length(index) };
 
         let mut result_data: Vec<u8> = Vec::new();
@@ -67,6 +66,9 @@ impl Promise {
             raw::promise_status_write(index, result_data.as_mut_ptr(), promise_result_length);
         }
 
-        result_data
+        let result_str = String::from_utf8(result_data).unwrap();
+        let promise_status: PromiseStatus = serde_json::from_str(&result_str).unwrap();
+
+        promise_status
     }
 }

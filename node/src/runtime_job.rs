@@ -28,6 +28,7 @@ impl Actor for RuntimeWorker {
     type Context = SyncContext<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
+        // TODO: Replace the binary condinationally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path_prefix.push("./test_files/demo-cli.wasm");
 
@@ -42,8 +43,6 @@ impl Handler<RuntimeJob> for RuntimeWorker {
     type Result = RuntimeJobResult;
 
     fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
-        // TODO: Replace the binary with the actual consensus binary
-
         let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
 
         let args: Vec<String> = match msg.event.data {
