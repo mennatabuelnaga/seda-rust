@@ -1,13 +1,11 @@
 mod app;
 mod config;
-mod host;
 pub use config::*;
 mod errors;
 pub use errors::*;
 mod event_queue;
 mod event_queue_handler;
 mod rpc;
-mod runtime_adapter;
 mod runtime_job;
 
 use actix::prelude::*;

@@ -1,11 +1,10 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
-use seda_runtime_adapters::{InMemory, MemoryAdapter};
+use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
 use seda_runtime_sdk::PromiseStatus;
 
 use super::{RunnableRuntime, Runtime, VmConfig};
-use crate::{HostAdapter, RuntimeTestAdapter};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

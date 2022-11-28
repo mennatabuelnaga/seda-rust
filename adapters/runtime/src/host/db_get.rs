@@ -1,17 +1,16 @@
 use actix::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::Host;
-use crate::NodeError;
+use crate::{Host, Result, RuntimeAdapterError};
 
 #[derive(Message, Serialize, Deserialize)]
-#[rtype(result = "Result<Option<String>, NodeError>")]
+#[rtype(result = "Result<Option<String>>")]
 pub struct DatabaseGet {
     pub key: String,
 }
 
 impl Handler<DatabaseGet> for Host {
-    type Result = ResponseActFuture<Self, Result<Option<String>, NodeError>>;
+    type Result = ResponseActFuture<Self, Result<Option<String>>>;
 
     fn handle(&mut self, msg: DatabaseGet, _ctx: &mut Self::Context) -> Self::Result {
         let db_conn = self.db_conn.clone();
@@ -26,7 +25,7 @@ impl Handler<DatabaseGet> for Host {
                         retrieved = row.get(0)?;
                         Ok(())
                     })?;
-                    Ok::<_, NodeError>(retrieved)
+                    Ok::<_, RuntimeAdapterError>(retrieved)
                 })
                 .await?;
 

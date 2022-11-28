@@ -3,13 +3,10 @@ use std::{fs, path::PathBuf, sync::Arc};
 use actix::{prelude::*, Handler, Message};
 use futures::executor;
 use parking_lot::Mutex;
-use seda_runtime::{InMemory, RunnableRuntime, Runtime, VmConfig, VmResult};
-use seda_runtime_adapters::InMemory;
+use seda_runtime::{RunnableRuntime, Runtime, VmConfig, VmResult};
+use seda_runtime_adapters::{InMemory, RuntimeAdapter};
 
-use crate::{
-    event_queue::{Event, EventData},
-    runtime_adapter::RuntimeAdapter,
-};
+use crate::event_queue::{Event, EventData};
 
 #[derive(MessageResponse)]
 pub struct RuntimeJobResult {

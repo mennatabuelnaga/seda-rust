@@ -2,9 +2,8 @@ use actix::prelude::*;
 use jsonrpsee::{
     core::{async_trait, Error},
     proc_macros::rpc,
+    server::{ServerBuilder, ServerHandle},
 };
-use jsonrpsee_ws_server::{WsServerBuilder, WsServerHandle};
-use tracing::debug;
 
 use crate::{
     event_queue::{Event, EventData},
@@ -76,12 +75,12 @@ impl RpcServer for CliServer {
 }
 
 pub struct JsonRpcServer {
-    handle: WsServerHandle,
+    handle: ServerHandle,
 }
 
 impl JsonRpcServer {
     pub async fn start(runtime_worker: Addr<RuntimeWorker>) -> Result<Self, Error> {
-        let server = WsServerBuilder::default().build("127.0.0.1:12345").await?;
+        let server = ServerBuilder::default().build("127.0.0.1:12345").await?;
         let rpc = CliServer { runtime_worker };
         let handle = server.start(rpc.into_rpc())?;
 

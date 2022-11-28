@@ -7,6 +7,6 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = "4.0.0"
-serde = "1.0.147"
-sha2 = "0.10.6"
+near-sdk = { workspace = true }
+serde = { workspace = true }
+sha2 = { workspace = true }

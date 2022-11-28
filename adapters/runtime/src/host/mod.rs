@@ -1,15 +1,17 @@
 mod db_get;
+pub use db_get::*;
+
 mod db_set;
+pub use db_set::*;
+
 mod http_fetch;
 use actix::prelude::*;
-pub use db_get::DatabaseGet;
-pub use db_set::DatabaseSet;
 use futures::executor;
-pub use http_fetch::HttpFetch;
+pub use http_fetch::*;
 use rusqlite::params;
 use tokio_rusqlite::Connection;
 
-use crate::NodeError;
+use crate::RuntimeAdapterError;
 
 pub struct Host {
     db_conn: Connection,
@@ -32,7 +34,7 @@ impl Default for Host {
                         )
                         .expect("couldn't create db table");
 
-                    Ok::<_, NodeError>(())
+                    Ok::<_, RuntimeAdapterError>(())
                 })
                 .await
                 .expect("Couldn't execute db call");

@@ -2,35 +2,24 @@
 name = "seda-runtime"
 version = "0.1.0"
 edition = "2021"
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix = "0.13.0"
-async-trait = "0.1.58"
-<<<<<<< HEAD
-futures = "0.3.25"
-=======
->>>>>>> d6a9830 (refactor(runtime): clean up deps)
-parking_lot = "0.12"
-seda-http-adapters = { path = "../../adapters/http" }
-seda-runtime-adapters = { path = "../../adapters/runtime" }
-seda-storage-adapters = { path = "../../adapters/storage" }
-seda-runtime-sdk = { path = "../sdk" }
-seda-runtime-macros = { path = "../macros" }
-serde = { version = "1.0.145", default-features = false, features = ["derive"] }
-serde_json = "1.0"
-thiserror = "1.0.37"
-toml = { version = "0.5.9", default-features = false }
-wasmer = "2.3.0"
-wasmer-wasi = { version = "2.3.0" }
-tokio = { version = "1.21.2", features = [
-	"rt",
-	"macros",
-	"sync",
-	"rt-multi-thread",
-] }
-tokio-rusqlite = "0.3.0"
+actix = { workspace = true }
+async-trait = { workspace = true }
+parking_lot = { workspace = true }
+seda-runtime-adapters = { workspace = true }
+seda-runtime-sdk = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+wasmer = { workspace = true }
+wasmer-wasi = { workspace = true }
+tokio = { workspace = true }
 
-# [dev-dependencies]
-lazy_static = "1.4.0"
+[dev-dependencies]
+reqwest = { workspace = true }
+seda-runtime-adapters = { workspace = true, features = ["test_host"] }

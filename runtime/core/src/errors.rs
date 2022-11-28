@@ -1,6 +1,4 @@
-use seda_http_adapters::HttpAdapterError;
 use seda_runtime_adapters::RuntimeAdapterError;
-use seda_storage_adapters::StorageAdapterError;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
@@ -32,11 +30,6 @@ pub enum RuntimeError {
 
     #[error("VM Host Error: {0}")]
     VmHostError(String),
-
-    #[error("Storage Adapter Error: {0}")]
-    StorageAdapterError(#[from] StorageAdapterError),
-    #[error("Http Adapter Error: {0}")]
-    HttpAdapterError(#[from] HttpAdapterError),
 
     #[error("{0}")]
     WasiFsError(FsError),

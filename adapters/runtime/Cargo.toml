@@ -3,6 +3,18 @@ name = "seda-runtime-adapters"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+test_host = []
+
 [dependencies]
-serde = { version = "1.0.145", default-features = false, features = ["derive"] }
-thiserror = "1.0.37"
+actix = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+lazy_static = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }
+tokio-rusqlite = { workspace = true }
+rusqlite = { workspace = true }

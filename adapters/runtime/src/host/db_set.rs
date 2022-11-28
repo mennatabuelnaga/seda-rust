@@ -2,18 +2,17 @@ use actix::prelude::*;
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
 
-use super::Host;
-use crate::NodeError;
+use crate::{Host, Result, RuntimeAdapterError};
 
 #[derive(Message, Serialize, Deserialize)]
-#[rtype(result = "Result<(), NodeError>")]
+#[rtype(result = "Result<()>")]
 pub struct DatabaseSet {
     pub key:   String,
     pub value: String,
 }
 
 impl Handler<DatabaseSet> for Host {
-    type Result = ResponseActFuture<Self, Result<(), NodeError>>;
+    type Result = ResponseActFuture<Self, Result<()>>;
 
     fn handle(&mut self, msg: DatabaseSet, _ctx: &mut Self::Context) -> Self::Result {
         let db_conn = self.db_conn.clone();
@@ -26,7 +25,7 @@ impl Handler<DatabaseSet> for Host {
                         params![msg.key, msg.value],
                     )?;
 
-                    Ok::<_, NodeError>(())
+                    Ok::<_, RuntimeAdapterError>(())
                 })
                 .await?;
 

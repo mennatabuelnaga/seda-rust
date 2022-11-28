@@ -1,11 +1,11 @@
 [workspace]
-exclude = ["test_wasm_bins/demo_cli","test_wasm_bins/promise_wasm_bin"]
+exclude = ["test_wasm_bins/demo_cli", "test_wasm_bins/promise_wasm_bin"]
 members = [
 	"adapters/chain",
-	"adapters/http",
-	"adapters/p2p",
+	# "adapters/http",
+	# "adapters/p2p",
 	"adapters/runtime",
-	"adapters/storage",
+	# "adapters/storage",
 	"cli",
 	"config",
 	"contracts",
@@ -32,3 +32,46 @@ strip = true
 [profile.release-docker]
 inherits = "release"
 opt-level = "z"
+
+[workspace.dependencies]
+actix = "0.13"
+async-trait = "0.1.58"
+clap = { version = "4.0.15", features = ["derive"] }
+dotenv = "0.15.0"
+futures = "0.3"
+jsonrpsee-types = "0.16"
+jsonrpsee = { version = "0.16", features = ["full"] }
+lazy_static = "1.4"
+near-jsonrpc-client = { version = "0.4", default-features = false, features = [
+	"auth",
+	"rustls-tls",
+] }
+near-jsonrpc-primitives = "0.15"
+near-crypto = "0.15"
+near-primitives = "0.15"
+near-sdk = "4.0"
+parking_lot = "0.12"
+seda-chain-adapters = { path = "./adapters/chain" }
+seda-config = { path = "./config" }
+seda-node = { path = "./node" }
+seda-runtime = { path = "./runtime/core" }
+seda-runtime-adapters = { path = "./adapters/runtime" }
+seda-runtime-sdk = { path = "./runtime/sdk" }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+reqwest = "0.11"
+rusqlite = { version = "0.28", features = ["bundled"] }
+thiserror = "1.0"
+tokio = { version = "1.21", default-features = false, features = [
+	"io-std",
+	"macros",
+	"net",
+	"rt-multi-thread",
+	"sync",
+	"time",
+] }
+tokio-rusqlite = "0.3"
+toml = "0.5"
+wasmer = "2.3"
+wasmer-wasi = "2.3"
