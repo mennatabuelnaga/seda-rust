@@ -1,14 +1,30 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
+<<<<<<< HEAD
 use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
+=======
+use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain};
+use seda_runtime_adapters::{InMemory, test_host::RuntimeTestAdapter, HostAdapter, MemoryAdapter};
+use seda_runtime_sdk::PromiseStatus;
+use serde_json::json;
+use borsh::ser::BorshSerialize;
+>>>>>>> 5b7c01c (feat: initialize chain interactions adapter)
 
-use super::{RunnableRuntime, Runtime, VmConfig};
+use crate::{VmConfig, Runtime, RunnableRuntime};
+// use super::{InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
+// use crate::{test::test_adapters::RuntimeTestAdapter, HostAdapter};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     path_prefix.push("test_files");
     path_prefix.push("promise-wasm-bin.wasm");
+
+    fs::read(path_prefix).unwrap()
+}
+fn cli_wasm() -> Vec<u8> {
+    let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    path_prefix.push("./test_files/demo-cli.wasm");
 
     fs::read(path_prefix).unwrap()
 }

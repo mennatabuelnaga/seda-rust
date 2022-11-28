@@ -4,16 +4,22 @@ use syn::{parse::Parse, parse_macro_input, punctuated::Punctuated, Attribute, De
 
 #[derive(Clone, Default)]
 struct AdapterActions {
-    pub db:   Option<Ident>,
-    pub http: Option<Ident>,
+    pub db:               Option<Ident>,
+    pub http:             Option<Ident>,
+    pub chain_interactor: Option<Ident>,
 }
 
 impl IntoIterator for AdapterActions {
-    type IntoIter = std::array::IntoIter<Self::Item, 2>;
+    type IntoIter = std::array::IntoIter<Self::Item, 3>;
     type Item = (&'static str, Option<Ident>);
 
     fn into_iter(self) -> Self::IntoIter {
-        [("database", self.db), ("http", self.http)].into_iter()
+        [
+            ("database", self.db),
+            ("http", self.http),
+            ("chain_interactor", self.chain_interactor),
+        ]
+        .into_iter()
     }
 }
 
@@ -30,8 +36,9 @@ impl AdapterActions {
         };
 
         Ok(Self {
-            db:   either(self.db, other.db)?,
-            http: either(self.http, other.http)?,
+            db:               either(self.db, other.db)?,
+            http:             either(self.http, other.http)?,
+            chain_interactor: either(self.chain_interactor, other.chain_interactor)?,
         })
     }
 
@@ -64,6 +71,7 @@ impl AdapterActions {
 mod keywords {
     syn::custom_keyword!(database);
     syn::custom_keyword!(http);
+    syn::custom_keyword!(chain_interactor);
 }
 
 impl Parse for AdapterActions {
@@ -72,17 +80,29 @@ impl Parse for AdapterActions {
             input.parse::<keywords::database>()?;
             input.parse::<syn::Token![=]>()?;
             let db = input.parse::<syn::Ident>()?;
+
             Ok(Self {
-                db:   Some(db),
-                http: None,
+                db:               Some(db),
+                http:             None,
+                chain_interactor: None,
             })
         } else if input.peek(keywords::http) {
             input.parse::<keywords::http>()?;
             input.parse::<syn::Token![=]>()?;
             let http = input.parse::<syn::Ident>()?;
             Ok(Self {
-                http: Some(http),
-                db:   None,
+                http:             Some(http),
+                db:               None,
+                chain_interactor: None,
+            })
+        } else if input.peek(keywords::chain_interactor) {
+            input.parse::<keywords::chain_interactor>()?;
+            input.parse::<syn::Token![=]>()?;
+            let chain_interactor = input.parse::<syn::Ident>()?;
+            Ok(Self {
+                chain_interactor: Some(chain_interactor),
+                http:             None,
+                db:               None,
             })
         } else {
             Err(syn::Error::new(
@@ -103,11 +123,13 @@ pub fn adapter(input: TokenStream) -> TokenStream {
     };
     let db = actions.db.unwrap();
     let http = actions.http.unwrap();
+    let chain_interactor = actions.chain_interactor.unwrap();
 
     let adapter_trait_impl = quote!(
         impl HostAdapterTypes for #name {
           type Database = #db;
           type Http = #http;
+          type ChainInteractor = #chain_interactor;
         }
     );
 

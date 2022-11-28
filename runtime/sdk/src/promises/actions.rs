@@ -5,8 +5,9 @@ pub enum PromiseAction {
     CallSelf(CallSelfAction),
     DatabaseSet(DatabaseSetAction),
     DatabaseGet(DatabaseGetAction),
-
     Http(HttpAction),
+    ChainView(ChainViewAction),
+    ChainChange(ChainChangeAction),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -30,4 +31,18 @@ pub struct DatabaseGetAction {
 pub struct HttpAction {
     pub url: String,
     // TODO: add headers, method, etc :)
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ChainViewAction {
+    pub contract_id: String,
+    pub method_name: String,
+    pub args:        Vec<u8>,
+    pub server_addr: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ChainChangeAction {
+    pub signed_tx:   Vec<u8>,
+    pub server_addr: String,
 }

@@ -25,6 +25,8 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
+    // type MainChainAdapter: MainChainAdapterTrait;
+
     fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
@@ -50,6 +52,8 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl RunnableRuntime for Runtime {
+    // type MainChainAdapter = NearMainChain;
+
     fn new() -> Self {
         Self { wasm_module: None }
     }
@@ -168,6 +172,36 @@ impl RunnableRuntime for Runtime {
                         let resp = HA::http_fetch(&http_action.url).await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
+                    }
+                    PromiseAction::ChainView(chain_view_action) => {
+                        // let resp =
+                        // HA::chain_view::<Self::MainChainAdapter>(&chain_view_action.contract_id,
+                        // &chain_view_action.method_name, chain_view_action.args.clone(),
+                        // &chain_view_action.server_addr).await.unwrap();
+                        let resp = HA::chain_view(
+                            &chain_view_action.contract_id,
+                            &chain_view_action.method_name,
+                            chain_view_action.args.clone(),
+                            &chain_view_action.server_addr,
+                        )
+                        .await
+                        .unwrap();
+
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
+                    }
+                    PromiseAction::ChainChange(chain_change_action) => {
+                        // let resp =
+                        // HA::chain_change::<Self::MainChainAdapter>(serde_json::from_slice::<Vec<u8>>(&
+                        // chain_change_action.signed_tx).unwrap().clone(),
+                        // &chain_change_action.server_addr).await.unwrap();
+                        let resp = HA::chain_change(
+                            serde_json::from_slice::<Vec<u8>>(&chain_change_action.signed_tx).unwrap().clone(),
+                            &chain_change_action.server_addr,
+                        )
+                        .await
+                        .unwrap();
+
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
                     }
                 }
             }

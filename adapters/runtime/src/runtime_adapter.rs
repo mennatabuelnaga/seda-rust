@@ -1,16 +1,19 @@
+use std::marker::PhantomData;
+
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
+use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain};
+// use seda_runtime::{HostAdapter, RuntimeError};
+use crate::Result;
 
-use crate::{
-    host::{DatabaseGet, DatabaseSet, Host, HttpFetch},
-    HostAdapter,
-    Result,
-};
+use crate::{host::{ChainChange, ChainView, DatabaseGet, DatabaseSet, Host, HttpFetch}, HostAdapter};
 
 pub struct RuntimeAdapter;
 
 #[async_trait::async_trait]
 impl HostAdapter for RuntimeAdapter {
+    type MainChainAdapter = NearMainChain;
+
     async fn db_get(key: &str) -> Result<Option<String>> {
         let host_actor = Host::from_registry();
 
@@ -42,6 +45,47 @@ impl HostAdapter for RuntimeAdapter {
         let host_actor = Host::from_registry();
 
         let result = host_actor.send(HttpFetch { url: url.to_string() }).await.unwrap();
+
+        Ok(result)
+    }
+
+   
+
+    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Vec<u8>> {
+        let host_actor = Host::from_registry();
+
+        let result = host_actor
+            .send(ChainChange::<Self::MainChainAdapter> {
+                signed_tx,
+                chain_server_address: server_addr.to_string(),
+                phantom: PhantomData,
+            })
+            .await
+            .unwrap()
+            .unwrap();
+
+        Ok(result)
+    }
+
+    async fn chain_view(
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+        server_addr: &str,
+    ) -> Result<String> {
+        let host_actor = Host::from_registry();
+
+        let result = host_actor
+            .send(ChainView::<Self::MainChainAdapter> {
+                contract_id: contract_id.to_string(),
+                method_name: method_name.to_string(),
+                args,
+                chain_server_address: server_addr.to_string(),
+                phantom: PhantomData,
+            })
+            .await
+            .unwrap()
+            .unwrap();
 
         Ok(result)
     }

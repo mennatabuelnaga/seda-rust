@@ -13,6 +13,11 @@ use tokio_rusqlite::Connection;
 
 use crate::RuntimeAdapterError;
 
+mod chain_change;
+pub use chain_change::ChainChange;
+mod chain_view;
+pub use chain_view::ChainView;
+
 pub struct Host {
     db_conn: Connection,
 }

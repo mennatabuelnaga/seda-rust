@@ -13,6 +13,8 @@ pub enum RuntimeAdapterError {
     ReqwestError(#[from] reqwest::Error),
     #[error("Rusqlite Error: {0}")]
     RuqliteError(#[from] rusqlite::Error),
+    #[error("Chain Interactions Error: {0}")]
+    ChainInteractionsError(String),
 }
 
 pub type Result<T, E = RuntimeAdapterError> = core::result::Result<T, E>;

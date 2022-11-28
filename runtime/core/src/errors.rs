@@ -25,18 +25,26 @@ pub enum RuntimeError {
     #[error("VM Host Error: {0}")]
     VmHostError(String),
 
-    #[error(transparent)]
+    #[error("Database Error: {0}")]
+    DatabaseError(#[from] rusqlite::Error),
+
+    #[error("{0}")]
     WasiFsError(#[from] FsError),
 
-    #[error(transparent)]
+    #[error("{0}")]
     IoError(#[from] std::io::Error),
 
-    #[error(transparent)]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
+    #[error("Chain Interactions Error: {0}")]
+    ChainInteractionsError(String),
 
     #[error(transparent)]
     RuntimeAdapterError(#[from] RuntimeAdapterError),
+
+    #[error(transparent)]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
 }
+
+
 
 impl From<InstantiationError> for RuntimeError {
     fn from(r: InstantiationError) -> Self {

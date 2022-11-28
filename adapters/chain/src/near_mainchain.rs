@@ -4,6 +4,7 @@ use near_crypto::InMemorySigner;
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
 use near_primitives::{
+    borsh::{BorshDeserialize, BorshSerialize},
     transaction::{Action, FunctionCallAction, SignedTransaction, Transaction},
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
@@ -164,6 +165,54 @@ impl MainChainAdapterTrait for NearMainChain {
         }
     }
 
+    async fn send_tx2(signed_tx: Vec<u8>, chain_server_address: &str) -> Result<Vec<u8>> {
+        let signed_tx = SignedTransaction::try_from_slice(&signed_tx).expect("error deserializing signed txn");
+        let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
+            signed_transaction: signed_tx.clone(),
+        };
+
+        let sent_at = time::Instant::now();
+        let client = JsonRpcClient::connect(chain_server_address);
+        let tx_hash = client.call(request).await?;
+
+        loop {
+            let response = client
+                .call(methods::tx::RpcTransactionStatusRequest {
+                    transaction_info: TransactionInfo::TransactionId {
+                        hash:       tx_hash,
+                        account_id: signed_tx.transaction.signer_id.clone(),
+                    },
+                })
+                .await;
+            let received_at = time::Instant::now();
+            let delta = (received_at - sent_at).as_secs();
+
+            if delta > 60 {
+                return Err(MainChainAdapterError::BadTransactionTimestamp);
+            }
+
+            match response {
+                Err(err) => match err.handler_error() {
+                    Some(methods::tx::RpcTransactionError::UnknownTransaction { .. }) => {
+                        time::sleep(time::Duration::from_secs(2)).await;
+                        continue;
+                    }
+                    _ => return Err(MainChainAdapterError::CallChangeMethod(err.to_string())),
+                },
+                Ok(response) => {
+                    println!("response gotten after: {}s", delta);
+
+                    println!("response.status: {:#?}", response.status);
+
+                    return Ok(response
+                        .status
+                        .try_to_vec()
+                        .expect("error serializing FinalExecutionStatus"));
+                }
+            }
+        }
+    }
+
     async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
@@ -180,6 +229,36 @@ impl MainChainAdapterTrait for NearMainChain {
             Ok(from_slice::<String>(&result.result)?)
         } else {
             Err(MainChainAdapterError::CallViewMethod)
+        }
+    }
+
+    async fn view2(contract_id: &str, method_name: &str, args: Vec<u8>, chain_server_address: &str) -> Result<String> {
+        let request = methods::query::RpcQueryRequest {
+            block_reference: BlockReference::Finality(Finality::Final),
+            request:         QueryRequest::CallFunction {
+                account_id:  contract_id.parse()?,
+                method_name: method_name.to_string(),
+                args:        FunctionArgs::from(args),
+            },
+        };
+        let client = JsonRpcClient::connect(chain_server_address);
+
+        let response = client.call(request).await?;
+
+        if let QueryResponseKind::CallResult(ref result) = response.kind {
+            Ok(from_slice::<String>(&result.result)?)
+        } else {
+            Err(MainChainAdapterError::CallViewMethod)
+        }
+    }
+
+
+
+    async fn get_status_success(status: Vec<u8>) -> String {
+        let x = FinalExecutionStatus::try_from_slice(&status).unwrap();
+        match x {
+            FinalExecutionStatus::SuccessValue(val) => serde_json::from_slice(&val).unwrap(),
+            _ => "unknown".to_string(),
         }
     }
 }

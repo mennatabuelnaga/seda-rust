@@ -57,7 +57,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
         deposit: u128,
         server_url: &str,
     ) -> Result<Self::SignedTransaction>;
-
+    async fn get_status_success(status: Vec<u8>) -> String;
     /// Default trait function that calls sign and send specific
     /// implementations.
     async fn sign_and_send_tx(
@@ -76,9 +76,10 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
         client: Arc<Self::Client>,
         signed_tx: Self::SignedTransaction,
     ) -> Result<Self::FinalExecutionStatus>;
+    async fn send_tx2(signed_tx: Vec<u8>, chain_server_address: &str) -> Result<Vec<u8>>;
     /// To view for the adapter specific implementation.
     async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
-
+    async fn view2(contract_id: &str, method_name: &str, args: Vec<u8>, chain_server_address: &str) -> Result<String>;
     /// Default trait function to get the node owner.
     async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
         let method_name = "get_node_owner";
