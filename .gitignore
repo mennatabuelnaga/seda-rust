@@ -16,3 +16,6 @@ target/
 
 # Generated log files
 *.log.*
+
+# generated sqlite test db
+**/*.db3

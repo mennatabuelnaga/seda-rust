@@ -2,7 +2,6 @@ use std::io;
 
 mod config;
 pub use config::*;
-use tracing::info;
 use tracing_subscriber::{fmt, prelude::__tracing_subscriber_SubscriberExt, EnvFilter};
 
 pub fn init<T, E>(config: LoggerConfig, fun: T) -> Result<(), E>
@@ -32,8 +31,6 @@ where
         let mut file_logger = fmt::Layer::new().with_writer(non_blocking);
         file_logger.set_ansi(false);
         let subscriber = subscriber.with(file_logger);
-        dbg!("foo");
-        info!("uhh");
         tracing::subscriber::with_default(subscriber, fun)
     } else {
         tracing::subscriber::with_default(subscriber, fun)
