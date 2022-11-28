@@ -34,6 +34,16 @@ mod tests {
         contract.compute_merkle_root();
     }
 
+    #[should_panic(expected = "Insufficient storage, need 670000000000000000000")]
+    #[test]
+    fn post_data_request_no_deposit() {
+        let mut contract = MainchainContract::new();
+
+        // post data request
+        testing_env!(get_context("bob_near".to_string()));
+        contract.post_data_request("data_request_1".to_string());
+    }
+
     #[test]
     fn merkle_gas_tests() {
         let mut contract = MainchainContract::new();
