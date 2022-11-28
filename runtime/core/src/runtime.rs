@@ -186,7 +186,7 @@ impl RunnableRuntime for Runtime {
 
         Ok(VmResult {
             output,
-            exit_code: result.unwrap_or(1),
+            exit_code: result.unwrap(),
         })
     }
 }

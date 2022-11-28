@@ -33,7 +33,7 @@ pub use runtime::*;
 #[path = ""]
 pub mod test {
     use super::*;
-
     mod in_memory_adapter_test;
     mod runtime_test;
+    mod test_adapters;
 }
