@@ -2,13 +2,13 @@ pub mod block;
 pub mod block_test;
 pub mod data_request;
 pub mod data_request_test;
+pub mod macros;
 pub mod merkle;
 pub mod node_registry;
 pub mod node_registry_test;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{LookupMap, Vector},
-    env,
     near_bindgen,
     BorshStorageKey,
 };
@@ -42,18 +42,6 @@ pub struct MainchainContract {
 impl Default for MainchainContract {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-/// Contract private methods
-impl MainchainContract {
-    pub fn assert_storage_deposit(&self, initial_storage_usage: u64) {
-        let storage_cost = env::storage_byte_cost() * u128::from(env::storage_usage() - initial_storage_usage);
-        assert!(
-            storage_cost <= env::attached_deposit(),
-            "Insufficient storage, need {}",
-            storage_cost
-        );
     }
 }
 

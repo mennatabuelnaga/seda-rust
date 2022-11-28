@@ -1,10 +1,12 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     env,
+    log,
     near_bindgen,
+    Promise,
 };
 
-use crate::{merkle::CryptoHash, MainchainContract, MainchainContractExt};
+use crate::{macros::manage_storage_deposit, merkle::CryptoHash, MainchainContract, MainchainContractExt};
 
 pub type BlockHeight = u64;
 pub type BlockId = CryptoHash;
@@ -38,36 +40,32 @@ impl MainchainContract {
     }
 
     pub fn create_block(&mut self) {
-        // keep track of storage usage
-        let initial_storage_usage = env::storage_usage();
+        manage_storage_deposit!(self, {
+            let header = BlockHeader {
+                height:     self.num_blocks + 1,
+                state_root: CryptoHash::default(), // TODO
+            };
 
-        let header = BlockHeader {
-            height:     self.num_blocks + 1,
-            state_root: CryptoHash::default(), // TODO
-        };
+            // create block
+            let block = Block {
+                header:       header.clone(),
+                transactions: self.data_request_accumulator.to_vec(),
+            };
 
-        // create block
-        let block = Block {
-            header:       header.clone(),
-            transactions: self.data_request_accumulator.to_vec(),
-        };
+            // calculate block id
+            let block_id = CryptoHash::hash_borsh(&MerklizedBlock {
+                prev_root: self.get_latest_block_id(),
+                header,
+                transactions: self.compute_merkle_root(),
+            });
 
-        // calculate block id
-        let block_id = CryptoHash::hash_borsh(&MerklizedBlock {
-            prev_root: self.get_latest_block_id(),
-            header,
-            transactions: self.compute_merkle_root(),
-        });
+            // store block
+            self.num_blocks += 1;
+            self.blocks_by_id.insert(&block_id, &block);
+            self.block_ids_by_height.insert(&self.num_blocks, &block_id);
 
-        // store block
-        self.num_blocks += 1;
-        self.blocks_by_id.insert(&block_id, &block);
-        self.block_ids_by_height.insert(&self.num_blocks, &block_id);
-
-        // clear data request accumulator
-        self.data_request_accumulator.clear();
-
-        // check for storage deposit
-        self.assert_storage_deposit(initial_storage_usage);
+            // clear data request accumulator
+            self.data_request_accumulator.clear();
+        }); // end manage_storage_deposit
     }
 }
