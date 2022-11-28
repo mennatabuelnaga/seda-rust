@@ -55,6 +55,8 @@ impl Promise {
         self
     }
 
+    /// Returns the result of a promise action
+    /// TODO: Return the PromiseStatus
     pub fn result(index: i32) -> Vec<u8> {
         let promise_result_length = unsafe { raw::promise_status_length(index) };
 
@@ -64,9 +66,6 @@ impl Promise {
         unsafe {
             raw::promise_status_write(index, result_data.as_mut_ptr(), promise_result_length);
         }
-
-        let result = str::from_utf8(&result_data).unwrap();
-        println!("Promise Result: {}", result);
 
         result_data
     }

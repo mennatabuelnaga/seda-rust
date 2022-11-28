@@ -34,9 +34,6 @@ pub use runtime::*;
 pub mod test {
     use super::*;
 
-    mod test_adapters;
-    use test_adapters::*;
-
     mod in_memory_adapter_test;
     mod runtime_test;
 }

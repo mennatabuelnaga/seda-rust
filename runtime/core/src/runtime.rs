@@ -1,4 +1,4 @@
-use std::{future::Future, io::Read, process::Output, sync::Arc};
+use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
@@ -6,17 +6,12 @@ use serde::{Deserialize, Serialize};
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
-use super::{imports::create_wasm_imports, HostAdapterTypes, HostAdapters, PromiseQueue, Result, VmConfig, VmContext};
-use crate::{promise::promise_queue, InMemory};
+use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
+use crate::{HostAdapter, InMemory};
 
 #[derive(Clone)]
 pub struct Runtime {
     wasm_module: Option<Module>,
-}
-
-#[async_trait::async_trait]
-pub trait ExampleTrait: Send {
-    async fn my_callback();
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
@@ -30,22 +25,18 @@ pub trait RunnableRuntime {
     fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
-    async fn execute_promise_queue<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
+    async fn execute_promise_queue<HA: HostAdapter>(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: PromiseQueue,
-        host_adapters: HostAdapters<T>,
         output: &mut Vec<String>,
-        // callback: F,
     ) -> Result<u8>;
 
-    async fn start_runtime<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
+    async fn start_runtime<HA: HostAdapter>(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
-        host_adapters: HostAdapters<T>,
-        // callback: F,
     ) -> Result<VmResult>;
 }
 
@@ -66,14 +57,12 @@ impl RunnableRuntime for Runtime {
         Ok(())
     }
 
-    async fn execute_promise_queue<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
+    async fn execute_promise_queue<HA: HostAdapter>(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: PromiseQueue,
-        host_adapters: HostAdapters<T>,
         output: &mut Vec<String>,
-        // callback: F,
     ) -> Result<u8> {
         let mut next_promise_queue = PromiseQueue::new();
         let mut promise_queue_mut = promise_queue.clone();
@@ -143,26 +132,22 @@ impl RunnableRuntime for Runtime {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        host_adapters
-                            .db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap())
+                        HA::db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap())
+                            .await
                             .unwrap();
-
-                        // let _r = callback().await;
-                        let r = Ex::my_callback().await;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let result = host_adapters.db_get(&db_action.key).unwrap().unwrap();
+                        let result = HA::db_get(&db_action.key).await.unwrap().unwrap();
 
                         promise_queue_mut.queue[index].status =
                             PromiseStatus::Fulfilled(result.to_string().into_bytes());
                     }
 
                     PromiseAction::Http(http_action) => {
-                        let resp = host_adapters.http_fetch(&http_action.url).unwrap();
-                        let r = Ex::my_callback().await;
+                        let resp = HA::http_fetch(&http_action.url).await.unwrap();
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
@@ -170,26 +155,16 @@ impl RunnableRuntime for Runtime {
             }
         }
 
-        let res = self.execute_promise_queue::<T, Ex>(
-            wasm_module,
-            memory_adapter.clone(),
-            next_promise_queue,
-            host_adapters,
-            output,
-            // callback,
-        );
+        let res = self.execute_promise_queue::<HA>(wasm_module, memory_adapter.clone(), next_promise_queue, output);
 
         res.await
     }
 
-    async fn start_runtime<T: HostAdapterTypes + Default, Ex: ExampleTrait>(
+    async fn start_runtime<HA: HostAdapter>(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
-        host_adapters: HostAdapters<T>,
-        // callback: F,
     ) -> Result<VmResult> {
-        // callback().await;
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
@@ -206,14 +181,7 @@ impl RunnableRuntime for Runtime {
         let mut output: Vec<String> = vec![];
 
         let result = self
-            .execute_promise_queue::<T, Ex>(
-                wasm_module,
-                memory_adapter,
-                promise_queue,
-                host_adapters,
-                &mut output,
-                // callback,
-            )
+            .execute_promise_queue::<HA>(wasm_module, memory_adapter, promise_queue, &mut output)
             .await;
 
         Ok(VmResult {

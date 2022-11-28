@@ -7,6 +7,7 @@ pub use errors::*;
 mod event_queue;
 mod event_queue_handler;
 mod rpc;
+mod runtime_adapter;
 mod runtime_job;
 mod test_adapters;
 
@@ -23,7 +24,7 @@ pub mod test {
     mod event_queue_test;
 }
 
-pub fn run<T: MainChainAdapterTrait>(node_config: &NodeConfig, main_chain_config: &T::Config) {
+pub fn run<T: MainChainAdapterTrait>(_node_config: &NodeConfig, _main_chain_config: &T::Config) {
     let system = System::new();
 
     // Initialize actors inside system context

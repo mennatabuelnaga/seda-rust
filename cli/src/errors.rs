@@ -13,8 +13,8 @@ pub enum TomlError {
 
 #[derive(Error, Debug)]
 pub enum CliError {
-    #[error("environment variable `{0}` is not set")]
-    MissingEnvVar(String),
+    // #[error("environment variable `{0}` is not set")]
+    // MissingEnvVar(String),
     // #[error("failed to extract current nonce")]
     // FailedToExtractCurrentNonce,
     #[error("near json rpc error")]
