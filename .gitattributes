@@ -1,4 +1,6 @@
 # Force files to be lf
+.gitattributes text eol=lf
+*.lock text eol=lf
 *.md text eol=lf
 *.rs text eol=lf
 *.toml text eol=lf

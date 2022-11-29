@@ -78,7 +78,7 @@ pub trait CliCommands: Send + Sync {
         Ok(())
     }
 
-    async fn call_cli(config: &AppConfig<Self::MainChainAdapter>, args: Vec<String>) -> Result<()> {
+    async fn call_cli(config: &AppConfig<Self::MainChainAdapter>, args: &[String]) -> Result<()> {
         let seda_server_url = config
             .seda_server_url
             .as_ref()

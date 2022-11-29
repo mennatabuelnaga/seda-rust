@@ -166,7 +166,7 @@ impl CliOptions {
                 overwrite_config_field!(config.contract_account_id, contract_account_id);
                 T::get_node_owner(&config, node_id).await?
             }
-            Command::Cli { args } => T::call_cli(&config, args).await?,
+            Command::Cli { args } => T::call_cli(&config, &args).await?,
             // The commands `run` and `generate-config` are already handled.
             _ => unreachable!(),
         }

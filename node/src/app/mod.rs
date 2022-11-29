@@ -52,7 +52,7 @@ impl Actor for App {
         "#;
         info!("{}", banner);
 
-        println!("Starting Job Manager...");
+        info!("Starting Job Manager...");
         ctx.notify(job_manager::StartJobManager);
     }
 

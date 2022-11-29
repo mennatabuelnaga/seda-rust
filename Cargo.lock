@@ -3265,6 +3265,8 @@ dependencies = [
  "actix",
  "async-trait",
  "error-stack",
+ "futures",
+ "lazy_static",
  "mockall",
  "parking_lot",
  "reqwest",
