@@ -4,12 +4,7 @@ use near_sdk::{
     near_bindgen,
 };
 
-use crate::{
-    macros::{manage_storage_deposit, require_storage_deposit},
-    merkle::CryptoHash,
-    MainchainContract,
-    MainchainContractExt,
-};
+use crate::{manage_storage_deposit, merkle::CryptoHash, MainchainContract, MainchainContractExt};
 
 pub type BlockHeight = u64;
 pub type BlockId = CryptoHash;

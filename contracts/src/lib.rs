@@ -2,10 +2,10 @@ pub mod block;
 pub mod block_test;
 pub mod data_request;
 pub mod data_request_test;
-pub mod macros;
 pub mod merkle;
 pub mod node_registry;
 pub mod node_registry_test;
+pub mod storage;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{LookupMap, Vector},

@@ -1,7 +1,7 @@
 use near_sdk::{env, log, near_bindgen};
 
 use crate::{
-    macros::{manage_storage_deposit, require_storage_deposit},
+    manage_storage_deposit,
     merkle::{merklize, CryptoHash},
     MainchainContract,
     MainchainContractExt,

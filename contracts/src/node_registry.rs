@@ -6,14 +6,9 @@ use near_sdk::{
     near_bindgen,
     serde_json,
     AccountId,
-    Promise,
 };
 
-use crate::{
-    macros::{manage_storage_deposit, refund_storage_deposit, require_storage_deposit},
-    MainchainContract,
-    MainchainContractExt,
-};
+use crate::{manage_storage_deposit, MainchainContract, MainchainContractExt};
 
 /// Node information
 #[derive(BorshDeserialize, BorshSerialize)]
