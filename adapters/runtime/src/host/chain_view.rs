@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
 use actix::prelude::*;
-use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain};
+use seda_chain_adapters::MainChainAdapterTrait;
 use serde::{Deserialize, Serialize};
 
-use crate::{Host, Result, RuntimeAdapterError};
+use crate::{Host, Result};
 
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<String>")]

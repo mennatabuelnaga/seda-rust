@@ -1,7 +1,6 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
-use futures::executor;
 use parking_lot::Mutex;
 use seda_runtime::{RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{InMemory, RuntimeAdapter};

@@ -87,6 +87,22 @@ enum Command {
         #[arg(short, long)]
         contract_account_id: Option<String>,
     },
+    SignTxn {
+        #[arg(short, long)]
+        signer_account_id:   Option<String>,
+        #[arg(short = 'k', long)]
+        secret_key:          Option<String>,
+        #[arg(short, long)]
+        contract_account_id: Option<String>,
+        #[arg(short, long)]
+        method_name:         String,
+        #[arg(short, long)]
+        args:                String,
+        #[arg(short, long)]
+        gas:                 u64,
+        #[arg(short, long)]
+        deposit:             u128,
+    },
 }
 
 impl CliOptions {
@@ -188,7 +204,34 @@ impl CliOptions {
                 T::get_node_owner(node_id).await?
             }
             Command::Cli { args } => T::call_cli(&args).await?,
-            // The commands `run` are already handled.
+            // cargo run sign-txn --signer-account-id "mennat0.testnet" --secret-key
+            // "ed25519:4uYCFHpffwwZc4fb9x8yVCz3KYYUwKmcRT1RmHTjirokPGZ48DiJKkhCTpy3t8T6QwRwsSyfAmxQwmQmkGgEzEve"
+            // --contract-account-id "mc.mennat0.testnet" --method-name "register_node" --args
+            // "{\"socket_address\":\"127.0.0.1:8080\"}" --gas --deposit
+
+            // cargo run sign-txn --method-name "register_node" --args "{\"socket_address\":\"127.0.0.1:8080\"}" --gas
+            // 300000000000000 --deposit 870000000000000000000
+            Command::SignTxn {
+                signer_account_id,
+                secret_key,
+                contract_account_id,
+                method_name,
+                args,
+                gas,
+                deposit,
+            } => {
+                {
+                    let mut config = CONFIG.blocking_write();
+                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
+                    overwrite_config_field!(node_config.signer_account_id, signer_account_id);
+                    overwrite_config_field!(node_config.secret_key, secret_key);
+                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                }
+
+                T::sign_txn(method_name, args.into_bytes(), gas, deposit).await?
+            }
+
+            // The commands `run` and `generate-config` are already handled.
             _ => unreachable!(),
         }
 

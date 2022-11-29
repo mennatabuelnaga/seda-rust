@@ -1,8 +1,8 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use seda_adapters::{MainChainAdapterTrait, NearConfig, NearMainChain};
+use seda_adapters::{MainChainAdapterTrait, NearMainChain};
 
 use super::RuntimeError;
 use crate::HostAdapter;
@@ -51,7 +51,7 @@ impl HostTestAdapters {
         &mut self,
         signed_tx: Vec<u8>,
         server_addr: &str,
-    ) -> Result<Vec<u8>, RuntimeError> {
+    ) -> Result<Option<String>, RuntimeError> {
         T::send_tx2(signed_tx, server_addr)
             .await
             .map_err(|err| RuntimeError::ChainInteractionsError(err.to_string()))
@@ -97,7 +97,7 @@ impl HostAdapter for RuntimeTestAdapter {
         Ok(result)
     }
 
-    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Vec<u8>, RuntimeError> {
+    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Option<String>, RuntimeError> {
         let mut host = HostTestAdapters::default();
         let result = host
             .change::<Self::MainChainAdapter>(signed_tx, server_addr)

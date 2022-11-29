@@ -1,17 +1,13 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
+use borsh::ser::BorshSerialize;
 use parking_lot::Mutex;
-<<<<<<< HEAD
-use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
-=======
 use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain};
-use seda_runtime_adapters::{InMemory, test_host::RuntimeTestAdapter, HostAdapter, MemoryAdapter};
+use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
 use seda_runtime_sdk::PromiseStatus;
 use serde_json::json;
-use borsh::ser::BorshSerialize;
->>>>>>> 5b7c01c (feat: initialize chain interactions adapter)
 
-use crate::{VmConfig, Runtime, RunnableRuntime};
+use super::*;
 // use super::{InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
 // use crate::{test::test_adapters::RuntimeTestAdapter, HostAdapter};
 
@@ -102,7 +98,6 @@ async fn test_non_existing_function() {
     assert!(runtime_execution_result.is_err());
     runtime_execution_result.unwrap();
 }
-
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_http_fetch() {
     let fetch_url = "https://www.breakingbadapi.com/api/characters/1".to_string();

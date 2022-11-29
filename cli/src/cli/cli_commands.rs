@@ -84,6 +84,8 @@ pub trait CliCommands: Send + Sync {
         Ok(())
     }
 
+    async fn sign_txn(method_name: String, args: Vec<u8>, gas: u64, deposit: u128) -> Result<()>;
+
     async fn get_node_socket_address(node_id: u64) -> Result<()>;
     async fn get_nodes(limit: u64, offset: u64) -> Result<()>;
     async fn get_node_owner(node_id: u64) -> Result<()>;

@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use actix::{AsyncContext, Handler, Message, Addr};
+use actix::{AsyncContext, Handler, Message};
 
-use crate::{app::App, runtime_job::{RuntimeJob, RuntimeWorker}};
+use crate::{app::App, runtime_job::RuntimeJob};
 
 /// The Job Manager’s job is to take events coming from P2P, tickers, RPC, etc
 /// and give the task to the runtime when there is an available thread. Each

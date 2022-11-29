@@ -1,13 +1,13 @@
 use std::marker::PhantomData;
 
 use actix::prelude::*;
-use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain};
+use seda_chain_adapters::MainChainAdapterTrait;
 use serde::{Deserialize, Serialize};
 
-use crate::{Host, Result, RuntimeAdapterError};
+use crate::{Host, Result};
 
 #[derive(Message, Serialize, Deserialize)]
-#[rtype(result = "Result<Vec<u8>>")]
+#[rtype(result = "Result<Option<String>>")]
 pub struct ChainChange<T: MainChainAdapterTrait> {
     pub signed_tx:            Vec<u8>,
     pub chain_server_address: String,
@@ -15,7 +15,7 @@ pub struct ChainChange<T: MainChainAdapterTrait> {
 }
 
 impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host {
-    type Result = ResponseActFuture<Self, Result<Vec<u8>>>;
+    type Result = ResponseActFuture<Self, Result<Option<String>>>;
 
     fn handle(&mut self, msg: ChainChange<T>, _ctx: &mut Self::Context) -> Self::Result {
         let fut = async move {

@@ -57,7 +57,17 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
         deposit: u128,
         server_url: &str,
     ) -> Result<Self::SignedTransaction>;
-    async fn get_status_success(status: Vec<u8>) -> String;
+    #[allow(clippy::too_many_arguments)]
+    async fn construct_signed_tx2(
+        signer_acc_str: &str,
+        signer_sk_str: &str,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+        gas: u64,
+        deposit: u128,
+        server_url: &str,
+    ) -> Result<Vec<u8>>;
     /// Default trait function that calls sign and send specific
     /// implementations.
     async fn sign_and_send_tx(
@@ -76,7 +86,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync {
         client: Arc<Self::Client>,
         signed_tx: Self::SignedTransaction,
     ) -> Result<Self::FinalExecutionStatus>;
-    async fn send_tx2(signed_tx: Vec<u8>, chain_server_address: &str) -> Result<Vec<u8>>;
+    async fn send_tx2(signed_tx: Vec<u8>, chain_server_address: &str) -> Result<Option<String>>;
     /// To view for the adapter specific implementation.
     async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
     async fn view2(contract_id: &str, method_name: &str, args: Vec<u8>, chain_server_address: &str) -> Result<String>;

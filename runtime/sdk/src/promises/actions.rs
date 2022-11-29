@@ -33,7 +33,7 @@ pub struct HttpAction {
     // TODO: add headers, method, etc :)
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChainViewAction {
     pub contract_id: String,
     pub method_name: String,
@@ -41,7 +41,7 @@ pub struct ChainViewAction {
     pub server_addr: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChainChangeAction {
     pub signed_tx:   Vec<u8>,
     pub server_addr: String,

@@ -6,7 +6,7 @@ use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use wasmer::{Instance, Module, Store};
-use wasmer_wasi::{Pipe, Stdout, WasiState};
+use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
 use crate::RuntimeError;
@@ -195,13 +195,15 @@ impl RunnableRuntime for Runtime {
                         // chain_change_action.signed_tx).unwrap().clone(),
                         // &chain_change_action.server_addr).await.unwrap();
                         let resp = HA::chain_change(
-                            serde_json::from_slice::<Vec<u8>>(&chain_change_action.signed_tx).unwrap().clone(),
+                            serde_json::from_slice::<Vec<u8>>(&chain_change_action.signed_tx)
+                                .unwrap()
+                                .clone(),
                             &chain_change_action.server_addr,
                         )
                         .await
                         .unwrap();
 
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.unwrap().into_bytes());
                     }
                 }
             }

@@ -19,7 +19,7 @@ pub trait HostAdapter: Send {
     async fn db_set(key: &str, value: &str) -> Result<()>;
     async fn http_fetch(url: &str) -> Result<String>;
     
-    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Vec<u8>>;
+    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Option<String>>;
 
     async fn chain_view(
         contract_id: &str,

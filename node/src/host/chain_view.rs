@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use actix::prelude::*;
-use seda_adapters::{MainChainAdapterTrait, NearMainChain};
+use seda_adapters::MainChainAdapterTrait;
 use serde::{Deserialize, Serialize};
 
 use super::Host;
