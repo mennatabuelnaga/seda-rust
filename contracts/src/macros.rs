@@ -23,14 +23,14 @@ macro_rules! refund_storage_deposit {
 
 macro_rules! manage_storage_deposit {
     // storage is assumed to increase
-    ($self:ident,true, $expression:expr) => {
+    ($self:ident,"require", $expression:expr) => {
         let initial_storage_usage = env::storage_usage();
         $expression;
         require_storage_deposit!($self, initial_storage_usage);
     };
 
     // storage is assumed to decrease
-    ($self:ident,false, $expression:expr) => {
+    ($self:ident,"refund", $expression:expr) => {
         let initial_storage_usage = env::storage_usage();
         $expression;
         refund_storage_deposit!($self, initial_storage_usage);

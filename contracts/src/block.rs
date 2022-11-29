@@ -43,7 +43,7 @@ impl MainchainContract {
     }
 
     pub fn create_block(&mut self) {
-        manage_storage_deposit!(self, true, {
+        manage_storage_deposit!(self, "require", {
             let header = BlockHeader {
                 height:     self.num_blocks + 1,
                 state_root: CryptoHash::default(), // TODO

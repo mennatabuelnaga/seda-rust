@@ -45,7 +45,7 @@ impl MainchainContract {
     /// Registers a new node while charging for storage usage
     #[payable]
     pub fn register_node(&mut self, socket_address: String) -> Option<String> {
-        manage_storage_deposit!(self, true, {
+        manage_storage_deposit!(self, "require", {
             // require valid socket address characters
             for c in socket_address.chars() {
                 assert!(
@@ -73,7 +73,7 @@ impl MainchainContract {
 
     /// Removes a node and refunds storage deposit
     pub fn remove_node(&mut self, node_id: U64) {
-        manage_storage_deposit!(self, false, {
+        manage_storage_deposit!(self, "refund", {
             let account_id = env::signer_account_id();
             let node = self.get_expect_node(node_id.into());
 
