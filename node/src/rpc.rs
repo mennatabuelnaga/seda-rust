@@ -4,6 +4,7 @@ use jsonrpsee::{
     proc_macros::rpc,
     server::{ServerBuilder, ServerHandle},
 };
+use tracing::debug;
 
 use crate::{
     event_queue::{Event, EventData},
@@ -24,40 +25,6 @@ pub struct CliServer {
 impl RpcServer for CliServer {
     async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error> {
         debug!("{:?}", &args);
-
-        let result = self
-            .runtime_worker
-            .send(RuntimeJob {
-                event: Event {
-                    id:   "test".to_string(),
-                    data: EventData::CliCall(args),
-                },
-            })
-            .await
-            .unwrap();
-
-        Ok(result.vm_result.output)
-    }
-}
-
-pub struct JsonRpcServer {
-    // handle: WsServerHandle,
-}
-
-#[rpc(server)]
-pub trait Rpc {
-    #[method(name = "cli")]
-    async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error>;
-}
-
-pub struct CliServer {
-    runtime_worker: Addr<RuntimeWorker>,
-}
-
-#[async_trait]
-impl RpcServer for CliServer {
-    async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error> {
-        println!("{:?}", &args);
 
         let result = self
             .runtime_worker

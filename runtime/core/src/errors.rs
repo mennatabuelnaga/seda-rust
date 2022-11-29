@@ -5,24 +5,18 @@ use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
 
 #[derive(Debug, Error)]
 pub enum RuntimeError {
-    #[error("{0:?}")]
-    StringBytesConversion(Report<Utf8Error>),
-
-    #[error("{0}")]
-    NumBytesConversion(Report<TryFromSliceError>),
-
-    #[error("{0}")]
+    #[error(transparent)]
     WasmCompileError(#[from] CompileError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     WasmInstantiationError(Box<InstantiationError>),
 
-    #[error("{0}")]
+    #[error(transparent)]
     WasiError(#[from] WasiError),
-    #[error("{0}")]
+    #[error(transparent)]
     WasiStateCreationError(#[from] WasiStateCreationError),
 
-    #[error("{0}")]
+    #[error(transparent)]
     FunctionNotFound(#[from] ExportError),
 
     #[error("Error while running: {0}")]
@@ -31,14 +25,17 @@ pub enum RuntimeError {
     #[error("VM Host Error: {0}")]
     VmHostError(String),
 
-    #[error("{0}")]
-    WasiFsError(FsError),
+    #[error(transparent)]
+    WasiFsError(#[from] FsError),
 
-    #[error("{0}")]
-    IoError(std::io::Error),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
 
-    #[error("{0}")]
-    FromUtf8Error(std::string::FromUtf8Error),
+    #[error(transparent)]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
+
+    #[error(transparent)]
+    RuntimeAdapterError(#[from] RuntimeAdapterError),
 }
 
 impl From<InstantiationError> for RuntimeError {
@@ -62,24 +59,6 @@ impl From<String> for RuntimeError {
 impl From<&str> for RuntimeError {
     fn from(s: &str) -> Self {
         Self::VmHostError(s.into())
-    }
-}
-
-impl From<FsError> for RuntimeError {
-    fn from(e: FsError) -> Self {
-        Self::WasiFsError(e)
-    }
-}
-
-impl From<std::io::Error> for RuntimeError {
-    fn from(e: std::io::Error) -> Self {
-        Self::IoError(e)
-    }
-}
-
-impl From<std::string::FromUtf8Error> for RuntimeError {
-    fn from(e: std::string::FromUtf8Error) -> Self {
-        Self::FromUtf8Error(e)
     }
 }
 

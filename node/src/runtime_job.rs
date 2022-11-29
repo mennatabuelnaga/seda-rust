@@ -1,7 +1,6 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
-use futures::executor;
 use parking_lot::Mutex;
 use seda_runtime::{RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{InMemory, RuntimeAdapter};
@@ -60,14 +59,6 @@ impl Handler<RuntimeJob> for RuntimeWorker {
 
         let res =
             futures::executor::block_on(runtime.start_runtime::<RuntimeAdapter>(vm_config, memory_adapter)).unwrap();
-
-        // let handle = tokio::runtime::Handle::current();
-        // let res = handle
-        //     .block_on(runtime.start_runtime(vm_config, memory_adapter,
-        // host_adapters))     .unwrap();
-
-        // let res = runtime.start_runtime(vm_config, memory_adapter,
-        // host_adapters).unwrap();
 
         RuntimeJobResult { vm_result: res }
     }

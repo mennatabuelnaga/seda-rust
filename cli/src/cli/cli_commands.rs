@@ -93,21 +93,6 @@ pub trait CliCommands: Send + Sync {
         Ok(())
     }
 
-    async fn call_cli(config: &AppConfig<Self::MainChainAdapter>, args: Vec<String>) -> Result<()> {
-        let seda_server_url = config
-            .seda_server_url
-            .as_ref()
-            .ok_or("seda_server_url from cli, env var or config file.")?;
-
-        let client = WsClientBuilder::default().build(&seda_server_url).await?;
-
-        let response: Vec<String> = client.request("cli", rpc_params![args]).await?;
-
-        response.iter().for_each(|s| print!("{s}"));
-
-        Ok(())
-    }
-
     async fn get_node_socket_address(config: &AppConfig<Self::MainChainAdapter>, node_id: u64) -> Result<()>;
     async fn get_nodes(config: &AppConfig<Self::MainChainAdapter>, limit: u64, offset: u64) -> Result<()>;
     async fn get_node_owner(config: &AppConfig<Self::MainChainAdapter>, node_id: u64) -> Result<()>;

@@ -184,12 +184,12 @@ impl CliOptions {
             }
             Command::Run { server_address } => {
                 let config = AppConfig::<T::MainChainAdapter>::read_from_optional_path(options.config_file)?;
-                let mut node_config = config.node.ok_or("Missing config [node_config] section")?;
+                let mut node_config = config.node.ok_or("Missing config [node] section")?;
                 overwrite_config_field!(node_config.server_address, server_address);
                 return seda_logger::init(config.logging.unwrap_or_default(), || {
                     seda_node::run::<T::MainChainAdapter>(
                         &node_config,
-                        &config.main_chain.ok_or("Missing config [main_chain_config] section")?,
+                        &config.main_chain.ok_or("Missing config [main_chain] section")?,
                     );
                     Ok::<_, CliError>(())
                 });

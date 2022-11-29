@@ -39,10 +39,10 @@ impl CliCommands for NearCliBackend {
         let near_server_url = config
             .main_chain
             .as_ref()
-            .ok_or("Config [main_chain_config] section.")?
+            .ok_or("Config [main_chain] section.")?
             .near_server_url
             .as_ref()
-            .ok_or("near_server_url from config [main_chain_config] section.")?;
+            .ok_or("near_server_url from config [main_chain] section.")?;
         let gas = config.gas.ok_or("gas from config.")?;
 
         let signed_tx = Self::MainChainAdapter::construct_signed_tx(

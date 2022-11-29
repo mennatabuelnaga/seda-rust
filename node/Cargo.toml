@@ -19,7 +19,5 @@ seda-runtime = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
-
-rusqlite = { workspace = true }
-tokio-rusqlite = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }

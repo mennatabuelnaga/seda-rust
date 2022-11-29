@@ -14,12 +14,14 @@ near-crypto = { workspace = true }
 near-primitives = { workspace = true }
 seda-chain-adapters = { workspace = true }
 seda-config = { workspace = true }
+seda-logger = { workspace = true }
 seda-node = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 toml = { workspace = true }
+tracing = { workspace = true }
 
 [[bin]]
 name = "seda"

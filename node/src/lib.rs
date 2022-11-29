@@ -10,7 +10,7 @@ mod runtime_job;
 
 use actix::prelude::*;
 use app::App;
-use seda_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::MainChainAdapterTrait;
 use tracing::info;
 
 use crate::app::Shutdown;

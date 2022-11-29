@@ -11,6 +11,7 @@ use crate::{
 };
 
 mod job_manager;
+mod shutdown;
 pub use shutdown::Shutdown;
 
 // Node Actor definition
