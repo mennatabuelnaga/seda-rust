@@ -1,7 +1,7 @@
-use near_sdk::{env, log, near_bindgen, Promise};
+use near_sdk::{env, log, near_bindgen};
 
 use crate::{
-    macros::manage_storage_deposit,
+    macros::{manage_storage_deposit, require_storage_deposit},
     merkle::{merklize, CryptoHash},
     MainchainContract,
     MainchainContractExt,
@@ -11,7 +11,7 @@ use crate::{
 #[near_bindgen]
 impl MainchainContract {
     pub fn post_data_request(&mut self, data_request: String) {
-        manage_storage_deposit!(self, self.data_request_accumulator.push(&data_request));
+        manage_storage_deposit!(self, true, self.data_request_accumulator.push(&data_request));
     }
 
     pub fn compute_merkle_root(&self) -> CryptoHash {

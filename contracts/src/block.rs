@@ -1,12 +1,15 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     env,
-    log,
     near_bindgen,
-    Promise,
 };
 
-use crate::{macros::manage_storage_deposit, merkle::CryptoHash, MainchainContract, MainchainContractExt};
+use crate::{
+    macros::{manage_storage_deposit, require_storage_deposit},
+    merkle::CryptoHash,
+    MainchainContract,
+    MainchainContractExt,
+};
 
 pub type BlockHeight = u64;
 pub type BlockId = CryptoHash;
@@ -40,7 +43,7 @@ impl MainchainContract {
     }
 
     pub fn create_block(&mut self) {
-        manage_storage_deposit!(self, {
+        manage_storage_deposit!(self, true, {
             let header = BlockHeader {
                 height:     self.num_blocks + 1,
                 state_root: CryptoHash::default(), // TODO

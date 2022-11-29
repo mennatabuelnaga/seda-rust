@@ -9,7 +9,11 @@ use near_sdk::{
     Promise,
 };
 
-use crate::{macros::manage_storage_deposit, MainchainContract, MainchainContractExt};
+use crate::{
+    macros::{manage_storage_deposit, refund_storage_deposit, require_storage_deposit},
+    MainchainContract,
+    MainchainContractExt,
+};
 
 /// Node information
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -41,7 +45,7 @@ impl MainchainContract {
     /// Registers a new node while charging for storage usage
     #[payable]
     pub fn register_node(&mut self, socket_address: String) -> Option<String> {
-        manage_storage_deposit!(self, {
+        manage_storage_deposit!(self, true, {
             // require valid socket address characters
             for c in socket_address.chars() {
                 assert!(
@@ -69,7 +73,7 @@ impl MainchainContract {
 
     /// Removes a node and refunds storage deposit
     pub fn remove_node(&mut self, node_id: U64) {
-        manage_storage_deposit!(self, {
+        manage_storage_deposit!(self, false, {
             let account_id = env::signer_account_id();
             let node = self.get_expect_node(node_id.into());
 
@@ -101,15 +105,17 @@ impl MainchainContract {
 
     /// Finalizes the pending owner change
     pub fn become_node_owner(&mut self, node_id: U64) {
-        let account_id = env::signer_account_id();
-        let mut node = self.get_expect_node(node_id.into());
+        manage_storage_deposit!(self, {
+            let account_id = env::signer_account_id();
+            let mut node = self.get_expect_node(node_id.into());
 
-        self.assert_node_pending_owner(&account_id, &node.pending_owner);
+            self.assert_node_pending_owner(&account_id, &node.pending_owner);
 
-        log!("{} became owner of node_id {}", account_id, u64::from(node_id),);
-        node.owner = account_id;
-        node.pending_owner = None;
-        self.nodes.insert(&u64::from(node_id), &node);
+            log!("{} became owner of node_id {}", account_id, u64::from(node_id),);
+            node.owner = account_id;
+            node.pending_owner = None;
+            self.nodes.insert(&u64::from(node_id), &node);
+        }); // end manage_storage_deposit
     }
 
     pub fn set_node_socket_address(&mut self, node_id: U64, new_socket_address: String) {
