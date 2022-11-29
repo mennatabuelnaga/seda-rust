@@ -9,6 +9,7 @@ use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
 pub enum RuntimeError {
     #[error("{0:?}")]
     StringBytesConversion(Report<Utf8Error>),
+
     #[error("{0}")]
     NumBytesConversion(Report<TryFromSliceError>),
 
@@ -41,6 +42,9 @@ pub enum RuntimeError {
 
     #[error("{0}")]
     IoError(std::io::Error),
+
+    #[error("{0}")]
+    FromUtf8Error(std::string::FromUtf8Error),
 }
 
 impl From<rusqlite::Error> for RuntimeError {
@@ -124,6 +128,12 @@ impl From<FsError> for RuntimeError {
 impl From<std::io::Error> for RuntimeError {
     fn from(e: std::io::Error) -> Self {
         Self::IoError(e)
+    }
+}
+
+impl From<std::string::FromUtf8Error> for RuntimeError {
+    fn from(e: std::string::FromUtf8Error) -> Self {
+        Self::FromUtf8Error(e)
     }
 }
 

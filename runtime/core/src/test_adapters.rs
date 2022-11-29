@@ -13,19 +13,17 @@ lazy_static! {
 }
 
 #[derive(Clone, Default)]
-pub struct HostTestAdapters {
-    db: HASHMAP,
-}
+pub struct HostTestAdapters;
 
 impl HostTestAdapters {
     async fn get(&self, key: &str) -> Result<Option<String>, RuntimeError> {
-        let db = self.db.lock().await;
+        let db = HASHMAP.lock().await;
         let value = db.get(key);
         Ok(value.cloned())
     }
 
     async fn set(&self, key: &str, value: &str) -> Result<(), RuntimeError> {
-        let mut db = self.db.lock().await;
+        let mut db = HASHMAP.lock().await;
         db.insert(key.to_string(), value.to_string());
         Ok(())
     }

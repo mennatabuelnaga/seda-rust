@@ -71,7 +71,6 @@ impl RunnableRuntime for Runtime {
             // This queue will be used in the current execution
             // We should not use the same promise_queue otherwise getting results back would
             // be hard to do due the indexes of results (will be hard to refactor)
-
             if promise_queue.queue.is_empty() {
                 return Ok(0);
             }
@@ -82,6 +81,8 @@ impl RunnableRuntime for Runtime {
                 match &promise_queue.queue[index].action {
                     PromiseAction::CallSelf(call_action) => {
                         let wasm_store = Store::default();
+
+                        // TODO: Use our logging library with stdout/stderr
                         let stdout_pipe = Pipe::new();
                         let stderr_pipe = Pipe::new();
 
@@ -132,22 +133,25 @@ impl RunnableRuntime for Runtime {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        HA::db_set(&db_action.key, &String::from_utf8(db_action.value.clone()).unwrap())
-                            .await
-                            .unwrap();
+                        HA::db_set(&db_action.key, &String::from_utf8(db_action.value.clone())?).await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let result = HA::db_get(&db_action.key).await.unwrap().unwrap();
+                        let result = HA::db_get(&db_action.key).await?;
 
-                        promise_queue_mut.queue[index].status =
-                            PromiseStatus::Fulfilled(result.to_string().into_bytes());
+                        match result {
+                            Some(r) => {
+                                promise_queue_mut.queue[index].status =
+                                    PromiseStatus::Fulfilled(r.to_string().into_bytes())
+                            }
+                            None => promise_queue_mut.queue[index].status = PromiseStatus::Rejected(vec![]),
+                        }
                     }
 
                     PromiseAction::Http(http_action) => {
-                        let resp = HA::http_fetch(&http_action.url).await.unwrap();
+                        let resp = HA::http_fetch(&http_action.url).await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
@@ -182,11 +186,11 @@ impl RunnableRuntime for Runtime {
 
         let result = self
             .execute_promise_queue::<HA>(wasm_module, memory_adapter, promise_queue, &mut output)
-            .await;
+            .await?;
 
         Ok(VmResult {
             output,
-            exit_code: result.unwrap(),
+            exit_code: result,
         })
     }
 }
