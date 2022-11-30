@@ -9,7 +9,10 @@ mod tests {
         VMContext,
     };
 
-    use crate::MainchainContract;
+    use crate::{
+        node_registry::{Node, UpdateNode},
+        MainchainContract,
+    };
 
     fn get_context_view() -> VMContext {
         VMContextBuilder::new().is_view(true).build()
@@ -41,15 +44,11 @@ mod tests {
         testing_env!(get_context_view());
         assert_eq!(
             "bob_near".to_string(),
-            contract.get_node_owner(U64(1)).unwrap().to_string()
+            contract.get_node(U64(1)).unwrap().owner.to_string()
         );
         assert_eq!(
             "0.0.0.0:8080".to_string(),
-            contract.get_node_socket_address(U64(1)).unwrap()
-        );
-        assert_eq!(
-            get_logs(),
-            vec!["get_node_owner for node_id 1", "get_node_socket_address for node_id 1",]
+            contract.get_node(U64(1)).unwrap().socket_address.to_string()
         );
     }
 
@@ -64,7 +63,7 @@ mod tests {
     }
 
     #[test]
-    fn remove_node() {
+    fn unregister_node() {
         let mut contract = MainchainContract::new();
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -73,14 +72,14 @@ mod tests {
         // check the socket address after registering
         testing_env!(get_context_view());
         assert_eq!(
-            Some("0.0.0.0:8080".to_string()),
-            contract.get_node_socket_address(U64(1))
+            "0.0.0.0:8080".to_string(),
+            contract.get_node(U64(1)).unwrap().socket_address.to_string()
         );
 
         // remove the node
         testing_env!(get_context("bob_near".to_string()));
         let balance_before = account_balance();
-        contract.remove_node(U64(1));
+        contract.unregister_node(U64(1));
         assert_eq!(
             get_logs(),
             vec![
@@ -90,14 +89,11 @@ mod tests {
         );
         let balance_after = account_balance();
         assert_eq!(balance_before - balance_after, 780000000000000000000);
-        // check the socket address after removing
-        testing_env!(get_context_view());
-        assert_eq!(None, contract.get_node_socket_address(U64(1)));
     }
 
     #[test]
     #[should_panic(expected = "Only bob_near can call this method")]
-    fn remove_node_wrong_owner() {
+    fn unregister_node_wrong_owner() {
         let mut contract = MainchainContract::new();
 
         // register node
@@ -108,13 +104,13 @@ mod tests {
         // check the socket address after registering
         testing_env!(get_context_view());
         assert_eq!(
-            Some("0.0.0.0:8080".to_string()),
-            contract.get_node_socket_address(U64(1))
+            "0.0.0.0:8080".to_string(),
+            contract.get_node(U64(1)).unwrap().socket_address.to_string()
         );
 
         // try removing the node
         testing_env!(get_context("alice_near".to_string()));
-        contract.remove_node(U64(1));
+        contract.unregister_node(U64(1));
     }
 
     #[test]
@@ -127,15 +123,14 @@ mod tests {
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // update the socket address
-        contract.set_node_socket_address(U64(1), "1.1.1.1:8081".to_string());
+        contract.update_node(U64(1), UpdateNode::SetSocketAddress("1.1.1.1:8081".to_string()));
 
         // check the socket address after updating
         testing_env!(get_context_view());
         assert_eq!(
             "1.1.1.1:8081".to_string(),
-            contract.get_node_socket_address(U64(1)).unwrap()
+            contract.get_node(U64(1)).unwrap().socket_address.to_string()
         );
-        assert_eq!(get_logs(), vec!["get_node_socket_address for node_id 1"]);
     }
 
     #[test]
@@ -148,24 +143,24 @@ mod tests {
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // set pending owner
-        contract.set_node_pending_owner(U64(1), "alice_near".to_string());
+        contract.update_node(U64(1), UpdateNode::SetPendingOwner("alice_near".to_string()));
 
         // check pending owner
         testing_env!(get_context_view());
         assert_eq!(
             "alice_near".to_string(),
-            contract.get_node_pending_owner(U64(1)).unwrap().to_string()
+            contract.get_node(U64(1)).unwrap().pending_owner.unwrap().to_string()
         );
 
         // accept ownership
         testing_env!(get_context("alice_near".to_string()));
-        contract.become_node_owner(U64(1));
+        contract.update_node(U64(1), UpdateNode::AcceptOwnership);
 
         // check owner
         testing_env!(get_context_view());
         assert_eq!(
             "alice_near".to_string(),
-            contract.get_node_owner(U64(1)).unwrap().to_string()
+            contract.get_node(U64(1)).unwrap().owner.to_string()
         );
     }
 
@@ -181,7 +176,7 @@ mod tests {
 
         // accept ownership from wrong owner
         testing_env!(get_context("alice_near".to_string()));
-        contract.become_node_owner(U64(1));
+        contract.update_node(U64(1), UpdateNode::AcceptOwnership);
     }
 
     #[test]
@@ -195,26 +190,18 @@ mod tests {
         assert_eq!(get_logs(), vec!["bob_near registered node_id 1"]);
 
         // set pending owner
-        contract.set_node_pending_owner(U64(1), "alice_near".to_string());
+        contract.update_node(U64(1), UpdateNode::SetPendingOwner("alice_near".to_string()));
 
         // check pending owner
         testing_env!(get_context_view());
         assert_eq!(
             "alice_near".to_string(),
-            contract.get_node_pending_owner(U64(1)).unwrap().to_string()
+            contract.get_node(U64(1)).unwrap().pending_owner.unwrap().to_string()
         );
 
         // accept ownership from wrong owner
         testing_env!(get_context("franklin_near".to_string()));
-        contract.become_node_owner(U64(1));
-    }
-
-    #[test]
-    fn get_nonexistent_message() {
-        let contract = MainchainContract::new();
-        testing_env!(get_context_view());
-        assert_eq!(None, contract.get_node_socket_address(U64(1)));
-        assert_eq!(get_logs(), vec!["get_node_socket_address for node_id 1"])
+        contract.update_node(U64(1), UpdateNode::AcceptOwnership);
     }
 
     #[test]
@@ -245,29 +232,47 @@ mod tests {
             ]
         );
 
-        // check the latest 2 nodes
+        // define expected nodes
+        let node1 = Node {
+            owner:          "bob_near".parse().unwrap(),
+            pending_owner:  None,
+            socket_address: "0.0.0.0:8080".to_string(),
+        };
+        let node2 = Node {
+            owner:          "bob_near".parse().unwrap(),
+            pending_owner:  None,
+            socket_address: "1.1.1.1:8080".to_string(),
+        };
+        let node3 = Node {
+            owner:          "bob_near".parse().unwrap(),
+            pending_owner:  None,
+            socket_address: "2.2.2.2:8080".to_string(),
+        };
+
+        // get the first node
         testing_env!(get_context_view());
+        let get_node = contract.get_node(U64(1));
+        assert_eq!(get_node.unwrap(), node1);
+
+        // check the latest 2 nodes
         let latest_2_nodes = contract.get_nodes(U64(2), U64(0));
-        assert_eq!(latest_2_nodes, "[\"2.2.2.2:8080\",\"1.1.1.1:8080\"]".to_string());
+        assert_eq!(latest_2_nodes, vec![node3.clone(), node2.clone()]);
 
         // check the latest 3 nodes
         let latest_3_nodes = contract.get_nodes(U64(100), U64(0));
-        assert_eq!(
-            latest_3_nodes,
-            "[\"2.2.2.2:8080\",\"1.1.1.1:8080\",\"0.0.0.0:8080\"]".to_string()
-        );
+        assert_eq!(latest_3_nodes, vec![node3.clone(), node2, node1.clone()]);
 
         // bob deletes the second node
         testing_env!(get_context("bob_near".to_string()));
-        contract.remove_node(U64(2));
+        contract.unregister_node(U64(2));
 
         // check the latest nodes
         testing_env!(get_context_view());
         let latest_nodes = contract.get_nodes(U64(100), U64(0));
-        assert_eq!(latest_nodes, "[\"2.2.2.2:8080\",\"0.0.0.0:8080\"]".to_string());
+        assert_eq!(latest_nodes, vec![node3, node1.clone()]);
 
         // check offset of 1
         let latest_nodes_offset = contract.get_nodes(U64(100), U64(1));
-        assert_eq!(latest_nodes_offset, "[\"0.0.0.0:8080\"]".to_string());
+        assert_eq!(latest_nodes_offset, vec![node1]);
     }
 }
