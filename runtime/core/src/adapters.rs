@@ -11,12 +11,13 @@ pub trait HostAdapter: Send {
     async fn http_fetch(url: &str) -> Result<String, RuntimeError>;
     
 
-    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Option<String>, RuntimeError>;
+    async fn chain_change(contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,) -> Result<Option<String>, RuntimeError>;
 
     async fn chain_view(
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
-        server_addr: &str,
     ) -> Result<String, RuntimeError>;
 }

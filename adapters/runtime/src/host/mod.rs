@@ -44,7 +44,7 @@ impl Default for Host {
                 .await
                 .expect("Couldn't execute db call");
 
-            Host { db_conn }
+            Host { db_conn}
         })
     }
 }

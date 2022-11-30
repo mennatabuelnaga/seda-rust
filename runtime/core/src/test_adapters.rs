@@ -40,19 +40,39 @@ impl HostTestAdapters {
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
-        server_addr: &str,
     ) -> Result<String, RuntimeError> {
-        T::view2(contract_id, method_name, args, server_addr)
+        dotenv::dotenv().ok();
+        let server_address = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
+
+        T::view2(contract_id, method_name, args, &server_address)
             .await
             .map_err(|err| RuntimeError::ChainInteractionsError(err.to_string()))
     }
 
     async fn change<T: MainChainAdapterTrait>(
         &mut self,
-        signed_tx: Vec<u8>,
-        server_addr: &str,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
     ) -> Result<Option<String>, RuntimeError> {
-        T::send_tx2(signed_tx, server_addr)
+        dotenv::dotenv().ok();
+        let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
+        let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
+        let gas = dotenv::var("GAS").expect("GAS not set");
+        let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
+        let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
+
+        let signed_txn = T::construct_signed_tx2(
+            &signer_acc_str,
+            &signer_sk_str,
+            contract_id,
+            method_name,
+            args,
+            gas.parse::<u64>().unwrap(),
+            deposit.parse::<u128>().unwrap(),
+            &server_url,
+        ).await.expect("couldn't sign txn");
+        T::send_tx2(signed_txn, &server_url)
             .await
             .map_err(|err| RuntimeError::ChainInteractionsError(err.to_string()))
     }
@@ -87,20 +107,21 @@ impl HostAdapter for RuntimeTestAdapter {
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
-        server_addr: &str,
     ) -> Result<String, RuntimeError> {
         let mut host = HostTestAdapters::default();
         let result = host
-            .view::<Self::MainChainAdapter>(contract_id, method_name, args, server_addr)
+            .view::<Self::MainChainAdapter>(contract_id, method_name, args)
             .await
             .expect("error fetching http result");
         Ok(result)
     }
 
-    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Option<String>, RuntimeError> {
+    async fn chain_change(contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,) -> Result<Option<String>, RuntimeError> {
         let mut host = HostTestAdapters::default();
         let result = host
-            .change::<Self::MainChainAdapter>(signed_tx, server_addr)
+            .change::<Self::MainChainAdapter>(contract_id, method_name, args)
             .await
             .expect("error fetching http result");
         Ok(result)

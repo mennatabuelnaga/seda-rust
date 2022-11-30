@@ -29,3 +29,4 @@ seda-chain-adapters = {workspace = true}
 
 lazy_static = "1.4.0"
 borsh = "0.9.3"
+dotenv = "0.15.0"

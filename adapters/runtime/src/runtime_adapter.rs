@@ -52,13 +52,14 @@ impl HostAdapter for RuntimeAdapter {
         Ok(result)
     }
 
-    async fn chain_change(signed_tx: Vec<u8>, server_addr: &str) -> Result<Option<String>> {
+    async fn chain_change(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
         let host_actor = Host::from_registry();
 
         let result = host_actor
             .send(ChainChange::<Self::MainChainAdapter> {
-                signed_tx,
-                chain_server_address: server_addr.to_string(),
+                contract_id: contract_id.to_string(),
+                method_name: method_name.to_string(),
+                args,
                 phantom: PhantomData,
             })
             .await
@@ -68,7 +69,7 @@ impl HostAdapter for RuntimeAdapter {
         Ok(result)
     }
 
-    async fn chain_view(contract_id: &str, method_name: &str, args: Vec<u8>, server_addr: &str) -> Result<String> {
+    async fn chain_view(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let host_actor = Host::from_registry();
 
         let result = host_actor
@@ -76,7 +77,6 @@ impl HostAdapter for RuntimeAdapter {
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,
-                chain_server_address: server_addr.to_string(),
                 phantom: PhantomData,
             })
             .await

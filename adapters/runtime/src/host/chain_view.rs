@@ -12,21 +12,21 @@ pub struct ChainView<T: MainChainAdapterTrait> {
     pub contract_id:          String,
     pub method_name:          String,
     pub args:                 Vec<u8>,
-    pub chain_server_address: String,
     pub phantom:              PhantomData<T>,
 }
 impl<T: MainChainAdapterTrait> Handler<ChainView<T>> for Host {
     type Result = ResponseActFuture<Self, Result<String>>;
 
     fn handle(&mut self, msg: ChainView<T>, _ctx: &mut Self::Context) -> Self::Result {
+        dotenv::dotenv().ok();
+        let server_address = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
         let fut = async move {
-            let value = T::view2(&msg.contract_id, &msg.method_name, msg.args, &msg.chain_server_address)
+            let value = T::view2(&msg.contract_id, &msg.method_name, msg.args, &server_address)
                 .await
                 .unwrap();
 
             Ok(value)
         };
-
         Box::pin(fut.into_actor(self))
     }
 }

@@ -1,7 +1,8 @@
-use std::sync::Arc;
+use std::{marker::PhantomData, sync::Arc};
 
 use actix::prelude::*;
 use parking_lot::RwLock;
+use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::CONFIG;
 use tracing::info;
 
@@ -9,17 +10,22 @@ use crate::{
     event_queue::{EventId, EventQueue},
     rpc::JsonRpcServer,
     runtime_job::RuntimeWorker,
+    NodeContext,
 };
 
 mod job_manager;
 mod shutdown;
 pub use shutdown::Shutdown;
 // Node Actor definition
-pub struct App {
+pub struct App<MC>
+where
+    MC: MainChainAdapterTrait,
+{
     pub event_queue:       Arc<RwLock<EventQueue>>,
     pub running_event_ids: Arc<RwLock<Vec<EventId>>>,
     pub runtime_worker:    Addr<RuntimeWorker>,
     pub rpc_server:        JsonRpcServer,
+    _pd:                   PhantomData<MC>,
 }
 
 impl App {
@@ -46,12 +52,13 @@ impl App {
             running_event_ids: Default::default(),
             runtime_worker,
             rpc_server,
+            _pd: PhantomData,
         }
     }
 }
 
-impl Actor for App {
-    type Context = Context<Self>;
+impl<MC: MainChainAdapterTrait> Actor for App<MC> {
+    type Context = NodeContext<Self, MC>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
         let banner = r#"

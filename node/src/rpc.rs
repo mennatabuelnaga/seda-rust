@@ -40,7 +40,6 @@ impl RpcServer for CliServer {
         Ok(result.vm_result.output)
     }
 }
-
 pub struct JsonRpcServer {
     handle: ServerHandle,
 }

@@ -131,7 +131,7 @@ impl MainChainAdapterTrait for NearMainChain {
             })],
         };
         let signed_transaction = transaction.sign(&signer);
-        // println!("**{:?}", signed_transaction);
+        println!("***********{:?}", signed_transaction);
         Ok(signed_transaction.try_to_vec().unwrap())
     }
 
@@ -171,6 +171,8 @@ impl MainChainAdapterTrait for NearMainChain {
         let signed_transaction = transaction.sign(&signer);
         Ok(signed_transaction)
     }
+
+   
 
     async fn send_tx(client: Arc<Self::Client>, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {

@@ -182,7 +182,6 @@ impl RunnableRuntime for Runtime {
                             &chain_view_action.contract_id,
                             &chain_view_action.method_name,
                             chain_view_action.args.clone(),
-                            &chain_view_action.server_addr,
                         )
                         .await
                         .unwrap();
@@ -194,11 +193,18 @@ impl RunnableRuntime for Runtime {
                         // HA::chain_change::<Self::MainChainAdapter>(serde_json::from_slice::<Vec<u8>>(&
                         // chain_change_action.signed_tx).unwrap().clone(),
                         // &chain_change_action.server_addr).await.unwrap();
+
+
+                        // let resp = HA::chain_change(
+                        //     serde_json::from_slice::<Vec<u8>>(&chain_change_action.signed_tx)
+                        //         .unwrap()
+                        //         .clone(),
+                        //     &chain_change_action.server_addr,
+                        // )
                         let resp = HA::chain_change(
-                            serde_json::from_slice::<Vec<u8>>(&chain_change_action.signed_tx)
-                                .unwrap()
-                                .clone(),
-                            &chain_change_action.server_addr,
+                             &chain_change_action.contract_id,
+                            &chain_change_action.method_name,
+                            chain_change_action.args.clone(),
                         )
                         .await
                         .unwrap();

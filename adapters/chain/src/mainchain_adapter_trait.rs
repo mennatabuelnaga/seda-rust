@@ -32,9 +32,9 @@ pub struct NodeDetails {
 
 // TODO once rpc becomes a trait need to replace params type.
 #[async_trait::async_trait]
-pub trait MainChainAdapterTrait: Debug + Send + Sync {
+pub trait MainChainAdapterTrait: Debug + Send + Sync + Unpin + 'static {
     /// The Config fields for the adapter specific implementation.
-    type Config: seda_config::Config + Send + Sync;
+    type Config: seda_config::Config + Send + Sync + Unpin;
     /// The Client type for the adapter specific implementation.
     type Client: Send + Sync + 'static;
     /// The execution status type for the adapter specific implementation.
