@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use actix::prelude::*;
 use seda_adapters::MainChainAdapterTrait;
+use seda_runtime_sdk::Chain;
 use serde::{Deserialize, Serialize};
 
 use super::Host;
@@ -10,13 +11,14 @@ use crate::NodeError;
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<Option<String>, NodeError>")]
 pub struct ChainChange<T: MainChainAdapterTrait> {
+    pub chain: Chain,
     pub contract_id:          String,
     pub method_name:          String,
     pub args:                 Vec<u8>,
     pub phantom:              PhantomData<T>,
 }
 
-impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host {
+impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
     type Result = ResponseActFuture<Self, Result<Option<String>, NodeError>>;
 
     fn handle(&mut self, msg: ChainChange<T>, _ctx: &mut Self::Context) -> Self::Result {

@@ -1,5 +1,6 @@
 use actix::prelude::*;
 use rusqlite::params;
+use seda_chain_adapters::MainChainAdapterTrait;
 use serde::{Deserialize, Serialize};
 
 use crate::{Host, Result, RuntimeAdapterError};
@@ -11,7 +12,7 @@ pub struct DatabaseSet {
     pub value: String,
 }
 
-impl Handler<DatabaseSet> for Host {
+impl<MC: MainChainAdapterTrait>  Handler<DatabaseSet> for Host<MC> {
     type Result = ResponseActFuture<Self, Result<()>>;
 
     fn handle(&mut self, msg: DatabaseSet, _ctx: &mut Self::Context) -> Self::Result {

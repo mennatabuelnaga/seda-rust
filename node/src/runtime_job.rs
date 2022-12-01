@@ -60,14 +60,6 @@ impl Handler<RuntimeJob> for RuntimeWorker {
         let res =
             futures::executor::block_on(runtime.start_runtime::<RuntimeAdapter>(vm_config, memory_adapter)).unwrap();
 
-        // let handle = tokio::runtime::Handle::current();
-        // let res = handle
-        //     .block_on(runtime.start_runtime(vm_config, memory_adapter,
-        // host_adapters))     .unwrap();
-
-        // let res = runtime.start_runtime(vm_config, memory_adapter,
-        // host_adapters).unwrap();
-
         RuntimeJobResult { vm_result: res }
     }
 }

@@ -9,13 +9,14 @@ use crate::{Host, Result};
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<Option<String>>")]
 pub struct ChainChange<T: MainChainAdapterTrait> {
+    pub chain: Chain,
     pub contract_id:          String,
     pub method_name:          String,
     pub args:                 Vec<u8>,
     pub phantom:              PhantomData<T>,
 }
 
-impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host {
+impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
     type Result = ResponseActFuture<Self, Result<Option<String>>>;
 
     fn handle(&mut self, msg: ChainChange<T>, _ctx: &mut Self::Context) -> Self::Result {
@@ -25,8 +26,8 @@ impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host {
         let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
 
-        
-        
+
+
         let fut = async move {
             let signed_txn = T::construct_signed_tx2(
                 &signer_acc_str,

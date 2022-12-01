@@ -1,4 +1,5 @@
 
+
 use actix::{*, dev::{ContextParts, AsyncContextParts, ContextFut, Mailbox, Envelope, ToEnvelope}};
 use seda_chain_adapters::MainChainAdapterTrait;
 use tokio::sync::oneshot::Sender;
@@ -11,6 +12,7 @@ where
     MC: MainChainAdapterTrait,
 {
     pub inner: ContextParts<A>,
+
     pub node_config: NodeConfig,
     pub main_chain_config: MC::Config,
 }
@@ -32,6 +34,8 @@ where
         self.inner.state()
     }
 }
+
+
 
 impl<A, MC> AsyncContext<A> for NodeContext<A, MC>
 where
@@ -100,11 +104,14 @@ where
             inner: ContextParts::new(mb.sender_producer()),
             node_config,
             main_chain_config,
+
         };
 
         let act = f(&mut ctx);
         NodeContextFut::new(ctx, act, mb)
     }
+
+
 }
 
 impl<A, MC> AsyncContextParts<A> for NodeContext<A, MC>
@@ -154,6 +161,13 @@ where
     MC: MainChainAdapterTrait,
 {
     let ctx = NodeContext::create(actor, node_config, main_chain_config);
-    ctx.fut.address()
-
+    let addr = ctx.fut.address();
+    actix_rt::spawn(ctx.fut);
+    addr
 }
+
+
+
+
+
+

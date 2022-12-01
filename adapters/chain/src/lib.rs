@@ -11,3 +11,8 @@ mod near_mainchain;
 
 #[cfg(feature = "near")]
 pub type MainChain = near_mainchain::NearMainChain;
+
+#[cfg(not(feature = "near"))]
+mod another_manichain;
+#[cfg(not(feature = "near"))]
+pub type MainChain = another_manichain::AnotherMainChain;

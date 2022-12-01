@@ -1,4 +1,6 @@
 use seda_chain_adapters::MainChainAdapterTrait;
+use serde::{Deserialize, Serialize};
+use seda_runtime_sdk::Chain;
 
 use super::RuntimeError;
 
@@ -11,13 +13,18 @@ pub trait HostAdapter: Send {
     async fn http_fetch(url: &str) -> Result<String, RuntimeError>;
     
 
-    async fn chain_change(contract_id: &str,
+    async fn chain_change(
+        chain: Chain,
+        contract_id: &str,
         method_name: &str,
         args: Vec<u8>,) -> Result<Option<String>, RuntimeError>;
 
     async fn chain_view(
+        chain: Chain,
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
     ) -> Result<String, RuntimeError>;
 }
+
+

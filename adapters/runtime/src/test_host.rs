@@ -99,22 +99,55 @@ impl HostAdapter for RuntimeTestAdapter {
         let result = host.fetch(url).await?;
         Ok(result)
     }
+    async fn chain_view(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+    ) -> Result<String> {
 
-    async fn chain_view(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let mut host = HostTestAdapters::default();
-        let result = host
-            .view::<Self::MainChainAdapter>(contract_id, method_name, args)
+        if chain ==  Chain::Near {
+
+            type MainChainAdapter = NearMainChain;
+            let result = host
+            .view::<MainChainAdapter>(contract_id, method_name, args)
             .await
             .expect("error fetching http result");
-        Ok(result)
+            Ok(result)
+        }else{
+            type MainChainAdapter = AnotherMainChain;
+            let result = host
+            .view::<MainChainAdapter>(contract_id, method_name, args)
+            .await
+            .expect("error fetching http result");
+            Ok(result)
+        }
+
     }
 
-    async fn chain_change(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
+    async fn chain_change(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,) -> Result<Option<String>> {
         let mut host = HostTestAdapters::default();
-        let result = host
-            .change::<Self::MainChainAdapter>(contract_id, method_name, args)
+
+        if chain ==  Chain::Near {
+            type MainChainAdapter = NearMainChain;
+            let result = host
+            .change::<MainChainAdapter>(contract_id, method_name, args)
             .await
             .expect("error fetching http result");
         Ok(result)
+        }else{
+            type MainChainAdapter = AnotherMainChain;
+            let result = host
+            .change::<MainChainAdapter>(contract_id, method_name, args)
+            .await
+            .expect("error fetching http result");
+        Ok(result)
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 use actix::prelude::*;
+use seda_chain_adapters::MainChainAdapterTrait;
 use serde::{Deserialize, Serialize};
 
 use super::Host;
@@ -9,7 +10,7 @@ pub struct HttpFetch {
     pub url: String,
 }
 
-impl Handler<HttpFetch> for Host {
+impl<MC: MainChainAdapterTrait>  Handler<HttpFetch> for Host<MC> {
     type Result = ResponseActFuture<Self, String>;
 
     fn handle(&mut self, msg: HttpFetch, _ctx: &mut Self::Context) -> Self::Result {

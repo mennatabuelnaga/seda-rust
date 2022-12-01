@@ -9,12 +9,13 @@ use crate::{Host, Result};
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<String>")]
 pub struct ChainView<T: MainChainAdapterTrait> {
+    pub chain: Chain,
     pub contract_id:          String,
     pub method_name:          String,
     pub args:                 Vec<u8>,
     pub phantom:              PhantomData<T>,
 }
-impl<T: MainChainAdapterTrait> Handler<ChainView<T>> for Host {
+impl<T: MainChainAdapterTrait> Handler<ChainView<T>> for Host<T> {
     type Result = ResponseActFuture<Self, Result<String>>;
 
     fn handle(&mut self, msg: ChainView<T>, _ctx: &mut Self::Context) -> Self::Result {

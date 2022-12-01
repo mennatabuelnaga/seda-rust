@@ -2,10 +2,13 @@ use std::collections::HashMap;
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use seda_adapters::{MainChainAdapterTrait, NearMainChain};
+use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain, AnotherMainChain};
 
 use super::RuntimeError;
-use crate::HostAdapter;
+use crate::{HostAdapter};
+use seda_runtime_sdk::Chain;
+
+
 
 lazy_static! {
     #[derive(Clone, Default)]
@@ -104,26 +107,52 @@ impl HostAdapter for RuntimeTestAdapter {
 
    
     async fn chain_view(
+        chain: Chain,
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
     ) -> Result<String, RuntimeError> {
         let mut host = HostTestAdapters::default();
-        let result = host
-            .view::<Self::MainChainAdapter>(contract_id, method_name, args)
+        if chain ==  Chain::Near {
+            type MainChainAdapter = NearMainChain;
+            let result = host
+            .view::<MainChainAdapter>(contract_id, method_name, args)
             .await
             .expect("error fetching http result");
-        Ok(result)
+            Ok(result)
+        }else{
+            type MainChainAdapter = AnotherMainChain;
+            let result = host
+            .view::<MainChainAdapter>(contract_id, method_name, args)
+            .await
+            .expect("error fetching http result");
+            Ok(result)
+        }
+        
+        
     }
 
-    async fn chain_change(contract_id: &str,
+    async fn chain_change(
+        chain: Chain,
+        contract_id: &str,
         method_name: &str,
         args: Vec<u8>,) -> Result<Option<String>, RuntimeError> {
         let mut host = HostTestAdapters::default();
-        let result = host
-            .change::<Self::MainChainAdapter>(contract_id, method_name, args)
+        if chain ==  Chain::Near {
+            type MainChainAdapter = NearMainChain;
+            let result = host
+            .change::<MainChainAdapter>(contract_id, method_name, args)
             .await
             .expect("error fetching http result");
         Ok(result)
+        }else{
+            type MainChainAdapter = AnotherMainChain;
+            let result = host
+            .change::<MainChainAdapter>(contract_id, method_name, args)
+            .await
+            .expect("error fetching http result");
+        Ok(result)
+        }
+        
     }
 }

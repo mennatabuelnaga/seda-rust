@@ -1,4 +1,5 @@
 use actix::prelude::*;
+use seda_chain_adapters::MainChainAdapterTrait;
 use serde::{Deserialize, Serialize};
 
 use crate::{Host, Result, RuntimeAdapterError};
@@ -9,7 +10,7 @@ pub struct DatabaseGet {
     pub key: String,
 }
 
-impl Handler<DatabaseGet> for Host {
+impl<MC: MainChainAdapterTrait>  Handler<DatabaseGet> for Host<MC> {
     type Result = ResponseActFuture<Self, Result<Option<String>>>;
 
     fn handle(&mut self, msg: DatabaseGet, _ctx: &mut Self::Context) -> Self::Result {

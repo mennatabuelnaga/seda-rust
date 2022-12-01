@@ -1,4 +1,5 @@
 use seda_chain_adapters::MainChainAdapterTrait;
+use seda_runtime_sdk::Chain;
 
 use crate::Result;
 
@@ -10,7 +11,17 @@ pub trait HostAdapter: Send {
     async fn db_set(key: &str, value: &str) -> Result<()>;
     async fn http_fetch(url: &str) -> Result<String>;
 
-    async fn chain_change(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>>;
+    async fn chain_change(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+    ) -> Result<Option<String>>;
 
-    async fn chain_view(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
+    async fn chain_view(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+    ) -> Result<String>;
 }
