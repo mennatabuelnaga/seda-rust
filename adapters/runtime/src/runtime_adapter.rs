@@ -52,7 +52,11 @@ impl HostAdapter for RuntimeAdapter {
         Ok(result)
     }
 
-    async fn chain_change(contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
+
+
+    async fn chain_change(contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,) -> Result<Option<String>> {
         let host_actor = Host::from_registry();
 
         let result = host_actor

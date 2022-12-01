@@ -27,7 +27,7 @@ pub fn run<T: MainChainAdapterTrait>() {
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
-        let app = App::new().await.start();
+				let app = start(app, node_config, main_chain_config);
 
         // TODO: Use config for P2P Server
         let config = CONFIG.read().await;
