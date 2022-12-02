@@ -20,7 +20,6 @@ pub use runtime::*;
 #[cfg(test)]
 #[path = ""]
 pub mod test {
-    use super::*;
 
     mod runtime_test;
 }

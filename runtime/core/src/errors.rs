@@ -44,8 +44,6 @@ pub enum RuntimeError {
     FromUtf8Error(#[from] std::string::FromUtf8Error),
 }
 
-
-
 impl From<InstantiationError> for RuntimeError {
     fn from(r: InstantiationError) -> Self {
         Self::WasmInstantiationError(Box::new(r))

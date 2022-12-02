@@ -35,7 +35,7 @@ pub struct HttpAction {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChainViewAction {
-    pub chain: Chain,
+    pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
@@ -43,9 +43,8 @@ pub struct ChainViewAction {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChainChangeAction {
-    pub chain: Chain,
+    pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
 }
-

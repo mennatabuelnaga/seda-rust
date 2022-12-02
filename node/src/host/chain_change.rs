@@ -11,14 +11,14 @@ use crate::NodeError;
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<Option<String>, NodeError>")]
 pub struct ChainChange<T: MainChainAdapterTrait> {
-    pub chain: Chain,
-    pub contract_id:          String,
-    pub method_name:          String,
-    pub args:                 Vec<u8>,
-    pub phantom:              PhantomData<T>,
+    pub chain:       Chain,
+    pub contract_id: String,
+    pub method_name: String,
+    pub args:        Vec<u8>,
+    pub phantom:     PhantomData<T>,
 }
 
-impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
+impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host {
     type Result = ResponseActFuture<Self, Result<Option<String>, NodeError>>;
 
     fn handle(&mut self, msg: ChainChange<T>, _ctx: &mut Self::Context) -> Self::Result {
@@ -28,8 +28,6 @@ impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
         let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
 
-        
-        
         let fut = async move {
             let signed_txn = T::construct_signed_tx2(
                 &signer_acc_str,
@@ -40,7 +38,9 @@ impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
                 gas.parse().unwrap(),
                 deposit.parse().unwrap(),
                 &server_url,
-            ).await.expect("couldn't sign txn");
+            )
+            .await
+            .expect("couldn't sign txn");
             let value = T::send_tx2(signed_txn, &server_url).await.unwrap();
 
             Ok(value)

@@ -2,12 +2,11 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use borsh::ser::BorshSerialize;
 use parking_lot::Mutex;
-use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain};
-use seda_runtime_adapters::{test_host::RuntimeTestAdapter, InMemory, MemoryAdapter, HostAdapter};
-use seda_runtime_sdk::{PromiseStatus, Chain};
+use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
+use seda_runtime_sdk::{Chain, PromiseStatus};
 use serde_json::json;
 
-use super::*;
+use crate::{RunnableRuntime, Runtime, VmConfig};
 // use super::{InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
 // use crate::{test::test_adapters::RuntimeTestAdapter, HostAdapter};
 
@@ -260,13 +259,15 @@ async fn test_cli_demo_view_anotherchain() {
 //     .unwrap();
 
 //     let s_tx2 = json!(signed_tx.try_to_vec().unwrap()).to_string();
+//     let args = json!({"socket_address":
+// socket_address.to_string()}).to_string();
 
 //     let runtime_execution_result = runtime
 //         .start_runtime::<RuntimeTestAdapter>(
 //             VmConfig {
-//                 args:         vec!["change".to_string(), chain, contract_id.to_string(), method.to_string(), args],
-//                 program_name: "consensus".to_string(),
-//                 start_func:   None,
+//                 args:         vec!["change".to_string(), chain,
+// contract_id.to_string(), method.to_string(), args],
+// program_name: "consensus".to_string(),                 start_func:   None,
 //                 debug:        true,
 //             },
 //             memory_adapter.clone(),
@@ -275,12 +276,10 @@ async fn test_cli_demo_view_anotherchain() {
 
 //     assert!(runtime_execution_result.is_ok());
 
-//     let db_result = RuntimeTestAdapter::db_get("chain_change_result").await.unwrap();
-//     assert!(db_result.is_some());
-//     assert_eq!(db_result.unwrap(), "32".to_string());
+//     let db_result =
+// RuntimeTestAdapter::db_get("chain_change_result").await.unwrap();     assert!
+// (db_result.is_some());     assert_eq!(db_result.unwrap(), "32".to_string());
 // }
-
-
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_cli_demo_change_anotherchain() {
@@ -299,7 +298,13 @@ async fn test_cli_demo_change_anotherchain() {
     let runtime_execution_result = runtime
         .start_runtime::<RuntimeTestAdapter>(
             VmConfig {
-                args:         vec!["change".to_string(), chain, contract_id.to_string(), method.to_string(), args],
+                args:         vec![
+                    "change".to_string(),
+                    chain,
+                    contract_id.to_string(),
+                    method.to_string(),
+                    args,
+                ],
                 program_name: "consensus".to_string(),
                 start_func:   None,
                 debug:        true,

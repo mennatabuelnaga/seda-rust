@@ -172,8 +172,6 @@ impl MainChainAdapterTrait for NearMainChain {
         Ok(signed_transaction)
     }
 
-   
-
     async fn send_tx(client: Arc<Self::Client>, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
             signed_transaction: signed_tx.clone(),
@@ -305,6 +303,4 @@ impl MainChainAdapterTrait for NearMainChain {
             Err(MainChainAdapterError::CallViewMethod)
         }
     }
-
-   
 }

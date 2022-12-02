@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use actix::prelude::*;
 use seda_chain_adapters::MainChainAdapterTrait;
+use seda_runtime_sdk::Chain;
 use serde::{Deserialize, Serialize};
 
 use crate::{Host, Result};
@@ -9,14 +10,14 @@ use crate::{Host, Result};
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<Option<String>>")]
 pub struct ChainChange<T: MainChainAdapterTrait> {
-    pub chain: Chain,
-    pub contract_id:          String,
-    pub method_name:          String,
-    pub args:                 Vec<u8>,
-    pub phantom:              PhantomData<T>,
+    pub chain:       Chain,
+    pub contract_id: String,
+    pub method_name: String,
+    pub args:        Vec<u8>,
+    pub phantom:     PhantomData<T>,
 }
 
-impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
+impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host {
     type Result = ResponseActFuture<Self, Result<Option<String>>>;
 
     fn handle(&mut self, msg: ChainChange<T>, _ctx: &mut Self::Context) -> Self::Result {
@@ -25,8 +26,6 @@ impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
         let gas = dotenv::var("GAS").expect("GAS not set");
         let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
-
-
 
         let fut = async move {
             let signed_txn = T::construct_signed_tx2(
@@ -38,7 +37,9 @@ impl<T: MainChainAdapterTrait> Handler<ChainChange<T>> for Host<T> {
                 gas.parse().unwrap(),
                 deposit.parse().unwrap(),
                 &server_url,
-            ).await.expect("couldn't sign txn");
+            )
+            .await
+            .expect("couldn't sign txn");
             let value = T::send_tx2(signed_txn, &server_url).await.unwrap();
 
             Ok(value)

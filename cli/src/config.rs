@@ -1,5 +1,5 @@
 use seda_chain_adapters::MainChainAdapterTrait;
-use seda_config::{env_overwrite, Config};
+use seda_config::Config;
 use seda_logger::LoggerConfig;
 use seda_node::NodeConfig;
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use crate::errors::{Result, TomlError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig<T: MainChainAdapterTrait> {
-    pub seda_server_url:           Option<String>,
+    pub seda_server_url: Option<String>,
 
     // TODO better name main_chain_config to appropriate
     // mainchain name. Can be done once we do conditional
@@ -33,10 +33,10 @@ impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
             // signer_account_id:         None,
             // contract_account_id:       None,
             // public_key:                None,
-            node:                      Some(Default::default()),
-            main_chain:                Some(Default::default()),
-            logging:                   Some(Default::default()),
-            seda_server_url:           None,
+            node:            Some(Default::default()),
+            main_chain:      Some(Default::default()),
+            logging:         Some(Default::default()),
+            seda_server_url: None,
             // node_config:               Some(Default::default()),
             // main_chain_config:         Some(Default::default()),
         };
@@ -55,10 +55,10 @@ impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
             // contract_account_id:       Some("fill me in".to_string()),
             // public_key:                Some("fill me in".to_string()),
             // node_config:               Some(NodeConfig::template()),
-            seda_server_url:           Some("fill me in".to_string()),
-            node:                      Some(NodeConfig::template()),
-            main_chain:                Some(T::Config::template()),
-            logging:                   Some(LoggerConfig::template()),
+            seda_server_url: Some("fill me in".to_string()),
+            node:            Some(NodeConfig::template()),
+            main_chain:      Some(T::Config::template()),
+            logging:         Some(LoggerConfig::template()),
         }
     }
 

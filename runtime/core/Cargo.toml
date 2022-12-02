@@ -22,11 +22,9 @@ tracing = { workspace = true }
 [dev-dependencies]
 reqwest = { workspace = true }
 seda-runtime-adapters = { workspace = true, features = ["test_host"] }
-# rusqlite = { version = "0.28.0", features = ["bundled"] }
-tokio-rusqlite = "0.3.0"
-futures = "0.3.25"
+tokio-rusqlite = {workspace = true}
+futures = {workspace = true}
 seda-chain-adapters = {workspace = true}
-
-lazy_static = "1.4.0"
-borsh = "0.9.3"
-dotenv = "0.15.0"
+lazy_static = {workspace = true}
+borsh = {workspace = true}
+dotenv = {workspace = true}

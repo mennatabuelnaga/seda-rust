@@ -25,7 +25,6 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-
     fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
@@ -51,7 +50,6 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl RunnableRuntime for Runtime {
-
     fn new() -> Self {
         Self { wasm_module: None }
     }
@@ -184,7 +182,6 @@ impl RunnableRuntime for Runtime {
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
                     PromiseAction::ChainChange(chain_change_action) => {
-                        
                         let resp = HA::chain_change(
                             chain_change_action.chain,
                             &chain_change_action.contract_id,

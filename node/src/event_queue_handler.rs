@@ -1,8 +1,7 @@
 use actix::{Handler, Message};
 use serde::{Deserialize, Serialize};
-use seda_chain_adapters::MainChainAdapterTrait;
 
-use crate::{ event_queue::Event, app::App};
+use crate::{app::App, event_queue::Event};
 
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "()")]
@@ -10,8 +9,7 @@ pub struct AddEventToQueue {
     pub event: Event,
 }
 
-impl<MC> Handler<AddEventToQueue> for App<MC>
-where MC: MainChainAdapterTrait {
+impl Handler<AddEventToQueue> for App {
     type Result = ();
 
     fn handle(&mut self, msg: AddEventToQueue, _ctx: &mut Self::Context) -> Self::Result {

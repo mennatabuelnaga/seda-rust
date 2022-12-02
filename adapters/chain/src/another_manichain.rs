@@ -4,7 +4,7 @@ use near_crypto::InMemorySigner;
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
 use near_primitives::{
-    borsh::{BorshDeserialize, BorshSerialize},
+    borsh::BorshSerialize,
     transaction::{Action, FunctionCallAction, SignedTransaction, Transaction},
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
@@ -13,11 +13,9 @@ use seda_config::{env_overwrite, Config};
 use serde::{Deserialize, Serialize};
 use serde_json::from_slice;
 use tokio::time;
-use tracing::info;
 
 use super::errors::{MainChainAdapterError, Result};
 use crate::{MainChainAdapterTrait, TransactionParams};
-
 
 #[derive(Debug)]
 pub struct AnotherMainChain;

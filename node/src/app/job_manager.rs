@@ -24,8 +24,7 @@ impl StartJobManager {
     const JOB_MANAGER_INTERVAL: u64 = 200;
 }
 
-impl<MC> Handler<StartJobManager> for App<MC>
-where MC: MainChainAdapterTrait {
+impl Handler<StartJobManager> for App {
     type Result = ();
 
     fn handle(&mut self, msg: StartJobManager, ctx: &mut Self::Context) -> Self::Result {

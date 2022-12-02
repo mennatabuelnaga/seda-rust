@@ -1,7 +1,7 @@
 use clap::{arg, command, Parser, Subcommand};
 use seda_config::{overwrite_config_field, CONFIG};
 
-use crate::{errors::CliError, Result};
+use crate::{config::AppConfig, Result};
 mod cli_commands;
 use cli_commands::*;
 #[cfg(feature = "near")]

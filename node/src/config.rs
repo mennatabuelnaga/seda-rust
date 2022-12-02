@@ -1,4 +1,4 @@
-use seda_config::{Config, env_overwrite};
+use seda_config::{env_overwrite, Config};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,9 +14,9 @@ pub struct NodeConfig {
     pub public_key:                Option<String>,
     // TODO should this be overwritten from
     // env and cli?
-    pub job_manager_interval_ms: u64,
-    pub server_address:          Option<String>,
-    pub runtime_worker_threads:  u32,
+    pub job_manager_interval_ms:   u64,
+    pub server_address:            Option<String>,
+    pub runtime_worker_threads:    u32,
 }
 
 impl Config for NodeConfig {
@@ -28,9 +28,9 @@ impl Config for NodeConfig {
             signer_account_id:         Some("fill me in".to_string()),
             contract_account_id:       Some("fill me in".to_string()),
             public_key:                Some("fill me in".to_string()),
-            job_manager_interval_ms: 10,
-            server_address:          Some("fill me in".to_string()),
-            runtime_worker_threads:  2,
+            job_manager_interval_ms:   10,
+            server_address:            Some("fill me in".to_string()),
+            runtime_worker_threads:    2,
         }
     }
 
@@ -52,12 +52,11 @@ impl Default for NodeConfig {
             signer_account_id:         None,
             contract_account_id:       None,
             public_key:                None,
-            job_manager_interval_ms: 10,
-            server_address:          None,
-            runtime_worker_threads:  2,
+            job_manager_interval_ms:   10,
+            server_address:            None,
+            runtime_worker_threads:    2,
         };
         this.overwrite_from_env();
         this
     }
 }
-

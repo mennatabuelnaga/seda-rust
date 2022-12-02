@@ -19,5 +19,5 @@ tokio = { workspace = true }
 tokio-rusqlite = { workspace = true }
 rusqlite = { workspace = true }
 seda-chain-adapters = { workspace = true }
-dotenv = "0.15.0"
+dotenv = { workspace = true}
 seda-runtime-sdk = {workspace = true  }

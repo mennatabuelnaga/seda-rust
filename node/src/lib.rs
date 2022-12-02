@@ -4,8 +4,6 @@ mod errors;
 pub use errors::*;
 mod event_queue;
 mod event_queue_handler;
-mod node_context;
-pub use node_context::*;
 mod rpc;
 mod runtime_job;
 
