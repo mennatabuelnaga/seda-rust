@@ -2990,7 +2990,12 @@ dependencies = [
 name = "seda-config"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
  "serde",
+ "thiserror",
+ "tokio",
+ "toml",
+ "tracing",
 ]
 
 [[package]]

@@ -1,15 +1,8 @@
 use near_crypto::ParseKeyError;
 use near_primitives::account::id::ParseAccountError;
 use seda_chain_adapters::MainChainAdapterError;
+use seda_config::ConfigError;
 use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum TomlError {
-    #[error("Invalid Toml Deserialization: {0}")]
-    Deserialize(#[from] toml::de::Error),
-    #[error("Invalid Toml Serialization: {0}")]
-    Serialize(#[from] toml::ser::Error),
-}
 
 #[derive(Error, Debug)]
 pub enum CliError {
@@ -23,12 +16,10 @@ pub enum CliError {
     ParseKey(#[from] ParseKeyError),
     #[error(transparent)]
     MainChainAdapterError(#[from] MainChainAdapterError),
-    #[error("Config io error: {0}")]
-    ConfigIoError(#[from] std::io::Error),
+    #[error("Config error: {0}")]
+    LoadConfigError(#[from] ConfigError),
     #[error("Config error: {0}")]
     ConfigError(String),
-    #[error(transparent)]
-    InvalidTomlConfig(#[from] TomlError),
 }
 
 impl From<&str> for CliError {

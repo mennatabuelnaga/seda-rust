@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-use seda_config::{env_overwrite, Config};
 use serde::{Deserialize, Serialize};
+
+use crate::{env_overwrite, Config};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 /// The configuration for the logger.

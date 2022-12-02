@@ -1,6 +1,4 @@
 mod app;
-mod config;
-pub use config::*;
 mod errors;
 pub use errors::*;
 mod event_queue;
@@ -21,13 +19,13 @@ pub mod test {
     mod event_queue_test;
 }
 
-pub fn run<T: MainChainAdapterTrait>(node_config: &NodeConfig, _main_chain_config: &T::Config) {
+pub fn run<T: MainChainAdapterTrait>() {
     let system = System::new();
 
     // Initialize actors inside system context
     system.block_on(async {
         // TODO: add number of workers as config with default value
-        let app = App::new(node_config.runtime_worker_threads as usize).await.start();
+        let app = App::new(2).await.start();
 
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {
