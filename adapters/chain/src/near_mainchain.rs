@@ -8,7 +8,7 @@ use near_primitives::{
     types::{AccountId, BlockReference, Finality, FunctionArgs},
     views::{FinalExecutionStatus, QueryRequest},
 };
-use seda_config::NearConfig;
+use seda_config::MainChainConfig;
 use serde_json::from_slice;
 use tokio::time;
 use tracing::info;
@@ -22,7 +22,7 @@ pub struct NearMainChain;
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for NearMainChain {
     type Client = JsonRpcClient;
-    type Config = NearConfig;
+    type Config = MainChainConfig;
     type FinalExecutionStatus = near_primitives::views::FinalExecutionStatus;
     type SignedTransaction = near_primitives::transaction::SignedTransaction;
 

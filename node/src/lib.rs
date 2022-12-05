@@ -24,8 +24,7 @@ pub fn run<T: MainChainAdapterTrait>() {
 
     // Initialize actors inside system context
     system.block_on(async {
-        // TODO: add number of workers as config with default value
-        let app = App::new(2).await.start();
+        let app = App::new().await.start();
 
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {

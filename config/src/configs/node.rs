@@ -15,7 +15,7 @@ pub struct NodeConfig {
     // env and cli?
     pub job_manager_interval_ms:   u64,
     pub server_address:            Option<String>,
-    pub runtime_worker_threads:    u32,
+    pub runtime_worker_threads:    Option<usize>,
 }
 
 impl Config for NodeConfig {
@@ -29,7 +29,7 @@ impl Config for NodeConfig {
             public_key:                Some("fill me in".to_string()),
             job_manager_interval_ms:   10,
             server_address:            Some("fill me in".to_string()),
-            runtime_worker_threads:    2,
+            runtime_worker_threads:    Some(2),
         }
     }
 
@@ -53,7 +53,7 @@ impl Default for NodeConfig {
             public_key:                None,
             job_manager_interval_ms:   10,
             server_address:            None,
-            runtime_worker_threads:    2,
+            runtime_worker_threads:    Some(2),
         };
         this.overwrite_from_env();
         this

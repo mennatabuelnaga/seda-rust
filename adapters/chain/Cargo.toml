@@ -3,12 +3,20 @@ name = "seda-chain-adapters"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+near = [
+	"near-jsonrpc-client",
+	"near-jsonrpc-primitives",
+	"near-primitives",
+	"seda-config/near",
+]
+
 [dependencies]
 async-trait = { workspace = true }
 jsonrpsee-types = { workspace = true }
-near-jsonrpc-client = { workspace = true }
-near-jsonrpc-primitives = { workspace = true }
-near-primitives = { workspace = true }
+near-jsonrpc-client = { workspace = true, optional = true }
+near-jsonrpc-primitives = { workspace = true, optional = true }
+near-primitives = { workspace = true, optional = true }
 tokio = { workspace = true }
 seda-config = { workspace = true }
 serde = { workspace = true }

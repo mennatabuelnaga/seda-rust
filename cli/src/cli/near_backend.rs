@@ -1,6 +1,6 @@
 use jsonrpsee::{core::client::ClientT, rpc_params, ws_client::WsClientBuilder};
 use near_primitives::views::FinalExecutionStatus;
-use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain, NodeDetails, NodeIds};
+use seda_chain_adapters::{MainChain, MainChainAdapterTrait, NodeDetails, NodeIds};
 use seda_config::CONFIG;
 use serde_json::json;
 use tracing::debug;
@@ -11,9 +11,12 @@ use crate::errors::Result;
 #[derive(Debug, Default)]
 pub struct NearCliBackend;
 
+// It's safe to call unwrap on the sub configs
+// in the functions below. THis is because we
+// already check they exist in the CLI.
 #[async_trait::async_trait]
 impl CliCommands for NearCliBackend {
-    type MainChainAdapter = NearMainChain;
+    type MainChainAdapter = MainChain;
 
     async fn format_tx_and_request_seda_server(
         method: &str,
@@ -50,7 +53,7 @@ impl CliCommands for NearCliBackend {
             .as_ref()
             .ok_or("gas from config.")?
             .parse()
-            .expect("deposit_for_register_node from config file was not a valid number.");
+            .map_err(|e| format!("gas from config file was not a valid number: '{e}'."))?;
 
         let signed_tx = Self::MainChainAdapter::construct_signed_tx(
             signer_acc_str,
@@ -79,7 +82,7 @@ impl CliCommands for NearCliBackend {
             .as_ref()
             .ok_or("deposit_for_register_node from config file.")?
             .parse()
-            .expect("deposit_for_register_node from config file was not a valid number.");
+            .map_err(|e| format!("deposit_for_register_node from config file was not a valid number: '{e}'."))?;
 
         let response = Self::format_tx_and_request_seda_server(
             method_name,

@@ -13,22 +13,12 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig {
-    // TODO should deposit and gas be overwritten
     pub seda_server_url: Option<String>,
 
-    // TODO better name main_chain_config to appropriate
-    // mainchain name. Can be done once we do conditional
-    // compilation to select mainchain
     pub main_chain: Option<MainChainConfig>,
     pub node:       Option<NodeConfig>,
     pub logging:    Option<LoggerConfig>,
 }
-
-// impl AsRef<AppConfig> for AppConfig {
-//     fn as_ref(&self) -> &Self {
-//         self
-//     }
-// }
 
 impl Default for AppConfig {
     fn default() -> Self {
@@ -83,15 +73,6 @@ impl AppConfig {
         Self::from_read(&mut file)
     }
 
-    /// For reading from a toml file from a path if the path exists.
-    /// Otherwise it returns a default object.
-    pub fn read_from_optional_path(path: Option<PathBuf>) -> Result<Self> {
-        match path {
-            Some(path) => Self::read_from_path(path),
-            None => Ok(Self::default()),
-        }
-    }
-
     /// For writing a default configuration file.
     pub fn write_template<W: std::io::Write>(buf: &mut W) -> Result<()> {
         let template = Self::template();
@@ -102,6 +83,11 @@ impl AppConfig {
 
     /// For creating a default config to a given path.
     pub fn create_template_from_path(path: &PathBuf) -> Result<()> {
+        if let Some(prefix) = path.parent() {
+            if !prefix.exists() {
+                std::fs::create_dir_all(prefix)?;
+            }
+        }
         let mut file = std::fs::OpenOptions::new().create(true).write(true).open(path)?;
         Self::write_template(&mut file)
     }

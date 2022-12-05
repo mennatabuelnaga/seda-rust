@@ -4,8 +4,11 @@ use seda_config::{overwrite_config_field, CONFIG};
 use crate::{errors::CliError, Result};
 mod cli_commands;
 use cli_commands::*;
+#[cfg(feature = "near")]
 mod near_backend;
-pub use near_backend::NearCliBackend;
+
+#[cfg(feature = "near")]
+pub type CliBackend = near_backend::NearCliBackend;
 
 #[derive(Parser)]
 #[command(name = "seda")]

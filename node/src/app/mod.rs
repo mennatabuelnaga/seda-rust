@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use actix::prelude::*;
 use parking_lot::RwLock;
+use seda_config::CONFIG;
 use tracing::info;
 
 use crate::{
@@ -23,7 +24,10 @@ pub struct App {
 }
 
 impl App {
-    pub async fn new(worker_threads: usize) -> Self {
+    pub async fn new() -> Self {
+        let config = CONFIG.read().await;
+        // Okay to unwrap since CLI already checks if node section exists.
+        let worker_threads = config.node.as_ref().unwrap().runtime_worker_threads.unwrap_or(2);
         let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker { runtime: None });
         let rpc_server = JsonRpcServer::start(runtime_worker.clone())
             .await

@@ -1,8 +1,8 @@
 mod cli;
-use cli::{CliOptions, NearCliBackend};
+use cli::{CliBackend, CliOptions};
 mod errors;
 use errors::Result;
 
 fn main() -> Result<()> {
-    CliOptions::handle::<NearCliBackend>()
+    CliOptions::handle::<CliBackend>()
 }

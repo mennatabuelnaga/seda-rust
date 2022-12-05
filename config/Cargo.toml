@@ -3,6 +3,9 @@ name = "seda-config"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+near = []
+
 [dependencies]
 lazy_static = { workspace = true }
 serde = { workspace = true }

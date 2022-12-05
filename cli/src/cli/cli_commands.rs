@@ -56,10 +56,9 @@ pub trait CliCommands: Send + Sync {
 
         let response = Self::format_tx_and_request_seda_server(
             method_name,
-            json!({ "node_id": node_id.to_string(), "new_socket_address":
-    new_socket_address })
-            .to_string()
-            .into_bytes(),
+            json!({ "node_id": node_id.to_string(), "new_socket_address": new_socket_address })
+                .to_string()
+                .into_bytes(),
             0_u128,
         )
         .await?;
