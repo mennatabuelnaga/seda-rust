@@ -176,8 +176,7 @@ impl RunnableRuntime for Runtime {
                             &chain_view_action.method_name,
                             chain_view_action.args.clone(),
                         )
-                        .await
-                        ?;
+                        .await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
@@ -188,8 +187,7 @@ impl RunnableRuntime for Runtime {
                             &chain_call_action.method_name,
                             chain_call_action.args.clone(),
                         )
-                        .await
-                        ?;
+                        .await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.unwrap().into_bytes());
                     }

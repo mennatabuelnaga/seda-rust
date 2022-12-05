@@ -13,7 +13,7 @@ impl Handler<HttpFetch> for Host {
     type Result = ResponseActFuture<Self, String>;
 
     fn handle(&mut self, msg: HttpFetch, _ctx: &mut Self::Context) -> Self::Result {
-        let fut = async { reqwest::get(msg.url).await.unwrap().text().await.unwrap()};
+        let fut = async { reqwest::get(msg.url).await.unwrap().text().await.unwrap() };
 
         Box::pin(fut.into_actor(self))
     }

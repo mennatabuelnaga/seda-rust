@@ -23,9 +23,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainView<T>> for Host {
         dotenv::dotenv().ok();
         let server_address = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
         let fut = async move {
-            let value = T::view2(&msg.contract_id, &msg.method_name, msg.args, &server_address)
-                .await
-                ?;
+            let value = T::view2(&msg.contract_id, &msg.method_name, msg.args, &server_address).await?;
 
             Ok(value)
         };

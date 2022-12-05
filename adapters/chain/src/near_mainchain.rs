@@ -253,9 +253,7 @@ impl MainChainAdapterTrait for NearMainChain {
 
                     println!("response.status: {:#?}", response.status);
                     let success_value = match response.status {
-                        FinalExecutionStatus::SuccessValue(ref val) => {
-                            Some(serde_json::from_slice::<String>(val)?)
-                        }
+                        FinalExecutionStatus::SuccessValue(ref val) => Some(serde_json::from_slice::<String>(val)?),
                         _ => None,
                     };
                     return Ok(success_value);

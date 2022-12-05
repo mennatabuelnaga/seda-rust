@@ -1,4 +1,3 @@
-
 use seda_runtime_adapters::RuntimeAdapterError;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
@@ -43,7 +42,6 @@ pub enum RuntimeError {
 
     #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
-
 }
 
 impl From<InstantiationError> for RuntimeError {

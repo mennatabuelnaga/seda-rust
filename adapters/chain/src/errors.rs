@@ -48,8 +48,6 @@ pub enum MainChainAdapterError {
 
     #[error("error serializing to vec")]
     StdIoError(#[from] std::io::Error),
-
-
 }
 
 pub type Result<T, E = MainChainAdapterError> = core::result::Result<T, E>;

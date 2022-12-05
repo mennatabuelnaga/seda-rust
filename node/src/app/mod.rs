@@ -25,8 +25,6 @@ pub struct App {
 
 impl App {
     pub async fn new(worker_threads: usize) -> Self {
-        // let host_addr = Host::<MC>::new(node_config.whatever, node_config).start();
-
         let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker { runtime: None });
 
         let rpc_server_address_default = "127.0.0.1:12345".to_string();
@@ -40,7 +38,6 @@ impl App {
         let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
-        println!("11111111111111");
         App {
             event_queue: Default::default(),
             running_event_ids: Default::default(),

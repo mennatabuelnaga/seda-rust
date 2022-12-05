@@ -195,36 +195,37 @@ async fn test_cli_demo_view_chain() {
     assert_eq!(result, "test-success");
 }
 
-#[tokio::test(flavor = "multi_thread")]
-async fn test_cli_demo_view_anotherchain() {
-    let wasm_binary = cli_wasm();
-    let mut runtime = Runtime::new();
+// #[tokio::test(flavor = "multi_thread")]
+// async fn test_cli_demo_view_anotherchain() {
+//     let wasm_binary = cli_wasm();
+//     let mut runtime = Runtime::new();
 
-    let memory_adapter = memory_adapter();
-    runtime.init(wasm_binary).unwrap();
-    let chain = (Chain::Cosmos).to_string();
-    let contract_id = "mc.mennat0.testnet".to_string();
-    let method_name = "get_node_socket_address".to_string();
-    let args = json!({"node_id": "12".to_string()}).to_string();
+//     let memory_adapter = memory_adapter();
+//     runtime.init(wasm_binary).unwrap();
+//     let chain = (Chain::Cosmos).to_string();
+//     let contract_id = "mc.mennat0.testnet".to_string();
+//     let method_name = "get_node_socket_address".to_string();
+//     let args = json!({"node_id": "12".to_string()}).to_string();
 
-    let runtime_execution_result = runtime
-        .start_runtime::<RuntimeTestAdapter>(
-            VmConfig {
-                args:         vec!["view".to_string(), chain, contract_id, method_name, args],
-                program_name: "consensus".to_string(),
-                start_func:   None,
-                debug:        true,
-            },
-            memory_adapter.clone(),
-        )
-        .await;
-    assert!(runtime_execution_result.is_ok());
+//     let runtime_execution_result = runtime
+//         .start_runtime::<RuntimeTestAdapter>(
+//             VmConfig {
+//                 args:         vec!["view".to_string(), chain, contract_id,
+// method_name, args],                 program_name: "consensus".to_string(),
+//                 start_func:   None,
+//                 debug:        true,
+//             },
+//             memory_adapter.clone(),
+//         )
+//         .await;
+//     assert!(runtime_execution_result.is_ok());
 
-    let db_result = RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();
-    assert!(db_result.is_some());
+//     let db_result =
+// RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();     assert!
+// (db_result.is_some());
 
-    assert_eq!(db_result.unwrap(), "From another mainchain".to_string());
-}
+//     assert_eq!(db_result.unwrap(), "From another mainchain".to_string());
+// }
 
 // #[tokio::test(flavor = "multi_thread")]
 // async fn test_cli_demo_change() {
@@ -258,14 +259,21 @@ async fn test_cli_demo_view_anotherchain() {
 
 //     let s_tx2 = json!(signed_tx.try_to_vec().unwrap()).to_string();
 //     let args = json!({"socket_address":
-// socket_address.to_string()}).to_string();
+// socket_address.to_string()})
+//     .to_string();
 
 //     let runtime_execution_result = runtime
 //         .start_runtime::<RuntimeTestAdapter>(
 //             VmConfig {
-//                 args:         vec!["call".to_string(), chain,
-// contract_id.to_string(), method.to_string(), args],
-// program_name: "consensus".to_string(),                 start_func:   None,
+//                 args:         vec![
+//                     "call".to_string(),
+//                     chain,
+//                     contract_id.to_string(),
+//                     method.to_string(),
+//                     args,
+//                 ],
+//                 program_name: "consensus".to_string(),
+//                 start_func:   None,
 //                 debug:        true,
 //             },
 //             memory_adapter.clone(),
@@ -279,41 +287,42 @@ async fn test_cli_demo_view_anotherchain() {
 // (db_result.is_some());     assert_eq!(db_result.unwrap(), "32".to_string());
 // }
 
-#[tokio::test(flavor = "multi_thread")]
-async fn test_cli_demo_change_anotherchain() {
-    let wasm_binary = cli_wasm();
-    let mut runtime = Runtime::new();
-    let memory_adapter = memory_adapter();
-    runtime.init(wasm_binary).unwrap();
-    let chain = (Chain::Cosmos).to_string();
+// #[tokio::test(flavor = "multi_thread")]
+// async fn test_cli_demo_change_anotherchain() {
+//     let wasm_binary = cli_wasm();
+//     let mut runtime = Runtime::new();
+//     let memory_adapter = memory_adapter();
+//     runtime.init(wasm_binary).unwrap();
+//     let chain = (Chain::Cosmos).to_string();
 
-    let contract_id = "mc.mennat0.testnet";
+//     let contract_id = "mc.mennat0.testnet";
 
-    let method = "register_node";
-    let socket_address = "0.0.0.0:8080";
-    let args = json!({"socket_address": socket_address.to_string()}).to_string();
+//     let method = "register_node";
+//     let socket_address = "0.0.0.0:8080";
+//     let args = json!({"socket_address":
+// socket_address.to_string()}).to_string();
 
-    let runtime_execution_result = runtime
-        .start_runtime::<RuntimeTestAdapter>(
-            VmConfig {
-                args:         vec![
-                    "call".to_string(),
-                    chain,
-                    contract_id.to_string(),
-                    method.to_string(),
-                    args,
-                ],
-                program_name: "consensus".to_string(),
-                start_func:   None,
-                debug:        true,
-            },
-            memory_adapter.clone(),
-        )
-        .await;
+//     let runtime_execution_result = runtime
+//         .start_runtime::<RuntimeTestAdapter>(
+//             VmConfig {
+//                 args:         vec![
+//                     "call".to_string(),
+//                     chain,
+//                     contract_id.to_string(),
+//                     method.to_string(),
+//                     args,
+//                 ],
+//                 program_name: "consensus".to_string(),
+//                 start_func:   None,
+//                 debug:        true,
+//             },
+//             memory_adapter.clone(),
+//         )
+//         .await;
 
-    assert!(runtime_execution_result.is_ok());
+//     assert!(runtime_execution_result.is_ok());
 
-    let db_result = RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();
-    assert!(db_result.is_some());
-    assert_eq!(db_result.unwrap(), "Called change From another chain".to_string());
-}
+//     let db_result =
+// RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();     assert!
+// (db_result.is_some());     assert_eq!(db_result.unwrap(), "Called change From
+// another chain".to_string()); }

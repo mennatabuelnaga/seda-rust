@@ -27,7 +27,6 @@ pub struct Host {
 
 impl Default for Host {
     fn default() -> Self {
-        println!("HELLO FROM HOST DEFAULT");
         executor::block_on(async move {
             let db_conn = Connection::open("./seda_db.db3").await.expect("Couldn't open db conn");
 

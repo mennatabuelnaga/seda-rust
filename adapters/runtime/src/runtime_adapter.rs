@@ -18,9 +18,7 @@ impl HostAdapter for RuntimeAdapter {
     async fn db_get(key: &str) -> Result<Option<String>> {
         let host_actor = Host::from_registry();
 
-        let result = host_actor
-            .send(DatabaseGet { key: key.to_string() })
-            .await??;
+        let result = host_actor.send(DatabaseGet { key: key.to_string() }).await??;
 
         Ok(result)
     }

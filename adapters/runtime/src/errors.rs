@@ -1,8 +1,8 @@
-use std::{array::TryFromSliceError, str::Utf8Error, num::ParseIntError};
+use std::{array::TryFromSliceError, num::ParseIntError, str::Utf8Error};
 
+use actix::MailboxError;
 use seda_chain_adapters::MainChainAdapterError;
 use thiserror::Error;
-use actix::MailboxError;
 #[derive(Debug, Error)]
 pub enum RuntimeAdapterError {
     #[error("{0:?}")]
@@ -23,8 +23,7 @@ pub enum RuntimeAdapterError {
     #[error("Parse Integer Error: {0}")]
     ParseIntError(#[from] ParseIntError),
     #[error("MainChain Adapter Error: {0}")]
-    MainChainAdapterError(#[from] MainChainAdapterError)
-
+    MainChainAdapterError(#[from] MainChainAdapterError),
 }
 
 pub type Result<T, E = RuntimeAdapterError> = core::result::Result<T, E>;

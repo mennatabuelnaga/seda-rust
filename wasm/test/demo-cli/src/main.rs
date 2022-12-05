@@ -26,13 +26,8 @@ enum Commands {
         chain: Chain,
         contract_id: String, method_name: String, args: String
     },
-<<<<<<< HEAD:wasm/test/demo-cli/src/main.rs
-    Change {
-        chain: Chain,
-=======
     Call {
         chain: Chain,
->>>>>>> d249a97 (refactor: rm unwraps + cleanup):test_wasm_bins/demo_cli/src/main.rs
         contract_id: String, method_name: String, args: String
     },
 }
@@ -53,7 +48,7 @@ fn main() {
             Commands::Hello => {
                 println!("Hello World from inside wasm");
             },
-            //cargo run cli view "Near" mc.mennat0.testnet get_node_owner "{\"node_id\":\"12\"}"
+            //cargo run -- -c ./template_config.toml cli view "Near" mc.mennat0.testnet get_node_owner "{\"node_id\":\"12\"}"
             Commands::View{chain, contract_id, method_name, args} => {
                 chain_view(chain, contract_id, method_name, args.into_bytes()).start()
                 .then(call_self("chain_view_test_success", vec![]));
