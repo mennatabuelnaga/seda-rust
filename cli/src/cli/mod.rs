@@ -188,7 +188,7 @@ impl CliOptions {
                 T::get_node_owner(node_id).await?
             }
             Command::Cli { args } => T::call_cli(&args).await?,
-            // The commands `run` and `generate-config` are already handled.
+            // The commands `run` are already handled.
             _ => unreachable!(),
         }
 
@@ -198,7 +198,6 @@ impl CliOptions {
     pub fn handle<T: CliCommands>() -> Result<()> {
         let options = CliOptions::parse();
         dotenv::dotenv().ok();
-        // let config = CONFIG.blocking_read();
 
         if let Command::Run { server_address } = options.command {
             {

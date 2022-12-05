@@ -1,15 +1,15 @@
 use std::io;
 
-use seda_config::CONFIG;
+use seda_config::{LoggerConfig, CONFIG};
 use tracing_subscriber::{fmt, prelude::__tracing_subscriber_SubscriberExt, EnvFilter};
 
 pub fn init<T, E>(fun: T) -> Result<(), E>
 where
     T: FnOnce() -> Result<(), E>,
 {
-    // TODO fix me
     let config = CONFIG.blocking_read();
-    let config = config.logging.as_ref().unwrap();
+    let default_config = LoggerConfig::default();
+    let config = config.logging.as_ref().unwrap_or(&default_config);
 
     // Grabs from RUST_LOG env var and if not defaults to
     // TRACE for debug, and info for non debug.
@@ -27,7 +27,7 @@ where
     let stdout = stdout.with_line_number(false).with_file(false);
     let subscriber = subscriber.with(stdout);
 
-    if let Some(log_file_path) = &config.log_file_path {
+    if let Some(log_file_path) = config.log_file_path.as_ref() {
         // Log Rotation set to daily.
         let file_appender = tracing_appender::rolling::daily(log_file_path, "example.log");
         let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
