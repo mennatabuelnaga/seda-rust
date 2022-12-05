@@ -3,7 +3,7 @@ use std::str;
 use clap::{Parser, Subcommand};
 
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, chain_view, chain_change, Promise},
+    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, chain_view, chain_call, Promise},
     PromiseStatus, Chain
 };
 
@@ -26,8 +26,13 @@ enum Commands {
         chain: Chain,
         contract_id: String, method_name: String, args: String
     },
+<<<<<<< HEAD:wasm/test/demo-cli/src/main.rs
     Change {
         chain: Chain,
+=======
+    Call {
+        chain: Chain,
+>>>>>>> d249a97 (refactor: rm unwraps + cleanup):test_wasm_bins/demo_cli/src/main.rs
         contract_id: String, method_name: String, args: String
     },
 }
@@ -54,10 +59,10 @@ fn main() {
                 .then(call_self("chain_view_test_success", vec![]));
             },
             // register_node serialized signed txn
-            // cargo run cli change ""Cosmos" mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
-            Commands::Change{chain, contract_id, method_name, args} => {
-                chain_change(chain, contract_id, method_name, args.into_bytes()).start()
-                .then(call_self("chain_change_test_success", vec![]));
+            // cargo run cli call ""Cosmos" mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
+            Commands::Call{chain, contract_id, method_name, args} => {
+                chain_call(chain, contract_id, method_name, args.into_bytes()).start()
+                .then(call_self("chain_call_test_success", vec![]));
             },
         }
     }
@@ -68,12 +73,12 @@ fn main() {
 fn http_fetch_result() {
     let result = Promise::result(0);
 
-    let value_to_print: String = match result {
+    let value_to_store: String = match result {
         PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
 
-    println!("Value: {value_to_print}");
+    println!("Value: {value_to_store}");
 }
 
 
@@ -81,26 +86,25 @@ fn http_fetch_result() {
 #[no_mangle]
 fn chain_view_test_success() {
     let result = Promise::result(0);
-    // let value_to_store = String::from_utf8(result).unwrap();
-    let value_to_print: String = match result {
+    let value_to_store: String = match result {
         PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
-    println!("Value: {value_to_print}");
+    println!("Value: {value_to_store}");
 
-    db_set("chain_view_result", &value_to_print).start();
+    db_set("chain_view_result", &value_to_store).start();
 }
 
 
 
 #[no_mangle]
-fn chain_change_test_success() {
+fn chain_call_test_success() {
     let result = Promise::result(0);
     // let value_to_store = String::from_utf8(result).unwrap();
-    let value_to_print: String = match result {
+    let value_to_store: String = match result {
         PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
-    println!("Value: {value_to_print}");
-    db_set("chain_change_result", &value_to_print).start();
+    println!("Value: {value_to_store}");
+    db_set("chain_call_result", &value_to_store).start();
 }

@@ -177,19 +177,19 @@ impl RunnableRuntime for Runtime {
                             chain_view_action.args.clone(),
                         )
                         .await
-                        .unwrap();
+                        ?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
-                    PromiseAction::ChainChange(chain_change_action) => {
-                        let resp = HA::chain_change(
-                            chain_change_action.chain,
-                            &chain_change_action.contract_id,
-                            &chain_change_action.method_name,
-                            chain_change_action.args.clone(),
+                    PromiseAction::ChainCall(chain_call_action) => {
+                        let resp = HA::chain_call(
+                            chain_call_action.chain,
+                            &chain_call_action.contract_id,
+                            &chain_call_action.method_name,
+                            chain_call_action.args.clone(),
                         )
                         .await
-                        .unwrap();
+                        ?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.unwrap().into_bytes());
                     }

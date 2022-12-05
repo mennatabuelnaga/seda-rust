@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 use std::{marker::PhantomData, sync::Arc};
 
 use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::CONFIG;
-=======
-use std::sync::Arc;
-
-use actix::prelude::*;
-use parking_lot::RwLock;
->>>>>>> 4d47575 (feat: rm node custom context)
 use tracing::info;
 
 use crate::{
@@ -47,7 +40,7 @@ impl App {
         let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
-
+        println!("11111111111111");
         App {
             event_queue: Default::default(),
             running_event_ids: Default::default(),

@@ -5,7 +5,6 @@ use near_jsonrpc_client::methods::broadcast_tx_async::RpcBroadcastTxAsyncError;
 #[cfg(feature = "near")]
 use near_primitives::account::id::ParseAccountError;
 use thiserror::Error;
-
 #[derive(Error, Debug)]
 pub enum MainChainAdapterError {
     #[error("error calling contract change method")]
@@ -46,6 +45,11 @@ pub enum MainChainAdapterError {
 
     #[error("Config error: near_server_url from env var or config [main_chain] section.")]
     MissingNearServerUrlConfig,
+
+    #[error("error serializing to vec")]
+    StdIoError(#[from] std::io::Error),
+
+
 }
 
 pub type Result<T, E = MainChainAdapterError> = core::result::Result<T, E>;

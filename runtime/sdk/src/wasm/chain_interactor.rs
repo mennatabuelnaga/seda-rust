@@ -12,8 +12,8 @@ pub fn chain_view(chain: Chain, contract_id: String, method_name: String, args: 
     }))
 }
 
-pub fn chain_change(chain: Chain, contract_id: String, method_name: String, args: Vec<u8>) -> Promise {
-    Promise::new(PromiseAction::ChainChange(ChainChangeAction {
+pub fn chain_call(chain: Chain, contract_id: String, method_name: String, args: Vec<u8>) -> Promise {
+    Promise::new(PromiseAction::ChainCall(ChainChangeAction {
         chain,
         contract_id,
         method_name,

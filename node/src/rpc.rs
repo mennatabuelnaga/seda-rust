@@ -34,8 +34,7 @@ impl RpcServer for CliServer {
                     data: EventData::CliCall(args),
                 },
             })
-            .await
-            .unwrap();
+            .await.map_err(|err| Error::Custom(err.to_string()))?;
 
         Ok(result.vm_result.output)
     }

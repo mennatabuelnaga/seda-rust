@@ -14,8 +14,8 @@ pub use http_fetch::HttpFetch;
 use rusqlite::params;
 use tokio_rusqlite::Connection;
 
-mod chain_change;
-pub use chain_change::ChainChange;
+mod chain_call;
+pub use chain_call::ChainCall;
 mod chain_view;
 pub use chain_view::ChainView;
 

@@ -7,7 +7,7 @@ pub enum PromiseAction {
     DatabaseGet(DatabaseGetAction),
     Http(HttpAction),
     ChainView(ChainViewAction),
-    ChainChange(ChainChangeAction),
+    ChainCall(ChainChangeAction),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

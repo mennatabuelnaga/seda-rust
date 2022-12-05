@@ -25,7 +25,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainView<T>> for Host {
         let fut = async move {
             let value = T::view2(&msg.contract_id, &msg.method_name, msg.args, &server_address)
                 .await
-                .unwrap();
+                ?;
 
             Ok(value)
         };

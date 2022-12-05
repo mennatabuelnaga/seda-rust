@@ -7,8 +7,6 @@ use seda_runtime_sdk::{Chain, PromiseStatus};
 use serde_json::json;
 
 use crate::{RunnableRuntime, Runtime, VmConfig};
-// use super::{InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
-// use crate::{test::test_adapters::RuntimeTestAdapter, HostAdapter};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -265,7 +263,7 @@ async fn test_cli_demo_view_anotherchain() {
 //     let runtime_execution_result = runtime
 //         .start_runtime::<RuntimeTestAdapter>(
 //             VmConfig {
-//                 args:         vec!["change".to_string(), chain,
+//                 args:         vec!["call".to_string(), chain,
 // contract_id.to_string(), method.to_string(), args],
 // program_name: "consensus".to_string(),                 start_func:   None,
 //                 debug:        true,
@@ -277,7 +275,7 @@ async fn test_cli_demo_view_anotherchain() {
 //     assert!(runtime_execution_result.is_ok());
 
 //     let db_result =
-// RuntimeTestAdapter::db_get("chain_change_result").await.unwrap();     assert!
+// RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();     assert!
 // (db_result.is_some());     assert_eq!(db_result.unwrap(), "32".to_string());
 // }
 
@@ -299,7 +297,7 @@ async fn test_cli_demo_change_anotherchain() {
         .start_runtime::<RuntimeTestAdapter>(
             VmConfig {
                 args:         vec![
-                    "change".to_string(),
+                    "call".to_string(),
                     chain,
                     contract_id.to_string(),
                     method.to_string(),
@@ -315,7 +313,7 @@ async fn test_cli_demo_change_anotherchain() {
 
     assert!(runtime_execution_result.is_ok());
 
-    let db_result = RuntimeTestAdapter::db_get("chain_change_result").await.unwrap();
+    let db_result = RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();
     assert!(db_result.is_some());
     assert_eq!(db_result.unwrap(), "Called change From another chain".to_string());
 }

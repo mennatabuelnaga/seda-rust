@@ -6,9 +6,9 @@ use seda_chain_adapters::{AnotherMainChain, NearMainChain};
 // use seda_runtime::{HostAdapter};
 use seda_runtime_sdk::Chain;
 
-// use crate::{host::{ChainChange, ChainView, DatabaseGet, DatabaseSet, Host, HttpFetch}, HostAdapter};
+// use crate::{host::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HttpFetch}, HostAdapter};
 use crate::Result;
-use crate::{ChainChange, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch};
+use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch};
 pub struct RuntimeAdapter;
 
 #[async_trait::async_trait]
@@ -20,9 +20,7 @@ impl HostAdapter for RuntimeAdapter {
 
         let result = host_actor
             .send(DatabaseGet { key: key.to_string() })
-            .await
-            .unwrap()
-            .unwrap();
+            .await??;
 
         Ok(result)
     }
@@ -35,9 +33,7 @@ impl HostAdapter for RuntimeAdapter {
                 key:   key.to_string(),
                 value: value.to_string(),
             })
-            .await
-            .unwrap()
-            .unwrap();
+            .await??;
 
         Ok(())
     }
@@ -45,28 +41,25 @@ impl HostAdapter for RuntimeAdapter {
     async fn http_fetch(url: &str) -> Result<String> {
         let host_actor = Host::from_registry();
 
-        let result = host_actor.send(HttpFetch { url: url.to_string() }).await.unwrap();
+        let result = host_actor.send(HttpFetch { url: url.to_string() }).await?;
 
         Ok(result)
     }
 
-    async fn chain_change(chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
+    async fn chain_call(chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
         if chain == Chain::Near {
             type MainChainAdapter = NearMainChain;
 
             let host_actor = Host::from_registry();
-
             let result = host_actor
-                .send(ChainChange::<MainChainAdapter> {
+                .send(ChainCall::<MainChainAdapter> {
                     chain,
                     contract_id: contract_id.to_string(),
                     method_name: method_name.to_string(),
                     args,
                     phantom: PhantomData,
                 })
-                .await
-                .unwrap()
-                .unwrap();
+                .await??;
 
             Ok(result)
         } else {
@@ -75,16 +68,14 @@ impl HostAdapter for RuntimeAdapter {
             let host_actor = Host::from_registry();
 
             let result = host_actor
-                .send(ChainChange::<MainChainAdapter> {
+                .send(ChainCall::<MainChainAdapter> {
                     chain,
                     contract_id: contract_id.to_string(),
                     method_name: method_name.to_string(),
                     args,
                     phantom: PhantomData,
                 })
-                .await
-                .unwrap()
-                .unwrap();
+                .await??;
 
             Ok(result)
         }
@@ -103,9 +94,7 @@ impl HostAdapter for RuntimeAdapter {
                     args,
                     phantom: PhantomData,
                 })
-                .await
-                .unwrap()
-                .unwrap();
+                .await??;
 
             Ok(result)
         } else {
@@ -120,9 +109,7 @@ impl HostAdapter for RuntimeAdapter {
                     args,
                     phantom: PhantomData,
                 })
-                .await
-                .unwrap()
-                .unwrap();
+                .await??;
 
             Ok(result)
 <<<<<<< HEAD

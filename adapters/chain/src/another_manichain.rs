@@ -155,8 +155,7 @@ impl MainChainAdapterTrait for AnotherMainChain {
             })],
         };
         let signed_transaction = transaction.sign(&signer);
-        println!("***********{:?}", signed_transaction);
-        Ok(signed_transaction.try_to_vec().unwrap())
+        Ok(signed_transaction.try_to_vec()?)
     }
 
     async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<SignedTransaction> {

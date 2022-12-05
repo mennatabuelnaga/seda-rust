@@ -36,7 +36,7 @@ impl HostTestAdapters {
     }
 
     async fn fetch(&mut self, url: &str) -> Result<String, reqwest::Error> {
-        reqwest::get(url).await.unwrap().text().await
+        reqwest::get(url).await?.text().await
     }
 
     async fn view<T: MainChainAdapterTrait>(
@@ -53,7 +53,7 @@ impl HostTestAdapters {
             .map_err(|err| RuntimeError::ChainInteractionsError(err.to_string()))
     }
 
-    async fn change<T: MainChainAdapterTrait>(
+    async fn call<T: MainChainAdapterTrait>(
         &mut self,
         contract_id: &str,
         method_name: &str,
@@ -72,8 +72,8 @@ impl HostTestAdapters {
             contract_id,
             method_name,
             args,
-            gas.parse::<u64>().unwrap(),
-            deposit.parse::<u128>().unwrap(),
+            gas.parse::<u64>()?,
+            deposit.parse::<u128>()?,
             &server_url,
         )
         .await
@@ -133,7 +133,7 @@ impl HostAdapter for RuntimeTestAdapter {
         }
     }
 
-    async fn chain_change(
+    async fn chain_call(
         chain: Chain,
         contract_id: &str,
         method_name: &str,
@@ -143,14 +143,14 @@ impl HostAdapter for RuntimeTestAdapter {
         if chain == Chain::Near {
             type MainChainAdapter = NearMainChain;
             let result = host
-                .change::<MainChainAdapter>(contract_id, method_name, args)
+                .call::<MainChainAdapter>(contract_id, method_name, args)
                 .await
                 .expect("error fetching http result");
             Ok(result)
         } else {
             type MainChainAdapter = AnotherMainChain;
             let result = host
-                .change::<MainChainAdapter>(contract_id, method_name, args)
+                .call::<MainChainAdapter>(contract_id, method_name, args)
                 .await
                 .expect("error fetching http result");
             Ok(result)

@@ -131,8 +131,7 @@ impl MainChainAdapterTrait for NearMainChain {
             })],
         };
         let signed_transaction = transaction.sign(&signer);
-        println!("***********{:?}", signed_transaction);
-        Ok(signed_transaction.try_to_vec().unwrap())
+        Ok(signed_transaction.try_to_vec()?)
     }
 
     async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<SignedTransaction> {
@@ -255,7 +254,7 @@ impl MainChainAdapterTrait for NearMainChain {
                     println!("response.status: {:#?}", response.status);
                     let success_value = match response.status {
                         FinalExecutionStatus::SuccessValue(ref val) => {
-                            Some(serde_json::from_slice::<String>(val).unwrap())
+                            Some(serde_json::from_slice::<String>(val)?)
                         }
                         _ => None,
                     };
