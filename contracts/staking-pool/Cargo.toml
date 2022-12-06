@@ -16,7 +16,5 @@ uint = { version = "0.8.3", default-features = false }
 lazy_static = "1.4.0"
 log = "0.4"
 env_logger = { version = "0.7.1", default-features = false }
-# near-crypto = { git = "https://github.com/nearprotocol/nearcore.git" }
-# near-primitives = { git = "https://github.com/nearprotocol/nearcore.git" }
 near-crypto = { workspace = true }
 near-primitives = { workspace = true  }
