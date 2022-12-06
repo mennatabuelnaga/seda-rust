@@ -26,3 +26,5 @@ seda_log.*
 
 # WASM bins
 **/*.wasm
+# WASM build files
+**/res

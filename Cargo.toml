@@ -9,7 +9,8 @@ members = [
 	# "adapters/storage",
 	"cli",
 	"config",
-	"contracts",
+	"contracts/mainchain",
+	"contracts/staking-pool",
 	"logger",
 	"node",
 	"runtime/core",
@@ -73,7 +74,6 @@ tokio-rusqlite = "0.3"
 toml = "0.5"
 tracing = { version = "0.1", features = ["log-always"] }
 tracing-appender = "0.2"
-# tracing-log = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }
