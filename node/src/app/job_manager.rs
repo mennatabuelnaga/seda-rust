@@ -30,7 +30,6 @@ impl Handler<StartJobManager> for App {
     fn handle(&mut self, msg: StartJobManager, ctx: &mut Self::Context) -> Self::Result {
         let mut event_queue = self.event_queue.write();
         let running_event_ids = self.running_event_ids.read();
-        // dbg!(ctx.node_config.clone());
         if let Some(event) = event_queue.get_next(running_event_ids.as_slice()) {
             self.runtime_worker.do_send(RuntimeJob { event });
         }

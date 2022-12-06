@@ -14,6 +14,7 @@ pub struct ChainCall<T: MainChainAdapterTrait> {
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
+    pub deposit:     u128,
     pub phantom:     PhantomData<T>,
 }
 
@@ -24,8 +25,8 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
         let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
         let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
         let gas = dotenv::var("GAS").expect("GAS not set");
-        let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
+        let deposit = msg.deposit;
 
         let fut = async move {
             let signed_txn = T::construct_signed_tx2(
@@ -35,7 +36,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
                 &msg.method_name,
                 msg.args,
                 gas.parse()?,
-                deposit.parse()?,
+                deposit,
                 &server_url,
             )
             .await

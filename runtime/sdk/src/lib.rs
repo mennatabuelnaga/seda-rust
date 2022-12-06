@@ -6,7 +6,7 @@ pub mod wasm;
 use parse_display::{Display, FromStr};
 pub use promises::{
     CallSelfAction,
-    ChainChangeAction,
+    ChainCallAction,
     ChainViewAction,
     DatabaseGetAction,
     DatabaseSetAction,

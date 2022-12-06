@@ -210,8 +210,8 @@ async fn test_cli_demo_view_chain() {
 //     let runtime_execution_result = runtime
 //         .start_runtime::<RuntimeTestAdapter>(
 //             VmConfig {
-//                 args:         vec!["view".to_string(), chain, contract_id, method_name, args],
-//                 program_name: "consensus".to_string(),
+//                 args:         vec!["view".to_string(), chain, contract_id,
+// method_name, args],                 program_name: "consensus".to_string(),
 //                 start_func:   None,
 //                 debug:        true,
 //             },
@@ -220,8 +220,9 @@ async fn test_cli_demo_view_chain() {
 //         .await;
 //     assert!(runtime_execution_result.is_ok());
 
-//     let db_result = RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();
-//     assert!(db_result.is_some());
+//     let db_result =
+// RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();     assert!
+// (db_result.is_some());
 
 //     assert_eq!(db_result.unwrap(), "From another mainchain".to_string());
 // }
@@ -260,6 +261,7 @@ async fn test_cli_demo_view_chain() {
 //     let args = json!({"socket_address":
 // socket_address.to_string()})
 //     .to_string();
+//     let deposit: u128 = 870000000000000000000;
 
 //     let runtime_execution_result = runtime
 //         .start_runtime::<RuntimeTestAdapter>(
@@ -270,6 +272,7 @@ async fn test_cli_demo_view_chain() {
 //                     contract_id.to_string(),
 //                     method.to_string(),
 //                     args,
+//                     deposit.to_string()
 //                 ],
 //                 program_name: "consensus".to_string(),
 //                 start_func:   None,
@@ -301,6 +304,7 @@ async fn test_cli_demo_view_chain() {
 //     let args = json!({"socket_address":
 // socket_address.to_string()})
 //     .to_string();
+//     let deposit: u128 = 870000000000000000000;
 
 //     let runtime_execution_result = runtime
 //         .start_runtime::<RuntimeTestAdapter>(
@@ -311,6 +315,7 @@ async fn test_cli_demo_view_chain() {
 //                     contract_id.to_string(),
 //                     method.to_string(),
 //                     args,
+//                     deposit.to_string()
 //                 ],
 //                 program_name: "consensus".to_string(),
 //                 start_func:   None,
@@ -321,8 +326,8 @@ async fn test_cli_demo_view_chain() {
 //         .await;
 
 //     assert!(runtime_execution_result.is_ok());
-
-//     let db_result = RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();
-//     assert!(db_result.is_some());
-//     assert_eq!(db_result.unwrap(), "Called change From another chain".to_string());
-// }
+//     runtime_execution_result.unwrap();
+//     let db_result =
+// RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();     assert!
+// (db_result.is_some());     assert_eq!(db_result.unwrap(), "Called change From
+// another chain".to_string()); }

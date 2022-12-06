@@ -44,7 +44,13 @@ impl HostAdapter for RuntimeAdapter {
         Ok(result)
     }
 
-    async fn chain_call(chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
+    async fn chain_call(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+        deposit: u128,
+    ) -> Result<Option<String>> {
         if chain == Chain::Near {
             type MainChainAdapter = NearMainChain;
 
@@ -55,6 +61,7 @@ impl HostAdapter for RuntimeAdapter {
                     contract_id: contract_id.to_string(),
                     method_name: method_name.to_string(),
                     args,
+                    deposit,
                     phantom: PhantomData,
                 })
                 .await??;
@@ -71,6 +78,7 @@ impl HostAdapter for RuntimeAdapter {
                     contract_id: contract_id.to_string(),
                     method_name: method_name.to_string(),
                     args,
+                    deposit,
                     phantom: PhantomData,
                 })
                 .await??;

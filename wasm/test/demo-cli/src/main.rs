@@ -95,7 +95,6 @@ fn chain_view_test_success() {
 #[no_mangle]
 fn chain_call_test_success() {
     let result = Promise::result(0);
-    // let value_to_store = String::from_utf8(result).unwrap();
     let value_to_store: String = match result {
         PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
         _ => "Promise failed..".to_string(),

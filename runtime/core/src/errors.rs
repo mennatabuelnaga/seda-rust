@@ -1,8 +1,9 @@
+use std::num::ParseIntError;
+
 use seda_runtime_adapters::RuntimeAdapterError;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
-
 #[derive(Debug, Error)]
 pub enum RuntimeError {
     #[error(transparent)]
@@ -42,6 +43,9 @@ pub enum RuntimeError {
 
     #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
+
+    #[error(transparent)]
+    ParseIntError(#[from] ParseIntError),
 }
 
 impl From<InstantiationError> for RuntimeError {

@@ -7,7 +7,7 @@ pub enum PromiseAction {
     DatabaseGet(DatabaseGetAction),
     Http(HttpAction),
     ChainView(ChainViewAction),
-    ChainCall(ChainChangeAction),
+    ChainCall(ChainCallAction),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -42,9 +42,10 @@ pub struct ChainViewAction {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ChainChangeAction {
+pub struct ChainCallAction {
     pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
+    pub deposit:     String,
 }

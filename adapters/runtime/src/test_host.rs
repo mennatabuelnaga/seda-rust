@@ -51,12 +51,12 @@ impl HostTestAdapters {
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
+        deposit: u128,
     ) -> Result<Option<String>> {
         dotenv::dotenv().ok();
         let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
         let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
         let gas = dotenv::var("GAS").expect("GAS not set");
-        let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
 
         let signed_txn = T::construct_signed_tx2(
@@ -66,7 +66,7 @@ impl HostTestAdapters {
             method_name,
             args,
             gas.parse::<u64>()?,
-            deposit.parse::<u128>()?,
+            deposit,
             &server_url,
         )
         .await
@@ -120,20 +120,26 @@ impl HostAdapter for RuntimeTestAdapter {
         }
     }
 
-    async fn chain_call(chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>> {
+    async fn chain_call(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+        deposit: u128,
+    ) -> Result<Option<String>> {
         let mut host = HostTestAdapters::default();
 
         if chain == Chain::Near {
             type MainChainAdapter = NearMainChain;
             let result = host
-                .call::<MainChainAdapter>(contract_id, method_name, args)
+                .call::<MainChainAdapter>(contract_id, method_name, args, deposit)
                 .await
                 .expect("error fetching http result");
             Ok(result)
         } else {
             type MainChainAdapter = AnotherMainChain;
             let result = host
-                .call::<MainChainAdapter>(contract_id, method_name, args)
+                .call::<MainChainAdapter>(contract_id, method_name, args, deposit)
                 .await
                 .expect("error fetching http result");
             Ok(result)

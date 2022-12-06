@@ -11,7 +11,13 @@ pub trait HostAdapter: Send {
     async fn db_set(key: &str, value: &str) -> Result<()>;
     async fn http_fetch(url: &str) -> Result<String>;
 
-    async fn chain_call(chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Option<String>>;
+    async fn chain_call(
+        chain: Chain,
+        contract_id: &str,
+        method_name: &str,
+        args: Vec<u8>,
+        deposit: u128,
+    ) -> Result<Option<String>>;
 
     async fn chain_view(chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
 }

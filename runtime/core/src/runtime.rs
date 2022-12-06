@@ -186,6 +186,7 @@ impl RunnableRuntime for Runtime {
                             &chain_call_action.contract_id,
                             &chain_call_action.method_name,
                             chain_call_action.args.clone(),
+                            chain_call_action.deposit.parse::<u128>()?,
                         )
                         .await?;
 

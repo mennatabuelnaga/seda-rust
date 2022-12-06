@@ -27,18 +27,10 @@ impl<T: MainChainAdapterTrait> AsRef<AppConfig<T>> for AppConfig<T> {
 impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
     fn default() -> Self {
         let mut this = Self {
-            // deposit_for_register_node: None,
-            // gas:                       None,
-            // secret_key:                None,
-            // signer_account_id:         None,
-            // contract_account_id:       None,
-            // public_key:                None,
             node:            Some(Default::default()),
             main_chain:      Some(Default::default()),
             logging:         Some(Default::default()),
             seda_server_url: None,
-            // node_config:               Some(Default::default()),
-            // main_chain_config:         Some(Default::default()),
         };
         this.overwrite_from_env();
         this
@@ -48,13 +40,6 @@ impl<T: MainChainAdapterTrait> Default for AppConfig<T> {
 impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
     fn template() -> Self {
         Self {
-            // deposit_for_register_node: Some((87 * 10_u128.pow(19)).to_string()),
-            // gas:                       Some(300_000_000_000_000),
-            // secret_key:                Some("fill me in".to_string()),
-            // signer_account_id:         Some("fill me in".to_string()),
-            // contract_account_id:       Some("fill me in".to_string()),
-            // public_key:                Some("fill me in".to_string()),
-            // node_config:               Some(NodeConfig::template()),
             seda_server_url: Some("fill me in".to_string()),
             node:            Some(NodeConfig::template()),
             main_chain:      Some(T::Config::template()),
@@ -63,10 +48,6 @@ impl<T: MainChainAdapterTrait> Config for AppConfig<T> {
     }
 
     fn overwrite_from_env(&mut self) {
-        // env_overwrite!(self.seda_server_url, "SEDA_SERVER_URL");
-        // env_overwrite!(self.signer_account_id, "SIGNER_ACCOUNT_ID");
-        // env_overwrite!(self.secret_key, "SECRET_KEY");
-        // env_overwrite!(self.contract_account_id, "CONTRACT_ACCOUNT_ID");
         if let Some(main_chain_config) = self.main_chain.as_mut() {
             main_chain_config.overwrite_from_env()
         }
