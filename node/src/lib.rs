@@ -25,7 +25,7 @@ pub fn run<T: MainChainAdapterTrait>() {
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
-				let app = start(app, node_config, main_chain_config);
+				let app = App::new(node_config.runtime_worker_threads as usize).await.start();
 
         // TODO: Use config for P2P Server
         let config = CONFIG.read().await;
@@ -42,7 +42,7 @@ pub fn run<T: MainChainAdapterTrait>() {
             p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
             p2p_server.loop_stream().await.expect("P2P listen failed");
         });
-
+\
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {
             tokio::signal::ctrl_c().await.expect("failed to listen for event");

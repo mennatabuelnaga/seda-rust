@@ -1,9 +1,9 @@
-use std::{fs, path::PathBuf, sync::Arc};
+use std::{env, fs, path::PathBuf, sync::Arc};
 
 use borsh::ser::BorshSerialize;
 use parking_lot::Mutex;
 use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
-use seda_runtime_sdk::{Chain, PromiseStatus};
+use seda_runtime_sdk::Chain;
 use serde_json::json;
 
 use crate::{RunnableRuntime, Runtime, VmConfig};
@@ -20,6 +20,11 @@ fn cli_wasm() -> Vec<u8> {
     path_prefix.push("./test_files/demo-cli.wasm");
 
     fs::read(path_prefix).unwrap()
+}
+
+fn set_env_vars() {
+    env::set_var("GAS", "300000000000000");
+    env::set_var("NEAR_SERVER_URL", "https://rpc.testnet.near.org");
 }
 
 fn memory_adapter() -> Arc<Mutex<InMemory>> {
@@ -168,8 +173,15 @@ async fn test_memory_adapter() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_cli_demo_view_chain() {
+<<<<<<< HEAD
     let wasm_binary = cli_wasm();
     let mut runtime = Runtime::new();
+=======
+    set_env_vars();
+    let wasm_binary = cli_wasm();
+    let mut runtime = Runtime::new();
+    let memory_adapter = memory_adapter();
+>>>>>>> 5109d20 (refactor(tests): use set_var for chain_view tests + rm chain_call tests)
     runtime.init(wasm_binary).unwrap();
     let chain = (Chain::Near).to_string();
     let contract_id = "mc.mennat0.testnet".to_string();
@@ -181,6 +193,7 @@ async fn test_cli_demo_view_chain() {
             VmConfig {
                 args:         vec!["view".to_string(), chain, contract_id, method_name, args],
                 program_name: "consensus".to_string(),
+<<<<<<< HEAD
                 start_func:   Some("test_setting_execution_result".to_string()),
                 debug:        true,
             },
@@ -194,140 +207,50 @@ async fn test_cli_demo_view_chain() {
 
     assert_eq!(result, "test-success");
 }
+=======
+                start_func:   None,
+                debug:        true,
+            },
+            memory_adapter.clone(),
+        )
+        .await;
+    assert!(runtime_execution_result.is_ok());
 
-// #[tokio::test(flavor = "multi_thread")]
-// async fn test_cli_demo_view_anotherchain() {
-//     let wasm_binary = cli_wasm();
-//     let mut runtime = Runtime::new();
+    let db_result = RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();
+    assert!(db_result.is_some());
 
-//     let memory_adapter = memory_adapter();
-//     runtime.init(wasm_binary).unwrap();
-//     let chain = (Chain::Cosmos).to_string();
-//     let contract_id = "mc.mennat0.testnet".to_string();
-//     let method_name = "get_node_socket_address".to_string();
-//     let args = json!({"node_id": "12".to_string()}).to_string();
+    assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
+}
 
-//     let runtime_execution_result = runtime
-//         .start_runtime::<RuntimeTestAdapter>(
-//             VmConfig {
-//                 args:         vec!["view".to_string(), chain, contract_id,
-// method_name, args],                 program_name: "consensus".to_string(),
-//                 start_func:   None,
-//                 debug:        true,
-//             },
-//             memory_adapter.clone(),
-//         )
-//         .await;
-//     assert!(runtime_execution_result.is_ok());
+#[tokio::test(flavor = "multi_thread")]
+async fn test_cli_demo_view_anotherchain() {
+    set_env_vars();
+    let wasm_binary = cli_wasm();
+    let mut runtime = Runtime::new();
+>>>>>>> 5109d20 (refactor(tests): use set_var for chain_view tests + rm chain_call tests)
 
-//     let db_result =
-// RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();     assert!
-// (db_result.is_some());
+    let memory_adapter = memory_adapter();
+    runtime.init(wasm_binary).unwrap();
+    let chain = (Chain::Cosmos).to_string();
+    let contract_id = "mc.mennat0.testnet".to_string();
+    let method_name = "get_node_socket_address".to_string();
+    let args = json!({"node_id": "12".to_string()}).to_string();
 
-//     assert_eq!(db_result.unwrap(), "From another mainchain".to_string());
-// }
+    let runtime_execution_result = runtime
+        .start_runtime::<RuntimeTestAdapter>(
+            VmConfig {
+                args:         vec!["view".to_string(), chain, contract_id, method_name, args],
+                program_name: "consensus".to_string(),
+                start_func:   None,
+                debug:        true,
+            },
+            memory_adapter.clone(),
+        )
+        .await;
+    assert!(runtime_execution_result.is_ok());
 
-// #[tokio::test(flavor = "multi_thread")]
-// async fn test_cli_demo_change() {
-//     let wasm_binary = cli_wasm();
-//     let mut runtime = Runtime::new();
-//     let memory_adapter = memory_adapter();
-//     runtime.init(wasm_binary).unwrap();
-//     let chain = (Chain::Near).to_string();
+    let db_result = RuntimeTestAdapter::db_get("chain_view_result").await.unwrap();
+    assert!(db_result.is_some());
 
-//     let contract_id = "mc.mennat0.testnet";
-
-//     let method = "register_node";
-//     let socket_address = "0.0.0.0:8080";
-//     let args = json!({"socket_address": socket_address.to_string()})
-//         .to_string()
-//         .into_bytes();
-//     const GAS: u64 = 300_000_000_000_000;
-//     const DEPOSIT_FOR_REGISTER_NODE: u128 = 87 * 10_u128.pow(19); // 0.00087
-// NEAR     let signed_tx = MainChain::construct_signed_tx(
-//         signer_acc_str,
-//         signer_sk_str,
-//         contract_id,
-//         method,
-//         args,
-//         GAS,
-//         DEPOSIT_FOR_REGISTER_NODE,
-//         near_server_url,
-//     )
-//     .await
-//     .unwrap();
-
-//     let s_tx2 = json!(signed_tx.try_to_vec().unwrap()).to_string();
-//     let args = json!({"socket_address":
-// socket_address.to_string()})
-//     .to_string();
-//     let deposit: u128 = 870000000000000000000;
-
-//     let runtime_execution_result = runtime
-//         .start_runtime::<RuntimeTestAdapter>(
-//             VmConfig {
-//                 args:         vec![
-//                     "call".to_string(),
-//                     chain,
-//                     contract_id.to_string(),
-//                     method.to_string(),
-//                     args,
-//                     deposit.to_string()
-//                 ],
-//                 program_name: "consensus".to_string(),
-//                 start_func:   None,
-//                 debug:        true,
-//             },
-//             memory_adapter.clone(),
-//         )
-//         .await;
-
-//     assert!(runtime_execution_result.is_ok());
-
-//     let db_result =
-// RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();     assert!
-// (db_result.is_some());     assert_eq!(db_result.unwrap(), "32".to_string());
-// }
-
-// #[tokio::test(flavor = "multi_thread")]
-// async fn test_cli_demo_change_anotherchain() {
-//     let wasm_binary = cli_wasm();
-//     let mut runtime = Runtime::new();
-//     let memory_adapter = memory_adapter();
-//     runtime.init(wasm_binary).unwrap();
-//     let chain = (Chain::Cosmos).to_string();
-
-//     let contract_id = "mc.mennat0.testnet";
-
-//     let method = "register_node";
-//     let socket_address = "0.0.0.0:8080";
-//     let args = json!({"socket_address":
-// socket_address.to_string()})
-//     .to_string();
-//     let deposit: u128 = 870000000000000000000;
-
-//     let runtime_execution_result = runtime
-//         .start_runtime::<RuntimeTestAdapter>(
-//             VmConfig {
-//                 args:         vec![
-//                     "call".to_string(),
-//                     chain,
-//                     contract_id.to_string(),
-//                     method.to_string(),
-//                     args,
-//                     deposit.to_string()
-//                 ],
-//                 program_name: "consensus".to_string(),
-//                 start_func:   None,
-//                 debug:        true,
-//             },
-//             memory_adapter.clone(),
-//         )
-//         .await;
-
-//     assert!(runtime_execution_result.is_ok());
-//     runtime_execution_result.unwrap();
-//     let db_result =
-// RuntimeTestAdapter::db_get("chain_call_result").await.unwrap();     assert!
-// (db_result.is_some());     assert_eq!(db_result.unwrap(), "Called change From
-// another chain".to_string()); }
+    assert_eq!(db_result.unwrap(), "From another mainchain".to_string());
+}
