@@ -1,5 +1,6 @@
 [workspace]
-exclude = ["test_wasm_bins/demo_cli", "test_wasm_bins/promise_wasm_bin"]
+resolver = "2" # required for wasmer 3 to compile
+exclude = ["test_wasm_bins/demo_cli"]
 members = [
 	"adapters/chain",
 	# "adapters/http",
@@ -13,6 +14,7 @@ members = [
 	"node",
 	"runtime/core",
 	"runtime/macros",
+	"test_wasm_bins/promise_wasm_bin",
 ]
 
 [profile.dev]
@@ -35,9 +37,9 @@ opt-level = "z"
 
 [workspace.dependencies]
 actix = "0.13"
-async-trait = "0.1.58"
-clap = { version = "4.0.15", features = ["derive"] }
-dotenv = "0.15.0"
+async-trait = "0.1"
+clap = { version = "4.0", features = ["derive"] }
+dotenv = "0.15"
 futures = "0.3"
 jsonrpsee-types = "0.16"
 jsonrpsee = { version = "0.16", features = ["full"] }
@@ -64,7 +66,7 @@ sha2 = "0.10"
 reqwest = "0.11"
 rusqlite = { version = "0.28", features = ["bundled"] }
 thiserror = "1.0"
-tokio = { version = "1.21", default-features = false, features = [
+tokio = { version = "1.23", default-features = false, features = [
 	"io-std",
 	"macros",
 	"net",
@@ -77,5 +79,5 @@ toml = "0.5"
 tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-wasmer = "2.3"
-wasmer-wasi = "2.3"
+wasmer = "3.0"
+wasmer-wasi = "3.0"

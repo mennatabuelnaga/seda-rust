@@ -8,7 +8,7 @@ use super::{RunnableRuntime, Runtime, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/promise-wasm-bin.wasm");
+    path_prefix.push("./test_files/promise_wasm_bin.wasm");
 
     fs::read(path_prefix).unwrap()
 }
@@ -35,6 +35,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     );
 
     let vm_result = runtime_execution_result.await;
+    dbg!(&vm_result);
     assert!(vm_result.is_ok());
     let value = RuntimeTestAdapter::db_get("test_value").await.unwrap();
 
@@ -107,6 +108,7 @@ async fn test_promise_queue_http_fetch() {
         )
         .await;
 
+    dbg!(&runtime_execution_result);
     assert!(runtime_execution_result.is_ok());
 
     let db_result = RuntimeTestAdapter::db_get("http_fetch_result").await.unwrap();

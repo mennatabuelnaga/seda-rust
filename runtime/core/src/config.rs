@@ -1,4 +1,5 @@
-use wasmer_wasi::{WasiEnv, WasiState};
+use wasmer::Store;
+use wasmer_wasi::{WasiFunctionEnv, WasiState};
 
 #[derive(Clone)]
 pub struct VmConfig {
@@ -15,9 +16,9 @@ pub struct VmConfig {
 }
 
 impl VmConfig {
-    pub fn finalize(self) -> WasiEnv {
+    pub fn finalize(self, store: &mut Store) -> WasiFunctionEnv {
         let mut wasi_state = WasiState::new(&self.program_name);
         wasi_state.args(&self.args);
-        wasi_state.finalize().unwrap()
+        wasi_state.finalize(store).unwrap()
     }
 }

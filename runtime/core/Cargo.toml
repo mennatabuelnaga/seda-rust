@@ -19,6 +19,7 @@ toml = { workspace = true }
 wasmer = { workspace = true }
 wasmer-wasi = { workspace = true }
 tokio = { workspace = true }
+wasmer-compiler-singlepass = "3"
 
 [dev-dependencies]
 reqwest = { workspace = true }

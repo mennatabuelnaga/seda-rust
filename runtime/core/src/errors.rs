@@ -36,6 +36,9 @@ pub enum RuntimeError {
 
     #[error(transparent)]
     RuntimeAdapterError(#[from] RuntimeAdapterError),
+
+    #[error(transparent)]
+    MemoryAccessError(#[from] wasmer::MemoryAccessError),
 }
 
 impl From<InstantiationError> for RuntimeError {

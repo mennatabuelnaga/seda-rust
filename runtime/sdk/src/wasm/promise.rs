@@ -6,7 +6,7 @@ use serde_json::json;
 use super::raw::promise_then;
 use crate::{wasm::raw, PromiseAction, PromiseStatus};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Promise {
     /// The name of the action we should execute
     pub action: PromiseAction,
@@ -49,6 +49,7 @@ impl Promise {
 
     /// Chains this promise after the previous promise
     pub fn then(mut self, after: Self) -> Self {
+        println!("then");
         Promise::add_to_queue(&after);
         self.after = Some(Box::new(after));
 
@@ -57,6 +58,7 @@ impl Promise {
 
     /// Returns the result of a promise action
     pub fn result(index: i32) -> PromiseStatus {
+        println!("result");
         let promise_result_length = unsafe { raw::promise_status_length(index) };
 
         let mut result_data: Vec<u8> = Vec::new();

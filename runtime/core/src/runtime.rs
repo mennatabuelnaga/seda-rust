@@ -64,6 +64,7 @@ impl RunnableRuntime for Runtime {
         promise_queue: PromiseQueue,
         output: &mut Vec<String>,
     ) -> Result<u8> {
+        dbg!("execute_promise_queue");
         let mut next_promise_queue = PromiseQueue::new();
         let mut promise_queue_mut = promise_queue.clone();
 
@@ -80,48 +81,51 @@ impl RunnableRuntime for Runtime {
 
                 match &promise_queue.queue[index].action {
                     PromiseAction::CallSelf(call_action) => {
-                        let wasm_store = Store::default();
+                        let mut wasm_store = Store::default();
 
                         // TODO: Use our logging library with stdout/stderr
-                        let stdout_pipe = Pipe::new();
-                        let stderr_pipe = Pipe::new();
+                        let mut stdout_pipe = Pipe::new();
+                        let mut stderr_pipe = Pipe::new();
 
                         let mut wasi_env = WasiState::new(&call_action.function_name)
                             .args(call_action.args.clone())
-                            .stdout(Box::new(stdout_pipe))
-                            .stderr(Box::new(stderr_pipe))
-                            .finalize()?;
+                            .stdout(Box::new(stdout_pipe.clone()))
+                            .stderr(Box::new(stderr_pipe.clone()))
+                            .finalize(&mut wasm_store)?;
 
                         let current_promise_queue = Arc::new(Mutex::new(promise_queue_mut.clone()));
                         let next_queue = Arc::new(Mutex::new(PromiseQueue::new()));
 
                         let vm_context = VmContext::create_vm_context(
+                            &mut wasm_store,
                             memory_adapter.clone(),
                             current_promise_queue,
                             next_queue.clone(),
                         );
 
-                        let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, wasm_module)?;
-                        let wasmer_instance = Instance::new(wasm_module, &imports)?;
+                        let imports =
+												create_wasm_imports(&mut wasm_store, vm_context.clone(), &mut wasi_env, wasm_module)?;
+                        let wasmer_instance = Instance::new(&mut wasm_store, wasm_module, &imports)?;
+
+                        let mut env_mut = vm_context.as_mut(&mut wasm_store);
+                        env_mut.memory = Some(wasmer_instance.exports.get_memory("memory")?.clone());
+
+                        wasi_env.initialize(&mut wasm_store, &wasmer_instance)?;
 
                         let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
 
-                        let runtime_result = main_func.call(&[]);
+												// TODO this line crashes
+                        let runtime_result = main_func.call(&mut wasm_store, &[]);
+                        dbg!(&runtime_result);
 
-                        {
-                            // We need to use the wasi_state twice (which is not clonable) so this
-                            // puts into scope the wasi_state so the MutexGuard gets unlocked after
-                            let mut wasi_state = wasi_env.state();
-                            let wasi_stdout = wasi_state.fs.stdout_mut()?.as_mut().unwrap();
-                            let mut stdout_buffer = String::new();
-                            wasi_stdout.read_to_string(&mut stdout_buffer)?;
-                            output.push(stdout_buffer);
-                        }
+                        let mut stdout_buffer = String::new();
+                        stdout_pipe.read_to_string(&mut stdout_buffer)?;
+                        dbg!(&stdout_buffer);
+                        output.push(stdout_buffer);
 
-                        let mut wasi_state = wasi_env.state();
-                        let wasi_stderr = wasi_state.fs.stderr_mut()?.as_mut().unwrap();
                         let mut stderr_buffer = String::new();
-                        wasi_stderr.read_to_string(&mut stderr_buffer)?;
+                        stderr_pipe.read_to_string(&mut stderr_buffer)?;
+                        dbg!(&stderr_buffer);
                         output.push(stderr_buffer);
 
                         // Unwrap the error here after capturing the output
@@ -169,6 +173,7 @@ impl RunnableRuntime for Runtime {
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
     ) -> Result<VmResult> {
+        dbg!("start_runtime");
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
