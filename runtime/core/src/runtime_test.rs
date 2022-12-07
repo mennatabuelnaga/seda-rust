@@ -2,7 +2,6 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
-use seda_runtime_sdk::PromiseStatus;
 
 use super::{RunnableRuntime, Runtime, VmConfig};
 
@@ -108,22 +107,10 @@ async fn test_promise_queue_http_fetch() {
         .await;
 
     assert!(runtime_execution_result.is_ok());
-
-    let db_result = RuntimeTestAdapter::db_get("http_fetch_result").await.unwrap();
-
-    assert!(db_result.is_some());
-
-    let result: PromiseStatus = serde_json::from_str(&db_result.unwrap()).unwrap();
-    assert!(matches!(result, PromiseStatus::Fulfilled(_)));
-
-    let result = match result {
-        PromiseStatus::Fulfilled(data) => String::from_utf8(data).unwrap(),
-        _ => panic!("Promise should be fulfilled"),
-    };
-    // Compare result with real API fetch
     let expected_result = reqwest::get(fetch_url).await.unwrap().text().await.unwrap();
 
-    println!("Decoded result {}", result);
+    let result = String::from_utf8(runtime_execution_result.unwrap().result).unwrap();
+
     assert_eq!(result, expected_result);
 }
 
@@ -163,4 +150,29 @@ async fn test_memory_adapter() {
     let expected_str = format!("{expected:?}");
     assert!(u32_value.is_some());
     assert_eq!(u32_value.unwrap(), expected_str);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_setting_execution_result() {
+    let wasm_binary = read_wasm();
+    let mut runtime = Runtime::new();
+    runtime.init(wasm_binary).unwrap();
+
+    let runtime_execution_result = runtime
+        .start_runtime::<RuntimeTestAdapter>(
+            VmConfig {
+                args:         vec![],
+                program_name: "consensus".to_string(),
+                start_func:   Some("test_setting_execution_result".to_string()),
+                debug:        true,
+            },
+            memory_adapter(),
+        )
+        .await;
+
+    assert!(runtime_execution_result.is_ok());
+
+    let result = String::from_utf8(runtime_execution_result.unwrap().result).unwrap();
+
+    assert_eq!(result, "test-success");
 }

@@ -1,6 +1,9 @@
 use std::env;
 
-use seda_runtime_sdk::wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
+use seda_runtime_sdk::{
+    wasm::{call_self, db_get, db_set, execution_result, http_fetch, memory_read, memory_write, Promise},
+    PromiseStatus,
+};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -46,9 +49,12 @@ fn http_fetch_test() {
 #[no_mangle]
 fn http_fetch_test_success() {
     let result = Promise::result(0);
-    let value_to_store = String::from_utf8(result).unwrap();
+    let value_to_store: String = match result {
+        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        _ => "Promise failed..".to_string(),
+    };
 
-    db_set("http_fetch_result", &value_to_store).start();
+    execution_result(value_to_store.into_bytes());
 }
 
 #[no_mangle]
@@ -73,4 +79,17 @@ fn memory_adapter_callback_test_success() {
     db_set("u8_result", &format!("{read_value:?}")).start();
     let read_value = memory_read("u32");
     db_set("u32_result", &format!("{read_value:?}")).start();
+}
+
+#[no_mangle]
+fn test_setting_execution_result() {
+    db_set("random_key", "random_value")
+        .start()
+        .then(call_self("test_setting_execution_result_step1", vec![]));
+}
+
+#[no_mangle]
+fn test_setting_execution_result_step1() {
+    let result = "test-success".to_string().into_bytes();
+    execution_result(result);
 }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::PromiseAction;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PromiseStatus {
     /// Initial state
     Unfulfilled,
@@ -17,7 +17,7 @@ pub enum PromiseStatus {
     Rejected(Vec<u8>),
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Promise {
     /// The name of the action we should execute
     pub action: PromiseAction,

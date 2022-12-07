@@ -2,9 +2,10 @@ use std::str;
 
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
+    wasm::{call_self, db_get, db_set, execution_result, http_fetch, memory_read, memory_write, Promise},
     PromiseStatus,
 };
+use serde_json::json;
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -20,6 +21,7 @@ struct Options {
 enum Commands {
     Hello,
     HttpFetch { url: String },
+    JsonWrite,
 }
 
 fn main() {
@@ -32,6 +34,15 @@ fn main() {
             }
             Commands::Hello => {
                 println!("Hello World from inside wasm");
+            }
+            Commands::JsonWrite => {
+                let data = json!({
+                    "someKey": "someValue",
+                });
+
+                let bytes = data.to_string().into_bytes();
+
+                execution_result(bytes);
             }
         }
     }

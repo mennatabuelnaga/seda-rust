@@ -8,6 +8,7 @@ use super::PromiseQueue;
 
 #[derive(Clone)]
 pub struct VmContext {
+    pub result:                Arc<Mutex<Vec<u8>>>,
     pub memory:                LazyInit<Memory>,
     pub memory_adapter:        Arc<Mutex<InMemory>>,
     pub promise_queue:         Arc<Mutex<PromiseQueue>>,
@@ -30,6 +31,7 @@ impl VmContext {
         promise_queue: Arc<Mutex<PromiseQueue>>,
     ) -> VmContext {
         VmContext {
+            result: Arc::new(Mutex::new(Vec::new())),
             memory_adapter,
             memory: LazyInit::new(),
             current_promise_queue,

@@ -8,6 +8,7 @@ use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
+use crate::RuntimeError;
 
 #[derive(Clone)]
 pub struct Runtime {
@@ -17,6 +18,7 @@ pub struct Runtime {
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub struct VmResult {
     pub output:    Vec<String>,
+    pub result:    Vec<u8>,
     pub exit_code: u8,
 }
 
@@ -31,6 +33,11 @@ pub trait RunnableRuntime {
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: PromiseQueue,
         output: &mut Vec<String>,
+
+        // Getting the results of all the promise queues
+        // Used to get the result of the last execution (for JSON RPC)
+        // Can also be used to debug the queue
+        promise_queue_trace: &mut Vec<PromiseQueue>,
     ) -> Result<u8>;
 
     async fn start_runtime<HA: HostAdapter>(
@@ -63,6 +70,7 @@ impl RunnableRuntime for Runtime {
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: PromiseQueue,
         output: &mut Vec<String>,
+        promise_queue_trace: &mut Vec<PromiseQueue>,
     ) -> Result<u8> {
         let mut next_promise_queue = PromiseQueue::new();
         let mut promise_queue_mut = promise_queue.clone();
@@ -126,9 +134,14 @@ impl RunnableRuntime for Runtime {
 
                         // Unwrap the error here after capturing the output
                         // otherwise the output would get lost
-                        runtime_result?;
+                        if let Err(err) = runtime_result {
+                            println!("WASM Error output: {:?}", &output);
+                            return Err(RuntimeError::ExecutionError(err));
+                        }
+
+                        let execution_result = vm_context.result.lock();
                         next_promise_queue = next_queue.lock().clone();
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(execution_result.clone());
                     }
 
                     // Just an example, delete this later
@@ -159,7 +172,15 @@ impl RunnableRuntime for Runtime {
             }
         }
 
-        let res = self.execute_promise_queue::<HA>(wasm_module, memory_adapter.clone(), next_promise_queue, output);
+        promise_queue_trace.push(promise_queue_mut.clone());
+
+        let res = self.execute_promise_queue::<HA>(
+            wasm_module,
+            memory_adapter.clone(),
+            next_promise_queue,
+            output,
+            promise_queue_trace,
+        );
 
         res.await
     }
@@ -172,6 +193,7 @@ impl RunnableRuntime for Runtime {
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
+        let mut promise_queue_trace: Vec<PromiseQueue> = Vec::new();
         let mut promise_queue = PromiseQueue::new();
 
         promise_queue.add_promise(Promise {
@@ -184,13 +206,35 @@ impl RunnableRuntime for Runtime {
 
         let mut output: Vec<String> = vec![];
 
-        let result = self
-            .execute_promise_queue::<HA>(wasm_module, memory_adapter, promise_queue, &mut output)
+        let exit_code = self
+            .execute_promise_queue::<HA>(
+                wasm_module,
+                memory_adapter,
+                promise_queue,
+                &mut output,
+                &mut promise_queue_trace,
+            )
             .await?;
+
+        // There is always 1 queue with 1 promise in the trace (due this func addinging
+        // the entrypoint)
+        let last_queue = promise_queue_trace.last().ok_or("Failed to get last promise queue")?;
+        let last_promise = last_queue
+            .queue
+            .last()
+            .ok_or("Failed to get last promise in promise queue")?
+            .clone();
+
+        let result_data = match last_promise.status {
+            PromiseStatus::Fulfilled(data) => data,
+            PromiseStatus::Rejected(data) => data,
+            _ => vec![],
+        };
 
         Ok(VmResult {
             output,
-            exit_code: result,
+            exit_code,
+            result: result_data,
         })
     }
 }

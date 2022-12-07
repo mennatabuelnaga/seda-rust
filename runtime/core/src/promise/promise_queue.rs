@@ -2,7 +2,7 @@
 /// This allows us to change to batches easily in the future
 use seda_runtime_sdk::Promise;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct PromiseQueue {
     /// A list which contains batches of promises
     pub queue: Vec<Promise>,
