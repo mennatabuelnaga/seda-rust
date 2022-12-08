@@ -2,7 +2,7 @@ use std::str;
 
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
+    wasm::{call_self, http_fetch, Promise},
     PromiseStatus,
 };
 
@@ -22,7 +22,8 @@ enum Commands {
     HttpFetch { url: String },
 }
 
-fn main() {
+#[no_mangle]
+fn parse() {
     let options = Options::parse();
 
     if let Some(command) = options.command {

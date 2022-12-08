@@ -48,7 +48,7 @@ mod tests {
         );
         assert_eq!(
             "0.0.0.0:8080".to_string(),
-            contract.get_node(U64(1)).unwrap().socket_address.to_string()
+            contract.get_node(U64(1)).unwrap().socket_address
         );
     }
 
@@ -73,7 +73,7 @@ mod tests {
         testing_env!(get_context_view());
         assert_eq!(
             "0.0.0.0:8080".to_string(),
-            contract.get_node(U64(1)).unwrap().socket_address.to_string()
+            contract.get_node(U64(1)).unwrap().socket_address
         );
 
         // remove the node
@@ -105,7 +105,7 @@ mod tests {
         testing_env!(get_context_view());
         assert_eq!(
             "0.0.0.0:8080".to_string(),
-            contract.get_node(U64(1)).unwrap().socket_address.to_string()
+            contract.get_node(U64(1)).unwrap().socket_address
         );
 
         // try removing the node
@@ -129,7 +129,7 @@ mod tests {
         testing_env!(get_context_view());
         assert_eq!(
             "1.1.1.1:8081".to_string(),
-            contract.get_node(U64(1)).unwrap().socket_address.to_string()
+            contract.get_node(U64(1)).unwrap().socket_address
         );
     }
 

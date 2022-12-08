@@ -1,8 +1,12 @@
 use std::env;
 
-use seda_runtime_sdk::wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise};
+use seda_runtime_sdk::{
+    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
+    PromiseStatus,
+};
 
-fn main() {
+#[no_mangle]
+fn hello_world() {
     let args: Vec<String> = env::args().collect();
 
     println!("Hello World {:?}", args);
@@ -46,9 +50,12 @@ fn http_fetch_test() {
 #[no_mangle]
 fn http_fetch_test_success() {
     let result = Promise::result(0);
-    let value_to_store = String::from_utf8(result).unwrap();
 
-    db_set("http_fetch_result", &value_to_store).start();
+    if let PromiseStatus::Fulfilled(bytes) = result {
+        let value_to_store = String::from_utf8(bytes).unwrap();
+
+        db_set("http_fetch_result", &value_to_store).start();
+    }
 }
 
 #[no_mangle]
