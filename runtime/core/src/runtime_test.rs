@@ -7,7 +7,8 @@ use super::{RunnableRuntime, Runtime, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/promise-wasm-bin.wasm");
+    path_prefix.push("test_files");
+    path_prefix.push("promise_wasm_bin.wasm");
 
     fs::read(path_prefix).unwrap()
 }
@@ -27,7 +28,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
         VmConfig {
             args:         vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func:   None,
+            start_func:   Some("hello_world".to_string()),
             debug:        true,
         },
         memory_adapter(),
@@ -107,10 +108,15 @@ async fn test_promise_queue_http_fetch() {
         .await;
 
     assert!(runtime_execution_result.is_ok());
+
+    let db_result = RuntimeTestAdapter::db_get("http_fetch_result").await.unwrap();
+
+    assert!(db_result.is_some());
+
     let expected_result = reqwest::get(fetch_url).await.unwrap().text().await.unwrap();
 
-    let result = String::from_utf8(runtime_execution_result.unwrap().result).unwrap();
-
+    let result = db_result.unwrap();
+    println!("Decoded result {}", result);
     assert_eq!(result, expected_result);
 }
 

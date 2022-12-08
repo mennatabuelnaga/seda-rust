@@ -19,7 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 async-trait = { workspace = true }
-clap = { workspace = true }
+clap = { workspace = true, features = ["derive", "std"] }
 dotenv = { workspace = true }
 jsonrpsee = { workspace = true }
 near-crypto = { workspace = true, optional = true }

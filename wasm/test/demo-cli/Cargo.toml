@@ -1,5 +1,5 @@
 [package]
-name = "wasm-demo-cli"
+name = "demo-cli"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-clap = { workspace = true }
+clap = { workspace = true, features = ["derive", "std"] }
 serde_json = { workspace = true }
 serde = { workspace = true }
 seda-runtime-sdk = { workspace = true, features = ["wasm"] }

@@ -15,8 +15,8 @@ members = [
 	"runtime/core",
 	"runtime/macros",
 	"wasm/cli",
-	"wasm/test/cli",
-	"wasm/test/general",
+	"wasm/test/demo-cli",
+	"wasm/test/promise-wasm-bin",
 ]
 
 [profile.dev]
@@ -40,7 +40,7 @@ opt-level = "z"
 [workspace.dependencies]
 actix = "0.13"
 async-trait = "0.1.58"
-clap = { version = "4.0.15", features = ["derive"] }
+clap = { version = "4.0.15", default-features = false }
 dotenv = "0.15.0"
 futures = "0.3"
 jsonrpsee = { version = "0.16", features = ["full"] }
