@@ -28,7 +28,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
         VmConfig {
             args:         vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func:   Some("hello_world".to_string()),
+            start_func:   "hello_world".to_string(),
             debug:        true,
         },
         memory_adapter(),
@@ -53,7 +53,7 @@ async fn test_bad_wasm_file() {
             VmConfig {
                 args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func:   None,
+                start_func:   "hello_word".to_string(),
                 debug:        true,
             },
             memory_adapter(),
@@ -76,7 +76,7 @@ async fn test_non_existing_function() {
             VmConfig {
                 args:         vec!["hello world".to_string()],
                 program_name: "consensus".to_string(),
-                start_func:   Some("non_existing_function".to_string()),
+                start_func:   "non_existing_function".to_string(),
                 debug:        true,
             },
             memory_adapter(),
@@ -100,7 +100,7 @@ async fn test_promise_queue_http_fetch() {
             VmConfig {
                 args:         vec![fetch_url.clone()],
                 program_name: "consensus".to_string(),
-                start_func:   Some("http_fetch_test".to_string()),
+                start_func:   "http_fetch_test".to_string(),
                 debug:        true,
             },
             memory_adapter(),
@@ -132,7 +132,7 @@ async fn test_memory_adapter() {
             VmConfig {
                 args:         vec!["memory adapter".to_string()],
                 program_name: "consensus".to_string(),
-                start_func:   Some("memory_adapter_test_success".to_string()),
+                start_func:   "memory_adapter_test_success".to_string(),
                 debug:        true,
             },
             memory_adapter.clone(),

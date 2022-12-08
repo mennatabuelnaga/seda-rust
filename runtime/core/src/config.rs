@@ -6,8 +6,7 @@ pub struct VmConfig {
     pub program_name: String,
 
     // The function we need to execute, defaults to the WASI default ("_start")
-    // TODO ask franklin about this.
-    pub start_func: Option<String>,
+    pub start_func: String,
 
     /// Arguments to pass to the WASM binary
     pub args: Vec<String>,

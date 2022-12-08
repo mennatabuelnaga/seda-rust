@@ -25,7 +25,7 @@ enum Commands {
 }
 
 #[no_mangle]
-fn parse() {
+fn main() {
     let options = Options::parse();
 
     if let Some(command) = options.command {
