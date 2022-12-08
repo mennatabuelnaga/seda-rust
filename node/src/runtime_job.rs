@@ -28,7 +28,7 @@ impl Actor for RuntimeWorker {
     fn started(&mut self, _ctx: &mut Self::Context) {
         // TODO: Replace the binary condinationally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path_prefix.push("./test_files/demo-cli.wasm");
+        path_prefix.push("./wasm_files/cli.wasm");
 
         let mut runtime = Runtime::new();
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();

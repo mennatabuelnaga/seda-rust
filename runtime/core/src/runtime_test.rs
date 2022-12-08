@@ -2,13 +2,13 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
-use seda_runtime_sdk::PromiseStatus;
 
 use super::{RunnableRuntime, Runtime, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/promise-wasm-bin.wasm");
+    path_prefix.push("test_files");
+    path_prefix.push("promise_wasm_bin.wasm");
 
     fs::read(path_prefix).unwrap()
 }
@@ -28,7 +28,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
         VmConfig {
             args:         vec!["hello world".to_string()],
             program_name: "consensus".to_string(),
-            start_func:   None,
+            start_func:   Some("hello_world".to_string()),
             debug:        true,
         },
         memory_adapter(),
@@ -113,16 +113,9 @@ async fn test_promise_queue_http_fetch() {
 
     assert!(db_result.is_some());
 
-    let result: PromiseStatus = serde_json::from_str(&db_result.unwrap()).unwrap();
-    assert!(matches!(result, PromiseStatus::Fulfilled(_)));
-
-    let result = match result {
-        PromiseStatus::Fulfilled(data) => String::from_utf8(data).unwrap(),
-        _ => panic!("Promise should be fulfilled"),
-    };
-    // Compare result with real API fetch
     let expected_result = reqwest::get(fetch_url).await.unwrap().text().await.unwrap();
 
+    let result = db_result.unwrap();
     println!("Decoded result {}", result);
     assert_eq!(result, expected_result);
 }
