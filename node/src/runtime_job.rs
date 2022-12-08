@@ -52,7 +52,7 @@ impl Handler<RuntimeJob> for RuntimeWorker {
             args,
             program_name: "test".to_string(),
             debug: false,
-            start_func: None,
+            start_func: "main".to_string(),
         };
 
         let runtime = self.runtime.as_ref().unwrap();
