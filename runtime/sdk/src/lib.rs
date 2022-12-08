@@ -1,6 +1,6 @@
 mod promises;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "wasm")]
 pub mod wasm;
 
 pub use promises::{

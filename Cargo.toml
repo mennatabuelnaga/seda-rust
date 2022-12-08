@@ -1,5 +1,6 @@
 [workspace]
-exclude = ["test_wasm_bins/demo_cli", "test_wasm_bins/promise_wasm_bin"]
+resolver = "2"
+default-members = ["cli"]
 members = [
 	"adapters/chain",
 	# "adapters/http",
@@ -13,6 +14,9 @@ members = [
 	"node",
 	"runtime/core",
 	"runtime/macros",
+	"wasm/cli",
+	"wasm/test/cli",
+	"wasm/test/general",
 ]
 
 [profile.dev]
