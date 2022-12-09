@@ -44,6 +44,9 @@ fn build_and_copy(runtime_core_dir: &Path, wasm_bin: &str) {
 }
 
 fn main() {
+    println!("cargo:rerun-if-changed=../../wasm/test/demo-cli");
+    println!("cargo:rerun-if-changed=../../wasm/test/promise-wasm-bin");
+
     let runtime_core_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     build_and_copy(&runtime_core_dir, "demo-cli");
     build_and_copy(&runtime_core_dir, "promise-wasm-bin");

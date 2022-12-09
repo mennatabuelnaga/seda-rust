@@ -44,7 +44,6 @@ fn build_and_copy(node_dir: &Path, wasm_bin: &str) {
 }
 
 fn main() {
-    // TODO these ones should be test only
     println!("cargo:rerun-if-changed=../../wasm/cli");
 
     let node_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
