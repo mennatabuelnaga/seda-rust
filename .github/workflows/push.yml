@@ -49,7 +49,7 @@ jobs:
           sudo apt-get -y install --no-install-recommends protobuf-compiler
 
       - name: Cache cargo registry
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         continue-on-error: false
         with:
           path: |
