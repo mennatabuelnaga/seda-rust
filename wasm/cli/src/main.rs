@@ -22,7 +22,6 @@ enum Commands {
     HttpFetch { url: String },
 }
 
-#[no_mangle]
 fn main() {
     let options = Options::parse();
 

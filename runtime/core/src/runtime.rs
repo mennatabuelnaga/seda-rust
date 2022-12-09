@@ -169,7 +169,7 @@ impl RunnableRuntime for Runtime {
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
     ) -> Result<VmResult> {
-        let function_name = config.start_func;
+        let function_name = config.start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
         let mut promise_queue = PromiseQueue::new();

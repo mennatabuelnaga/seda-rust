@@ -5,8 +5,7 @@ use seda_runtime_sdk::{
     PromiseStatus,
 };
 
-#[no_mangle]
-fn hello_world() {
+fn main() {
     let args: Vec<String> = env::args().collect();
 
     println!("Hello World {:?}", args);
