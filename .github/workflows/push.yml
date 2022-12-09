@@ -13,14 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust Nightly
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
           toolchain: nightly
-          override: true
           components: rustfmt
 
       - name: Format Check
@@ -29,25 +27,22 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  build_and_test:
-    name: Test Package ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        include:
-          - os: ubuntu-latest
+  clippy and test:
+    name: Clippy and Test
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust Stable
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: stable
-          override: true
-      
+          components: clippy
+
+      - name: Install Rust Toolchain wasm32-wasi
+        run: rustup target add wasm32-wasi
+
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
@@ -73,6 +68,7 @@ jobs:
           args: --all-features
 
       - name: Test
+        if: always()
         uses: actions-rs/cargo@v1
         with:
           command: test
