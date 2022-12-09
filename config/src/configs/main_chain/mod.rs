@@ -7,7 +7,7 @@ pub type MainChainConfig = near::NearConfig;
 
 // A place holder for when a main chain is not selected.
 // It gets overwritten by the selected main chain.
-#[cfg(feature = "default")]
+#[cfg(not(feature = "near"))]
 mod dummy;
-#[cfg(feature = "default")]
+#[cfg(not(feature = "near"))]
 pub type MainChainConfig = dummy::DummyConfig;

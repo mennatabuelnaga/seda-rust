@@ -5,7 +5,7 @@ use std::{
 };
 
 fn build_and_copy(runtime_core_dir: &Path, wasm_bin: &str) {
-    let wasm_file = format!("{}.wasm", wasm_bin.replace('-', "_"));
+    let wasm_file = format!("{}.wasm", wasm_bin);
     let mut runtime_core_dir = runtime_core_dir.to_path_buf();
 
     let mut wasm_bin_path = runtime_core_dir.to_path_buf();
@@ -44,10 +44,6 @@ fn build_and_copy(runtime_core_dir: &Path, wasm_bin: &str) {
 }
 
 fn main() {
-    // TODO these ones should be test only
-    println!("cargo:rerun-if-changed=../../wasm/test/demo-cli");
-    println!("cargo:rerun-if-changed=../../wasm/test/promise-wasm-bin");
-
     let runtime_core_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     build_and_copy(&runtime_core_dir, "demo-cli");
     build_and_copy(&runtime_core_dir, "promise-wasm-bin");

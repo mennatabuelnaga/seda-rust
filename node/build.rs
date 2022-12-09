@@ -5,7 +5,7 @@ use std::{
 };
 
 fn build_and_copy(node_dir: &Path, wasm_bin: &str) {
-    let wasm_file = format!("{}.wasm", wasm_bin.replace('-', "_"));
+    let wasm_file = format!("{}.wasm", wasm_bin);
     let mut node_dir = node_dir.to_path_buf();
 
     let mut wasm_bin_path = node_dir.to_path_buf();
