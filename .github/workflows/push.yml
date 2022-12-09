@@ -13,12 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust Nightly
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
           toolchain: nightly
           override: true
           components: rustfmt
@@ -29,46 +28,22 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  clippy:
-    name: Clippy Check
+  clippy and test:
+    name: Clippy and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Rust Stable
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
           toolchain: stable
           override: true
+          components: clippy
 
-      - name: Clippy Check
-        env:
-          RUSTFLAGS: '-D warnings'
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-features
-
-  test-package:
-    name: Test Package ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        include:
-          - os: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install Rust Stable
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - name: Install Rust Toolchain wasm32-wasi
+        run: rustup target add wasm32-wasi
 
       - name: Cache cargo registry
         uses: actions/cache@v2
@@ -81,7 +56,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      - name: Clippy Check
+        env:
+          RUSTFLAGS: '-D warnings'
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features
+
       - name: Test
+        if: always()
         uses: actions-rs/cargo@v1
         with:
           command: test
