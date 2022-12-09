@@ -25,7 +25,7 @@ impl Default for AppConfig {
         let mut this = Self {
             seda_server_url: None,
             node:            Some(Default::default()),
-            main_chain:      Some(Default::default()),
+            main_chain:      Some(MainChainConfig::default()),
             logging:         Some(Default::default()),
         };
         this.overwrite_from_env();
@@ -38,7 +38,7 @@ impl Config for AppConfig {
         Self {
             seda_server_url: Some("fill me in".to_string()),
             node:            Some(NodeConfig::template()),
-            main_chain:      Some(Config::template()),
+            main_chain:      Some(MainChainConfig::template()),
             logging:         Some(LoggerConfig::template()),
         }
     }

@@ -8,11 +8,10 @@ pub use mainchain_adapter_trait::*;
 
 #[cfg(feature = "near")]
 mod near_mainchain;
-
 #[cfg(feature = "near")]
 pub type MainChain = near_mainchain::NearMainChain;
 
 #[cfg(not(feature = "near"))]
-mod another_manichain;
+mod another_mainchain;
 #[cfg(not(feature = "near"))]
-pub type MainChain = another_manichain::AnotherMainChain;
+pub type MainChain = another_mainchain::AnotherMainChain;

@@ -1,11 +1,10 @@
-use seda_chain_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
 
 use crate::Result;
 
 #[async_trait::async_trait]
 pub trait HostAdapter: Send + Sync + Unpin + 'static {
-    type MainChainAdapter: MainChainAdapterTrait;
-    fn new() -> Result<Self>
+    async fn new() -> Result<Self>
     where
         Self: Sized;
 
@@ -19,7 +18,7 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
-    ) -> Result<<Self::MainChainAdapter as MainChainAdapterTrait>::FinalExecutionStatus>;
+    ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus>;
 
     async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
 }

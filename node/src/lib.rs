@@ -26,7 +26,7 @@ pub fn run<T: MainChainAdapterTrait>() {
     // Initialize actors inside system context
     system.block_on(async {
         // TODO: add number of workers as config with default value
-        let app = App::<RuntimeAdapter<T>>::new().await.start();
+        let app = App::<RuntimeAdapter>::new().await.start();
 
         // TODO: Use config for P2P Server
         let config = CONFIG.read().await;

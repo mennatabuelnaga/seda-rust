@@ -30,7 +30,8 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path_prefix.push("wasm_files/cli.wasm");
 
-        let mut runtime = Runtime::new();
+        let mut runtime = futures::executor::block_on(async move { Runtime::new().await });
+
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();
 
         self.runtime = Some(runtime);

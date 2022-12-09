@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 default = []
+near = ["seda-chain-adapters/near", "seda-config/near"]
 test_host = []
 
 [dependencies]

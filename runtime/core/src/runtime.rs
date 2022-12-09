@@ -27,7 +27,7 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-    fn new() -> Self;
+    async fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
     async fn execute_promise_queue(
@@ -48,10 +48,10 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
-    fn new() -> Self {
+    async fn new() -> Self {
         Self {
             wasm_module:  None,
-            host_adapter: HA::new().expect("TODO fix later"),
+            host_adapter: HA::new().await.expect("TODO fix later"),
         }
     }
 

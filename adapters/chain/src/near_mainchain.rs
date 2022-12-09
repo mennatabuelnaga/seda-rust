@@ -6,7 +6,7 @@ use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::Tra
 use near_primitives::{
     transaction::{Action, FunctionCallAction, SignedTransaction, Transaction},
     types::{AccountId, BlockReference, Finality, FunctionArgs},
-    views::{FinalExecutionStatus, QueryRequest},
+    views::QueryRequest,
 };
 use seda_config::MainChainConfig;
 use serde_json::from_slice;
@@ -84,7 +84,7 @@ impl MainChainAdapterTrait for NearMainChain {
         Ok(signed_transaction)
     }
 
-    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<SignedTransaction> {
+    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Self::SignedTransaction> {
         let signer_account_id: AccountId = tx_params.signer_acc_str.parse()?;
 
         let signer_secret_key: near_crypto::SecretKey = tx_params.signer_sk_str.parse()?;
@@ -121,7 +121,7 @@ impl MainChainAdapterTrait for NearMainChain {
         Ok(signed_transaction)
     }
 
-    async fn send_tx(client: Arc<Self::Client>, signed_tx: SignedTransaction) -> Result<FinalExecutionStatus> {
+    async fn send_tx(client: Arc<Self::Client>, signed_tx: SignedTransaction) -> Result<Self::FinalExecutionStatus> {
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
             signed_transaction: signed_tx.clone(),
         };

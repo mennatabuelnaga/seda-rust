@@ -11,6 +11,8 @@ near = [
 	"near-jsonrpc-primitives",
 	"near-primitives",
 	"seda-chain-adapters/near",
+	"seda-config/near",
+	"seda-node/near",
 ]
 
 [[bin]]

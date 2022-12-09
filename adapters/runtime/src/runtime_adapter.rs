@@ -2,20 +2,23 @@ use std::sync::Arc;
 
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
-use seda_chain_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
+use seda_config::CONFIG;
 
 use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch, Result};
-pub struct RuntimeAdapter<T: MainChainAdapterTrait> {
-    pub client: Arc<T::Client>,
+pub struct RuntimeAdapter {
+    pub client: Arc<<MainChain as MainChainAdapterTrait>::Client>,
 }
 
 #[async_trait::async_trait]
-impl<T: MainChainAdapterTrait> HostAdapter for RuntimeAdapter<T> {
-    type MainChainAdapter = T;
+impl HostAdapter for RuntimeAdapter {
+    async fn new() -> Result<Self> {
+        let config = CONFIG.read().await;
+        // Safe to unwrap here, it's already been checked.
+        let main_chain_config = config.main_chain.as_ref().unwrap();
 
-    fn new() -> Result<Self> {
         Ok(Self {
-            client: Arc::new(Self::MainChainAdapter::new_client(todo!("need to merge main"))?),
+            client: Arc::new(MainChain::new_client(main_chain_config)?),
         })
     }
 
@@ -54,10 +57,10 @@ impl<T: MainChainAdapterTrait> HostAdapter for RuntimeAdapter<T> {
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
-    ) -> Result<<Self::MainChainAdapter as MainChainAdapterTrait>::FinalExecutionStatus> {
+    ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus> {
         let host_actor = Host::from_registry();
         let result = host_actor
-            .send(ChainCall::<Self::MainChainAdapter> {
+            .send(ChainCall::<MainChain> {
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,
@@ -72,7 +75,7 @@ impl<T: MainChainAdapterTrait> HostAdapter for RuntimeAdapter<T> {
     async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let host_actor = Host::from_registry();
         let result = host_actor
-            .send(ChainView::<Self::MainChainAdapter> {
+            .send(ChainView::<MainChain> {
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,

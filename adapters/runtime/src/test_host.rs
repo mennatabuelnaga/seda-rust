@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use seda_chain_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
 use seda_config::CONFIG;
 
 use crate::{HostAdapter, Result, RuntimeAdapterError};
@@ -13,21 +13,19 @@ lazy_static! {
 
 }
 
-pub struct RuntimeTestAdapter<T: MainChainAdapterTrait> {
-    pub client: Arc<T::Client>,
+pub struct RuntimeTestAdapter {
+    pub client: Arc<<MainChain as MainChainAdapterTrait>::Client>,
 }
 
 #[async_trait::async_trait]
-impl<T: MainChainAdapterTrait> HostAdapter for RuntimeTestAdapter<T> {
-    type MainChainAdapter = T;
-
-    fn new() -> Result<Self> {
-        let config = CONFIG.blocking_read();
+impl HostAdapter for RuntimeTestAdapter {
+    async fn new() -> Result<Self> {
+        let config = CONFIG.read().await;
         // Safe to unwrap here, it's already been checked.
         let main_chain_config = config.main_chain.as_ref().unwrap();
 
         Ok(Self {
-            client: Arc::new(Self::MainChainAdapter::new_client(main_chain_config)?),
+            client: Arc::new(MainChain::new_client(main_chain_config)?),
         })
     }
 
@@ -49,7 +47,7 @@ impl<T: MainChainAdapterTrait> HostAdapter for RuntimeTestAdapter<T> {
 
     async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         dotenv::dotenv().ok();
-        T::view(self.client.clone(), contract_id, method_name, args)
+        MainChain::view(self.client.clone(), contract_id, method_name, args)
             .await
             .map_err(|err| RuntimeAdapterError::ChainInteractionsError(err.to_string()))
     }
@@ -60,14 +58,14 @@ impl<T: MainChainAdapterTrait> HostAdapter for RuntimeTestAdapter<T> {
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
-    ) -> Result<<Self::MainChainAdapter as MainChainAdapterTrait>::FinalExecutionStatus> {
+    ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus> {
         dotenv::dotenv().ok();
         let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
         let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
         let gas = dotenv::var("GAS").expect("GAS not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
 
-        let signed_txn = T::construct_signed_tx(
+        let signed_txn = MainChain::construct_signed_tx(
             &signer_acc_str,
             &signer_sk_str,
             contract_id,
@@ -79,7 +77,7 @@ impl<T: MainChainAdapterTrait> HostAdapter for RuntimeTestAdapter<T> {
         )
         .await
         .expect("couldn't sign txn");
-        T::send_tx(self.client.clone(), signed_txn)
+        MainChain::send_tx(self.client.clone(), signed_txn)
             .await
             .map_err(|err| RuntimeAdapterError::ChainInteractionsError(err.to_string()))
     }
