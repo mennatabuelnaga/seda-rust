@@ -1,5 +1,6 @@
 use std::{io::Read, sync::Arc};
 
+use borsh::BorshSerialize;
 use parking_lot::Mutex;
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
@@ -12,8 +13,9 @@ use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmCont
 use crate::RuntimeError;
 
 #[derive(Clone)]
-pub struct Runtime {
-    wasm_module: Option<Module>,
+pub struct Runtime<HA: HostAdapter> {
+    wasm_module:      Option<Module>,
+    pub host_adapter: HA,
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
@@ -28,7 +30,7 @@ pub trait RunnableRuntime {
     fn new() -> Self;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
-    async fn execute_promise_queue<HA: HostAdapter>(
+    async fn execute_promise_queue(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
@@ -41,17 +43,16 @@ pub trait RunnableRuntime {
         promise_queue_trace: &mut Vec<PromiseQueue>,
     ) -> Result<u8>;
 
-    async fn start_runtime<HA: HostAdapter>(
-        &self,
-        config: VmConfig,
-        memory_adapter: Arc<Mutex<InMemory>>,
-    ) -> Result<VmResult>;
+    async fn start_runtime(&self, config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult>;
 }
 
 #[async_trait::async_trait]
-impl RunnableRuntime for Runtime {
+impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
     fn new() -> Self {
-        Self { wasm_module: None }
+        Self {
+            wasm_module:  None,
+            host_adapter: HA::new().expect("TODO fix later"),
+        }
     }
 
     /// Initializes the runtime, this speeds up VM execution by caching WASM
@@ -65,7 +66,7 @@ impl RunnableRuntime for Runtime {
         Ok(())
     }
 
-    async fn execute_promise_queue<HA: HostAdapter>(
+    async fn execute_promise_queue(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
@@ -147,13 +148,15 @@ impl RunnableRuntime for Runtime {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        HA::db_set(&db_action.key, &String::from_utf8(db_action.value.clone())?).await?;
+                        self.host_adapter
+                            .db_set(&db_action.key, &String::from_utf8(db_action.value.clone())?)
+                            .await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let result = HA::db_get(&db_action.key).await?;
+                        let result = self.host_adapter.db_get(&db_action.key).await?;
 
                         match result {
                             Some(r) => {
@@ -165,56 +168,46 @@ impl RunnableRuntime for Runtime {
                     }
 
                     PromiseAction::Http(http_action) => {
-                        let resp = HA::http_fetch(&http_action.url).await?;
+                        let resp = self.host_adapter.http_fetch(&http_action.url).await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
                     PromiseAction::ChainView(chain_view_action) => {
-                        let resp = HA::chain_view(
-                            chain_view_action.chain,
-                            &chain_view_action.contract_id,
-                            &chain_view_action.method_name,
-                            chain_view_action.args.clone(),
-                        )
-                        .await?;
+                        let resp = self
+                            .host_adapter
+                            .chain_view(
+                                &chain_view_action.contract_id,
+                                &chain_view_action.method_name,
+                                chain_view_action.args.clone(),
+                            )
+                            .await?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
                     PromiseAction::ChainCall(chain_call_action) => {
-                        let resp = HA::chain_call(
-                            chain_call_action.chain,
-                            &chain_call_action.contract_id,
-                            &chain_call_action.method_name,
-                            chain_call_action.args.clone(),
-                            chain_call_action.deposit.parse::<u128>()?,
-                        )
-                        .await?;
+                        let resp = self
+                            .host_adapter
+                            .chain_call(
+                                &chain_call_action.contract_id,
+                                &chain_call_action.method_name,
+                                chain_call_action.args.clone(),
+                                chain_call_action.deposit.parse::<u128>()?,
+                            )
+                            .await?;
 
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.unwrap().into_bytes());
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.try_to_vec().unwrap());
                     }
                 }
             }
         }
 
-        promise_queue_trace.push(promise_queue_mut.clone());
-
-        let res = self.execute_promise_queue::<HA>(
-            wasm_module,
-            memory_adapter.clone(),
-            next_promise_queue,
-            output,
-            promise_queue_trace,
-        );
+        let res = self.execute_promise_queue(wasm_module, memory_adapter.clone(), next_promise_queue, output);
 
         res.await
     }
 
-    async fn start_runtime<HA: HostAdapter>(
-        &self,
-        config: VmConfig,
-        memory_adapter: Arc<Mutex<InMemory>>,
-    ) -> Result<VmResult> {
-        let function_name = config.start_func.unwrap_or_else(|| "_start".to_string());
+    async fn start_runtime(&self, config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult> {
+        let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
         let mut promise_queue_trace: Vec<PromiseQueue> = Vec::new();
@@ -230,14 +223,8 @@ impl RunnableRuntime for Runtime {
 
         let mut output: Vec<String> = vec![];
 
-        let exit_code = self
-            .execute_promise_queue::<HA>(
-                wasm_module,
-                memory_adapter,
-                promise_queue,
-                &mut output,
-                &mut promise_queue_trace,
-            )
+        let result = self
+            .execute_promise_queue(wasm_module, memory_adapter, promise_queue, &mut output)
             .await?;
 
         // There is always 1 queue with 1 promise in the trace (due this func addinging

@@ -9,8 +9,8 @@ mod runtime_job;
 
 use actix::prelude::*;
 use seda_chain_adapters::MainChainAdapterTrait;
-use seda_config::CONFIG;
 use seda_p2p_adapters::libp2p::P2PServer;
+use seda_runtime_adapters::RuntimeAdapter;
 use tracing::info;
 
 use crate::app::Shutdown;
@@ -25,7 +25,8 @@ pub fn run<T: MainChainAdapterTrait>() {
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
-				let app = App::new(node_config.runtime_worker_threads as usize).await.start();
+        // TODO: add number of workers as config with default value
+        let app = App::<RuntimeAdapter<T>>::new().await.start();
 
         // TODO: Use config for P2P Server
         let config = CONFIG.read().await;

@@ -95,7 +95,7 @@ impl CliCommands for NearCliBackend {
             .as_ref()
             .ok_or("near_server_url from config [main_chain_config] section.")?;
 
-        let signed_tx = Self::MainChainAdapter::construct_signed_tx2(
+        let signed_tx = Self::MainChainAdapter::construct_signed_tx(
             signer_acc_str,
             signer_sk_str,
             contract_id,

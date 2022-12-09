@@ -1,9 +1,9 @@
-use std::{marker::PhantomData, sync::Arc};
+use std::sync::Arc;
 
 use actix::prelude::*;
 use parking_lot::RwLock;
-use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::CONFIG;
+use seda_runtime_adapters::HostAdapter;
 use tracing::info;
 
 use crate::{
@@ -16,15 +16,18 @@ mod job_manager;
 mod shutdown;
 pub use shutdown::Shutdown;
 // Node Actor definition
-pub struct App {
+pub struct App<HA: HostAdapter> {
     pub event_queue:       Arc<RwLock<EventQueue>>,
     pub running_event_ids: Arc<RwLock<Vec<EventId>>>,
-    pub runtime_worker:    Addr<RuntimeWorker>,
+    pub runtime_worker:    Addr<RuntimeWorker<HA>>,
     pub rpc_server:        JsonRpcServer,
 }
 
-impl App {
-    pub async fn new(worker_threads: usize) -> Self {
+impl<HA: HostAdapter> App<HA> {
+    pub async fn new() -> Self {
+        let config = CONFIG.read().await;
+        // Okay to unwrap since CLI already checks if node section exists.
+        let worker_threads = config.node.as_ref().unwrap().runtime_worker_threads.unwrap_or(2);
         let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker { runtime: None });
 
         let rpc_server_address_default = "127.0.0.1:12345".to_string();
@@ -47,7 +50,7 @@ impl App {
     }
 }
 
-impl Actor for App {
+impl<HA: HostAdapter> Actor for App<HA> {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {

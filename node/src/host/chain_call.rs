@@ -1,21 +1,20 @@
-use std::marker::PhantomData;
+use std::sync::Arc;
 
 use actix::prelude::*;
 use seda_adapters::MainChainAdapterTrait;
 use seda_runtime_sdk::Chain;
-use serde::{Deserialize, Serialize};
 
 use super::Host;
 use crate::NodeError;
 
-#[derive(Message, Serialize, Deserialize)]
+#[derive(Message)]
 #[rtype(result = "Result<Option<String>, NodeError>")]
 pub struct ChainCall<T: MainChainAdapterTrait> {
     pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
-    pub phantom:     PhantomData<T>,
+    pub client:     Arc<T::Client>,
 }
 
 impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {

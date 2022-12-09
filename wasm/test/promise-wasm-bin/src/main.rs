@@ -49,13 +49,6 @@ fn http_fetch_test() {
 #[no_mangle]
 fn http_fetch_test_success() {
     let result = Promise::result(0);
-<<<<<<< HEAD:wasm/test/promise-wasm-bin/src/main.rs
-=======
-    let value_to_store: String = match result {
-        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
-        _ => "Promise failed..".to_string(),
-    };
->>>>>>> 94c8528 (fix: http_fetch_test_success + test_promise_queue_http_fetch test):test_wasm_bins/promise_wasm_bin/src/main.rs
 
     if let PromiseStatus::Fulfilled(bytes) = result {
         let value_to_store = String::from_utf8(bytes).unwrap();

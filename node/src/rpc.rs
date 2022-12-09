@@ -4,7 +4,8 @@ use jsonrpsee::{
     proc_macros::rpc,
     server::{ServerBuilder, ServerHandle},
 };
-use tracing::{debug, info};
+use seda_runtime_adapters::HostAdapter;
+use tracing::debug;
 
 use crate::{
     event_queue::{Event, EventData},
@@ -17,12 +18,12 @@ pub trait Rpc {
     async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error>;
 }
 
-pub struct CliServer {
-    runtime_worker: Addr<RuntimeWorker>,
+pub struct CliServer<HA: HostAdapter> {
+    runtime_worker: Addr<RuntimeWorker<HA>>,
 }
 
 #[async_trait]
-impl RpcServer for CliServer {
+impl<HA: HostAdapter> RpcServer for CliServer<HA> {
     async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error> {
         debug!("{:?}", &args);
 
@@ -45,8 +46,8 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn start(runtime_worker: Addr<RuntimeWorker>, addrs: &str) -> Result<Self, Error> {
-        let server = ServerBuilder::default().build(addrs).await?;
+    pub async fn start<HA: HostAdapter>(runtime_worker: Addr<RuntimeWorker<HA>>) -> Result<Self, Error> {
+        let server = ServerBuilder::default().build("127.0.0.1:12345").await?;
         let rpc = CliServer { runtime_worker };
         let handle = server.start(rpc.into_rpc())?;
         info!("RPC Server listening on {}", addrs);

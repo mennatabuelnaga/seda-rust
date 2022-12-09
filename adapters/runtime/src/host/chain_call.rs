@@ -1,25 +1,22 @@
-use std::marker::PhantomData;
+use std::sync::Arc;
 
 use actix::prelude::*;
 use seda_chain_adapters::MainChainAdapterTrait;
-use seda_runtime_sdk::Chain;
-use serde::{Deserialize, Serialize};
 
 use crate::{Host, Result};
 
-#[derive(Message, Serialize, Deserialize)]
-#[rtype(result = "Result<Option<String>>")]
+#[derive(Message)]
+#[rtype(result = "Result<<T as MainChainAdapterTrait>::FinalExecutionStatus>")]
 pub struct ChainCall<T: MainChainAdapterTrait> {
-    pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
     pub deposit:     u128,
-    pub phantom:     PhantomData<T>,
+    pub client:      Arc<T::Client>,
 }
 
 impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
-    type Result = ResponseActFuture<Self, Result<Option<String>>>;
+    type Result = ResponseActFuture<Self, Result<<T as MainChainAdapterTrait>::FinalExecutionStatus>>;
 
     fn handle(&mut self, msg: ChainCall<T>, _ctx: &mut Self::Context) -> Self::Result {
         let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
@@ -29,7 +26,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
         let deposit = msg.deposit;
 
         let fut = async move {
-            let signed_txn = T::construct_signed_tx2(
+            let signed_txn = T::construct_signed_tx(
                 &signer_acc_str,
                 &signer_sk_str,
                 &msg.contract_id,
@@ -41,7 +38,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
             )
             .await
             .expect("couldn't sign txn");
-            let value = T::send_tx2(signed_txn, &server_url).await?;
+            let value = T::send_tx(msg.client.clone(), signed_txn).await?;
 
             Ok(value)
         };

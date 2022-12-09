@@ -24,3 +24,4 @@ serde_json = { workspace = true }
 near-crypto = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+borsh = { workspace = true }

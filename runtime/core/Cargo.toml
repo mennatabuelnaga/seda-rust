@@ -18,13 +18,15 @@ wasmer = { workspace = true }
 wasmer-wasi = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+rusqlite = { workspace = true }
+borsh = { workspace = true }
 
 [dev-dependencies]
 reqwest = { workspace = true }
 seda-runtime-adapters = { workspace = true, features = ["test_host"] }
-tokio-rusqlite = {workspace = true}
-futures = {workspace = true}
-seda-chain-adapters = {workspace = true}
-lazy_static = {workspace = true}
-borsh = {workspace = true}
-dotenv = {workspace = true}
+tokio-rusqlite = { workspace = true }
+futures = { workspace = true }
+seda-chain-adapters = { workspace = true }
+lazy_static = { workspace = true }
+borsh = { workspace = true }
+dotenv = { workspace = true }

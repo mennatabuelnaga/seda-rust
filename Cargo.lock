@@ -2344,32 +2344,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parse-display"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b25af4ef94a8528b41fb49a696e361dc6ef975c782417268072d987ac327964"
-dependencies = [
- "once_cell",
- "parse-display-derive",
- "regex",
-]
-
-[[package]]
-name = "parse-display-derive"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73f106cced1f4b645e3fca6125105cdf7407e35d1af710f290aac530f6b826b9"
-dependencies = [
- "once_cell",
- "proc-macro2",
- "quote",
- "regex",
- "regex-syntax",
- "structmeta",
- "syn",
-]
-
-[[package]]
 name = "percent-encoding"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2975,6 +2949,7 @@ name = "seda-chain-adapters"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "borsh",
  "jsonrpsee-types",
  "near-crypto 0.15.0",
  "near-jsonrpc-client",
@@ -3107,6 +3082,7 @@ dependencies = [
  "reqwest",
  "rusqlite",
  "seda-chain-adapters",
+ "seda-config",
  "seda-runtime-sdk",
  "serde",
  "thiserror",
@@ -3127,7 +3103,6 @@ dependencies = [
 name = "seda-runtime-sdk"
 version = "0.1.0"
 dependencies = [
- "parse-display",
  "serde",
  "serde_json",
 ]
@@ -3441,29 +3416,6 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
-
-[[package]]
-name = "structmeta"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bd9c2155aa89fb2c2cb87d99a610c689e7c47099b3e9f1c8a8f53faf4e3d2e3"
-dependencies = [
- "proc-macro2",
- "quote",
- "structmeta-derive",
- "syn",
-]
-
-[[package]]
-name = "structmeta-derive"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bafede0d0a2f21910f36d47b1558caae3076ed80f6f3ad0fc85a91e6ba7e5938"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "strum"

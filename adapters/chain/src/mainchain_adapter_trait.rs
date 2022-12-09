@@ -1,5 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
+use borsh::BorshSerialize;
 use jsonrpsee_types::Params;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
@@ -32,13 +33,13 @@ pub struct NodeDetails {
 
 // TODO once rpc becomes a trait need to replace params type.
 #[async_trait::async_trait]
-pub trait MainChainAdapterTrait: Debug + Send + Sync + Unpin + 'static {
+pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
     /// The Config fields for the adapter specific implementation.
-    type Config: seda_config::Config + Send + Sync + Unpin;
+    type Config: seda_config::Config + Send + Sync;
     /// The Client type for the adapter specific implementation.
     type Client: Send + Sync + 'static;
     /// The execution status type for the adapter specific implementation.
-    type FinalExecutionStatus: Debug + Send + Sync + Serialize + 'static;
+    type FinalExecutionStatus: Debug + Send + Sync + BorshSerialize + 'static;
     /// The signed transaction type for the adapter specific implementation.
     type SignedTransaction: Debug + Send + Sync + Serialize + DeserializeOwned;
 
@@ -57,17 +58,6 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + Unpin + 'static {
         deposit: u128,
         server_url: &str,
     ) -> Result<Self::SignedTransaction>;
-    #[allow(clippy::too_many_arguments)]
-    async fn construct_signed_tx2(
-        signer_acc_str: &str,
-        signer_sk_str: &str,
-        contract_id: &str,
-        method_name: &str,
-        args: Vec<u8>,
-        gas: u64,
-        deposit: u128,
-        server_url: &str,
-    ) -> Result<Vec<u8>>;
     /// Default trait function that calls sign and send specific
     /// implementations.
     async fn sign_and_send_tx(
@@ -86,10 +76,8 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + Unpin + 'static {
         client: Arc<Self::Client>,
         signed_tx: Self::SignedTransaction,
     ) -> Result<Self::FinalExecutionStatus>;
-    async fn send_tx2(signed_tx: Vec<u8>, chain_server_address: &str) -> Result<Option<String>>;
     /// To view for the adapter specific implementation.
     async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
-    async fn view2(contract_id: &str, method_name: &str, args: Vec<u8>, chain_server_address: &str) -> Result<String>;
     /// Default trait function to get the node owner.
     async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
         let method_name = "get_node_owner";

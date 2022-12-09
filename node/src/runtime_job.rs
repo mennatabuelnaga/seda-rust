@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
 use seda_runtime::{RunnableRuntime, Runtime, VmConfig, VmResult};
-use seda_runtime_adapters::{InMemory, RuntimeAdapter};
+use seda_runtime_adapters::{HostAdapter, InMemory};
 
 use crate::event_queue::{Event, EventData};
 
@@ -18,11 +18,11 @@ pub struct RuntimeJob {
     pub event: Event,
 }
 
-pub struct RuntimeWorker {
-    pub runtime: Option<Runtime>,
+pub struct RuntimeWorker<HA: HostAdapter> {
+    pub runtime: Option<Runtime<HA>>,
 }
 
-impl Actor for RuntimeWorker {
+impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
     type Context = SyncContext<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
@@ -37,7 +37,7 @@ impl Actor for RuntimeWorker {
     }
 }
 
-impl Handler<RuntimeJob> for RuntimeWorker {
+impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
     type Result = RuntimeJobResult;
 
     fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
@@ -57,8 +57,7 @@ impl Handler<RuntimeJob> for RuntimeWorker {
 
         let runtime = self.runtime.as_ref().unwrap();
 
-        let res =
-            futures::executor::block_on(runtime.start_runtime::<RuntimeAdapter>(vm_config, memory_adapter)).unwrap();
+        let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter)).unwrap();
 
         RuntimeJobResult { vm_result: res }
     }
