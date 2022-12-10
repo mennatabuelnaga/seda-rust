@@ -24,7 +24,7 @@ pub struct CliOptions {
 enum Command {
     Run {
         #[arg(short, long)]
-        server_address: Option<String>,
+        rpc_server_address: Option<String>,
     },
     Cli {
         args: Vec<String>,
@@ -199,7 +199,7 @@ impl CliOptions {
         let options = CliOptions::parse();
         dotenv::dotenv().ok();
 
-        if let Command::Run { server_address } = options.command {
+        if let Command::Run { rpc_server_address } = options.command {
             {
                 let mut config = CONFIG.blocking_write();
                 config
@@ -207,7 +207,7 @@ impl CliOptions {
                     .as_ref()
                     .ok_or("Missing config [main_chain] section")?;
                 let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                overwrite_config_field!(node_config.server_address, server_address);
+                overwrite_config_field!(node_config.rpc_server_address, rpc_server_address);
             }
 
             return seda_logger::init(|| {

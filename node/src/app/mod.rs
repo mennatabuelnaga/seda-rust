@@ -29,7 +29,16 @@ impl App {
         // Okay to unwrap since CLI already checks if node section exists.
         let worker_threads = config.node.as_ref().unwrap().runtime_worker_threads.unwrap_or(2);
         let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker { runtime: None });
-        let rpc_server = JsonRpcServer::start(runtime_worker.clone())
+
+        let rpc_server_address_default = "127.0.0.1:12345".to_string();
+        let rpc_server_address = config
+            .node
+            .as_ref()
+            .unwrap()
+            .rpc_server_address
+            .as_ref()
+            .unwrap_or(&rpc_server_address_default);
+        let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
 
@@ -46,7 +55,6 @@ impl Actor for App {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("Node starting...");
         let banner = r#"
          _____ __________  ___         ____  __  _____________
         / ___// ____/ __ \/   |       / __ \/ / / / ___/_  __/
@@ -54,7 +62,7 @@ impl Actor for App {
        ___/ / /___/ /_/ / ___ /_____/ _, _/ /_/ /___/ // /
       /____/_____/_____/_/  |_|    /_/ |_|\____//____//_/
         "#;
-        info!("{}", banner);
+        info!("Node starting... \n{}", banner);
 
         info!("Starting Job Manager...");
         ctx.notify(job_manager::StartJobManager);

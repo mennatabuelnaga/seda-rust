@@ -14,7 +14,7 @@ pub struct NodeConfig {
     // TODO should this be overwritten from
     // env and cli?
     pub job_manager_interval_ms:   u64,
-    pub server_address:            Option<String>,
+    pub rpc_server_address:        Option<String>,
     pub runtime_worker_threads:    Option<usize>,
 }
 
@@ -28,7 +28,7 @@ impl Config for NodeConfig {
             contract_account_id:       Some("fill me in".to_string()),
             public_key:                Some("fill me in".to_string()),
             job_manager_interval_ms:   10,
-            server_address:            Some("fill me in".to_string()),
+            rpc_server_address:        Some("fill me in".to_string()),
             runtime_worker_threads:    Some(2),
         }
     }
@@ -52,7 +52,7 @@ impl Default for NodeConfig {
             contract_account_id:       None,
             public_key:                None,
             job_manager_interval_ms:   10,
-            server_address:            None,
+            rpc_server_address:        Some("127.0.0.1:12345".to_string()),
             runtime_worker_threads:    Some(2),
         };
         this.overwrite_from_env();
