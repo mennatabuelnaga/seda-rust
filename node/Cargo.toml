@@ -7,17 +7,19 @@ edition = "2021"
 
 [dependencies]
 actix = { workspace = true }
+async-std = {version="1.12.0"}
 async-trait = { workspace = true }
 futures = { workspace = true }
 jsonrpsee = { workspace = true }
+libp2p = { workspace = true }
 parking_lot = { workspace = true }
 reqwest = { workspace = true }
 seda-chain-adapters = { workspace = true }
-seda-runtime-adapters = { workspace = true }
 seda-config = { workspace = true }
 seda-runtime = { workspace = true }
+seda-runtime-adapters = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = { workspace = true }
 thiserror = { workspace = true }
+tokio = { workspace = true }
 tracing = { workspace = true }

@@ -3,11 +3,13 @@ mod errors;
 pub use errors::*;
 mod event_queue;
 mod event_queue_handler;
+mod p2p;
 mod rpc;
 mod runtime_job;
 
 use actix::prelude::*;
 use app::App;
+use p2p::{P2PConfig, P2PServer};
 use seda_chain_adapters::MainChainAdapterTrait;
 use tracing::info;
 
@@ -25,6 +27,22 @@ pub fn run<T: MainChainAdapterTrait>() {
     // Initialize actors inside system context
     system.block_on(async {
         let app = App::new().await.start();
+
+        // TODO: Use config for P2P Server
+        let p2p_config = P2PConfig {
+            server_address: "/ip4/0.0.0.0/tcp/0".to_string(),
+            known_peers:    vec![],
+        };
+
+        // P2P initialization
+        // TODO: most probably this process should be moved somewhere else
+        actix::spawn(async move {
+            let mut p2p_server = P2PServer::start_from_config(p2p_config)
+                .await
+                .expect("P2P swarm cannot be started");
+            p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
+            p2p_server.loop_stream().await.expect("P2P listen failed");
+        });
 
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {

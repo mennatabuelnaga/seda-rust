@@ -42,6 +42,7 @@ futures = "0.3"
 jsonrpsee-types = "0.16"
 jsonrpsee = { version = "0.16", features = ["full"] }
 lazy_static = "1.4"
+libp2p = "0.48.0"
 near-jsonrpc-client = { version = "0.4", default-features = false, features = [
 	"auth",
 	"rustls-tls",
