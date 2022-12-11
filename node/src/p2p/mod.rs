@@ -1,9 +1,9 @@
 mod behaviour;
 mod transport;
 
-use async_std::io;
+use async_std::io::{self, prelude::BufReadExt};
 use libp2p::{
-    futures::{prelude::*, select, StreamExt},
+    futures::{select, StreamExt},
     gossipsub::{GossipsubEvent, IdentTopic},
     identity::{self},
     mdns::MdnsEvent,
@@ -21,6 +21,15 @@ pub struct P2PConfig {
     pub known_peers:    Vec<String>,
 }
 
+impl Default for P2PConfig {
+    fn default() -> Self {
+        Self {
+            server_address: "/ip4/0.0.0.0/tcp/0".to_string(),
+            known_peers:    Default::default(),
+        }
+    }
+}
+
 pub struct P2PServer {
     pub config:    P2PConfig,
     pub local_key: identity::Keypair,
@@ -35,12 +44,8 @@ impl P2PServer {
         let local_peer_id = PeerId::from(local_key.public());
         println!("Local peer id: {:?}", local_peer_id);
 
-        // Create a random PeerId
-        let transport_key_pair = identity::Keypair::generate_ed25519();
-        let transport_peer_id = PeerId::from(transport_key_pair.public());
-        println!("Random peer id: {transport_peer_id:?}");
-
-        let transport = build_tcp_transport(transport_key_pair);
+        // Create transport and behaviour
+        let transport = build_tcp_transport(local_key.clone());
         let seda_behaviour = SedaBehaviour::new(&config, &local_key).await;
 
         let mut swarm = Swarm::new(transport, seda_behaviour, PeerId::from(local_key.public()));
@@ -72,7 +77,7 @@ impl P2PServer {
 
     pub async fn loop_stream(&mut self) -> Result<()> {
         let mut stdin = io::BufReader::new(io::stdin()).lines().fuse();
-        let topic = IdentTopic::new("test-net");
+        let topic = IdentTopic::new("testnet");
 
         loop {
             select! {

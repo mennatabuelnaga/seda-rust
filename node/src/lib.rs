@@ -29,10 +29,7 @@ pub fn run<T: MainChainAdapterTrait>() {
         let app = App::new().await.start();
 
         // TODO: Use config for P2P Server
-        let p2p_config = P2PConfig {
-            server_address: "/ip4/0.0.0.0/tcp/0".to_string(),
-            known_peers:    vec![],
-        };
+        let p2p_config = P2PConfig::default();
 
         // P2P initialization
         // TODO: most probably this process should be moved somewhere else
