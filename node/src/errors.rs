@@ -1,4 +1,5 @@
 use seda_chain_adapters::MainChainAdapterError;
+use seda_p2p_adapters::P2PAdapterError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -7,10 +8,8 @@ pub enum NodeError {
     RPCError(#[from] jsonrpsee::core::Error),
     #[error(transparent)]
     MainChainError(#[from] MainChainAdapterError),
-    #[error("libp2p transport error")]
-    P2PTrasnport(#[from] libp2p::TransportError<std::io::Error>),
-    #[error("libp2p multi addr error")]
-    P2PMultiAddr(#[from] libp2p::multiaddr::Error),
+    #[error(transparent)]
+    P2PError(#[from] P2PAdapterError),
 }
 
 pub type Result<T, E = NodeError> = core::result::Result<T, E>;

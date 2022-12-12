@@ -3,14 +3,13 @@ mod errors;
 pub use errors::*;
 mod event_queue;
 mod event_queue_handler;
-mod p2p;
 mod rpc;
 mod runtime_job;
 
 use actix::prelude::*;
 use app::App;
-use p2p::{P2PConfig, P2PServer};
 use seda_chain_adapters::MainChainAdapterTrait;
+use seda_p2p_adapters::libp2p::{P2PConfig, P2PServer};
 use tracing::info;
 
 use crate::app::Shutdown;

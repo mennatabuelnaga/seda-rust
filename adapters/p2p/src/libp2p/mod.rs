@@ -14,7 +14,7 @@ use libp2p::{
 
 use self::behaviour::SedaBehaviour;
 use super::errors::Result;
-use crate::p2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport};
+use crate::libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport};
 
 pub struct P2PConfig {
     pub server_address: String,
