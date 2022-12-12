@@ -100,8 +100,8 @@ impl StakingContract {
 
         self.internal_ping();
 
-        let amount = self.internal_deposit(amount.into(), account_id);
-        self.internal_stake(amount);
+        let amount = self.internal_deposit(amount.into(), account_id.clone());
+        self.internal_stake(amount, account_id);
 
         self.internal_restake();
     }
@@ -143,7 +143,7 @@ impl StakingContract {
 
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
-        self.internal_stake(account.unstaked);
+        self.internal_stake(account.unstaked, env::signer_account_id());
 
         self.internal_restake();
     }
@@ -155,7 +155,7 @@ impl StakingContract {
         self.internal_ping();
 
         let amount: Balance = amount.into();
-        self.internal_stake(amount);
+        self.internal_stake(amount, env::signer_account_id());
 
         self.internal_restake();
     }

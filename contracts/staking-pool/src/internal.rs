@@ -58,10 +58,9 @@ impl StakingContract {
         self.last_total_balance -= amount;
     }
 
-    pub(crate) fn internal_stake(&mut self, amount: Balance) {
+    pub(crate) fn internal_stake(&mut self, amount: Balance, account_id: AccountId) {
         assert!(amount > 0, "Staking amount should be positive");
 
-        let account_id = env::predecessor_account_id();
         let mut account = self.internal_get_account(&account_id);
 
         // Calculate the number of "stake" shares that the account will receive for
