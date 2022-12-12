@@ -29,34 +29,7 @@ jobs:
           command: fmt
           args: --all -- --check
 
-  clippy:
-    name: Clippy Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install Rust Stable
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y -qq
-          sudo apt-get -y install --no-install-recommends protobuf-compiler
-
-      - name: Clippy Check
-        env:
-          RUSTFLAGS: '-D warnings'
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-features
-
-  test-package:
+  build_and_test:
     name: Test Package ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -90,6 +63,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+
+      - name: Clippy Check
+        env:
+          RUSTFLAGS: '-D warnings'
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features
 
       - name: Test
         uses: actions-rs/cargo@v1
