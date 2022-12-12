@@ -21,4 +21,4 @@ RUN rustup install nightly
 RUN rustup component add rustfmt --toolchain nightly
 
 # Dependencies
-RUN apt-get -y install --no-install-recommends protobuf-compiler 
+RUN apt-get -y install --no-install-recommends protobuf-compiler

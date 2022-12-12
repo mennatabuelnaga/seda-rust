@@ -43,6 +43,11 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -y install --no-install-recommends protobuf-compiler
+
       - name: Clippy Check
         env:
           RUSTFLAGS: '-D warnings'
@@ -69,6 +74,11 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -y install --no-install-recommends protobuf-compiler
 
       - name: Cache cargo registry
         uses: actions/cache@v2
