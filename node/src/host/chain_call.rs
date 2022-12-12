@@ -28,7 +28,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
 
         let fut = async move {
-            let signed_txn = T::construct_signed_tx2(
+            let signed_txn = T::construct_signed_tx(
                 &signer_acc_str,
                 &signer_sk_str,
                 &msg.contract_id,
@@ -40,7 +40,7 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
             )
             .await
             .expect("couldn't sign txn");
-            let value = T::send_tx2(signed_txn, &server_url).await?;
+            let value = T::send_tx(signed_txn, &server_url).await?;
 
             Ok(value)
         };

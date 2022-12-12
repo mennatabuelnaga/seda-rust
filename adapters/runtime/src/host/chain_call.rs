@@ -4,7 +4,7 @@ use actix::prelude::*;
 use seda_chain_adapters::MainChainAdapterTrait;
 
 use crate::{Host, Result};
-
+// use seda_config::CONFIG;
 #[derive(Message)]
 #[rtype(result = "Result<<T as MainChainAdapterTrait>::FinalExecutionStatus>")]
 pub struct ChainCall<T: MainChainAdapterTrait> {
@@ -23,6 +23,17 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
         let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
         let gas = dotenv::var("GAS").expect("GAS not set");
         let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
+
+        // let config = CONFIG.blocking_read();
+        // let signer_acc_str =
+        // config.node.as_ref().unwrap().signer_account_id.as_ref().unwrap().clone();
+        // let signer_sk_str =
+        // config.node.as_ref().unwrap().secret_key.as_ref().unwrap().clone();
+        // let gas = config.node.as_ref().unwrap().gas.as_ref().unwrap().clone();
+        // let server_url =
+        // config.main_chain.as_ref().unwrap().near_server_url.as_ref().unwrap().
+        // clone();
+
         let deposit = msg.deposit;
 
         let fut = async move {

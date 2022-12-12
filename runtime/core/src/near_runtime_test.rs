@@ -24,6 +24,7 @@ fn set_env_vars() {
     env::set_var("GAS", "300000000000000");
     env::set_var("CHAIN_SERVER_URL", "https://rpc.testnet.near.org");
     env::set_var("NEAR_SERVER_URL", "https://rpc.testnet.near.org");
+    env::set_var("SEDA_CONFIG_PATH", "../../template_config.toml");
 }
 
 fn memory_adapter() -> Arc<Mutex<InMemory>> {

@@ -47,8 +47,7 @@ fn main() {
             Commands::Hello => {
                 println!("Hello World from inside wasm");
             }
-            //cargo run -- -c ./template_config.toml cli view "Near" mc.mennat0.testnet get_node_owner
-            // "{\"node_id\":\"12\"}"
+            //cargo run cli view mc.mennat0.testnet get_node_owner "{\"node_id\":\"12\"}"
             Commands::View {
                 contract_id,
                 method_name,
@@ -58,9 +57,7 @@ fn main() {
                     .start()
                     .then(call_self("chain_view_test_success", vec![]));
             }
-            // register_node serialized signed txn
-            // cargo run -- -c ./template_config.toml cli call "Cosmos" mc.mennat0.testnet register_node
-            // "{\"socket_address\":\"127.0.0.1:8080\"}" "870000000000000000000"
+            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}" "870000000000000000000"
             Commands::Call {
                 contract_id,
                 method_name,

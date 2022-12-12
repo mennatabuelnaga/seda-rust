@@ -26,6 +26,7 @@ fn set_env_vars() {
     env::set_var("GAS", "300000000000000");
     env::set_var("CHAIN_SERVER_URL", "https://rpc.testnet.near.org");
     env::set_var("NEAR_SERVER_URL", "https://rpc.testnet.near.org");
+    env::set_var("SEDA_CONFIG_PATH", "../../template_config.toml");
 }
 
 fn memory_adapter() -> Arc<Mutex<InMemory>> {
@@ -34,6 +35,7 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_multiple_calls_with_external_traits() {
+    set_env_vars();
     let wasm_binary = read_wasm();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await;
 
@@ -60,6 +62,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 #[tokio::test(flavor = "multi_thread")]
 #[should_panic(expected = "input bytes aren't valid utf-8")]
 async fn test_bad_wasm_file() {
+    set_env_vars();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await;
     runtime.init(vec![203]).unwrap();
 
@@ -82,6 +85,7 @@ async fn test_bad_wasm_file() {
 #[tokio::test(flavor = "multi_thread")]
 #[should_panic(expected = "non_existing_function")]
 async fn test_non_existing_function() {
+    set_env_vars();
     let wasm_binary = read_wasm();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await;
     runtime.init(wasm_binary).unwrap();
@@ -104,6 +108,7 @@ async fn test_non_existing_function() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_http_fetch() {
+    set_env_vars();
     let fetch_url = "https://www.breakingbadapi.com/api/characters/1".to_string();
 
     let wasm_binary = read_wasm();
@@ -137,6 +142,7 @@ async fn test_promise_queue_http_fetch() {
 
 #[tokio::test(flavor = "multi_thread")]
 async fn test_memory_adapter() {
+    set_env_vars();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await;
     let memory_adapter = memory_adapter();
     let wasm_binary = read_wasm();
