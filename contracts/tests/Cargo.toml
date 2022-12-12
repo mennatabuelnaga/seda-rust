@@ -1,0 +1,21 @@
+[package]
+name = "seda-contract-tests"
+version = "1.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+near-sdk = { workspace = true }
+near-contract-standards = { workspace = true }
+schemars = "0.8"
+staking-pool = { path = "../staking-pool" }
+
+[dev-dependencies]
+workspaces = "0.7.0"
+anyhow = "1.0.13"
+tokio = { workspace = true }
+near-units = "0.2.0"
+base64 = "0.13.1"
+serde_json = { workspace = true }

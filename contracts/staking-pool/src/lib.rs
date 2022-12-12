@@ -14,8 +14,9 @@ use uint::construct_uint;
 use crate::staking::RewardFeeFraction;
 
 mod internal;
-mod staking;
+pub mod staking;
 mod staking_test;
+mod token_receiver;
 
 /// The amount of gas given to complete `vote` call.
 const _VOTE_GAS: u64 = 100_000_000_000_000;
@@ -111,6 +112,7 @@ pub struct StakingContract {
     /// distribution. Pausing is useful for node maintenance. Only the owner
     /// can pause and resume staking. The contract is not paused by default.
     pub paused:               bool,
+    pub seda_token:           AccountId,
 }
 
 impl Default for StakingContract {
@@ -130,7 +132,12 @@ impl StakingContract {
     /// unstaked or withdrawn. It prevents inflating the price of the share
     /// too much.
     #[init]
-    pub fn new(owner_id: AccountId, stake_public_key: PublicKey, reward_fee_fraction: RewardFeeFraction) -> Self {
+    pub fn new(
+        owner_id: AccountId,
+        stake_public_key: PublicKey,
+        reward_fee_fraction: RewardFeeFraction,
+        seda_token: AccountId,
+    ) -> Self {
         assert!(!env::state_exists(), "Already initialized");
         reward_fee_fraction.assert_valid();
         assert!(
@@ -144,6 +151,10 @@ impl StakingContract {
             0,
             "The staking pool shouldn't be staking at the initialization"
         );
+        assert!(
+            env::is_valid_account_id(seda_token.as_bytes()),
+            "The SEDA token account ID is invalid"
+        );
         let mut this = Self {
             owner_id,
             stake_public_key,
@@ -154,6 +165,7 @@ impl StakingContract {
             reward_fee_fraction,
             accounts: UnorderedMap::new(b"u".to_vec()),
             paused: false,
+            seda_token,
         };
         // Staking with the current pool to make sure the staking key is valid.
         this.internal_restake();

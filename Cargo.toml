@@ -10,8 +10,9 @@ members = [
 	"cli",
 	"config",
 	"contracts/mainchain",
-	"contracts/staking-pool",
 	"contracts/seda-token",
+	"contracts/staking-pool",
+	"contracts/tests",
 	"logger",
 	"node",
 	"runtime/core",
@@ -50,9 +51,13 @@ jsonrpsee-types = "0.16"
 jsonrpsee = { version = "0.16", default-features = false }
 lazy_static = "1.4"
 libp2p = { version = "0.48", default-features = false }
-near-crypto = "0.15"
-near-jsonrpc-client = { version = "0.4", default-features = false }
+near-jsonrpc-client = { version = "0.4", default-features = false, features = [
+	"auth",
+	"rustls-tls",
+] }
 near-jsonrpc-primitives = "0.15"
+near-contract-standards = "4.0"
+near-crypto = "0.15"
 near-primitives = "0.15"
 near-sdk = { version = "4.0", default-features = false }
 parking_lot = "0.12"

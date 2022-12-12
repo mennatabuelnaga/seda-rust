@@ -1,3 +1,5 @@
+use near_sdk::log;
+
 use crate::{staking::ext_self, *};
 
 /// Contract internal methods
@@ -14,10 +16,9 @@ impl StakingContract {
             .then(ext_self::ext(env::current_account_id()).on_stake_action());
     }
 
-    pub(crate) fn internal_deposit(&mut self) -> u128 {
-        let account_id = env::predecessor_account_id();
+    pub(crate) fn internal_deposit(&mut self, amount: u128, account_id: AccountId) -> u128 {
+        env::log_str(format!("account_id is {}", account_id).as_str());
         let mut account = self.internal_get_account(&account_id);
-        let amount = env::attached_deposit();
         account.unstaked += amount;
         self.internal_save_account(&account_id, &account);
         self.last_total_balance += amount;

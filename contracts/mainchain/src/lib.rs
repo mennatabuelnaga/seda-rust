@@ -1,5 +1,7 @@
 pub mod block;
 pub mod data_request;
+pub mod data_request_test;
+pub mod epoch;
 pub mod merkle;
 pub mod node_registry;
 pub mod storage;
@@ -34,6 +36,7 @@ pub struct MainchainContract {
     num_blocks:               BlockHeight,
     block_ids_by_height:      LookupMap<BlockHeight, BlockId>,
     blocks_by_id:             LookupMap<BlockId, Block>,
+    epoch:                    u64,
 }
 
 impl Default for MainchainContract {
@@ -54,6 +57,7 @@ impl MainchainContract {
             num_blocks:               0,
             block_ids_by_height:      LookupMap::new(MainchainStorageKeys::BlockIdsByHeight),
             blocks_by_id:             LookupMap::new(MainchainStorageKeys::BlocksById),
+            epoch:                    0,
         }
     }
 }

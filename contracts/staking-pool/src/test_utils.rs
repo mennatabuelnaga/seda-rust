@@ -3,7 +3,6 @@ use near_sdk::{Balance, MockedBlockchain, PromiseResult, RuntimeFeesConfig, VMCo
 pub fn staking() -> String {
     "staking".to_string()
 }
-
 pub fn alice() -> String {
     "alice".to_string()
 }
@@ -12,6 +11,9 @@ pub fn bob() -> String {
 }
 pub fn owner() -> String {
     "owner".to_string()
+}
+pub fn token() -> String {
+    "token".to_string()
 }
 
 pub fn ntoy(near_amount: Balance) -> Balance {

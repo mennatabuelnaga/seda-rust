@@ -80,11 +80,12 @@ impl StakingContract {
     }
 
     /// Deposits the attached amount into the inner account of the predecessor.
-    #[payable]
-    pub fn deposit(&mut self) {
+    pub fn deposit(&mut self, amount: U128, account_id: AccountId) {
+        // TODO: only callable by seda_token
+
         let need_to_restake = self.internal_ping();
 
-        self.internal_deposit();
+        self.internal_deposit(amount.into(), account_id);
 
         if need_to_restake {
             self.internal_restake();
@@ -94,10 +95,12 @@ impl StakingContract {
     /// Deposits the attached amount into the inner account of the predecessor
     /// and stakes it.
     #[payable]
-    pub fn deposit_and_stake(&mut self) {
+    pub fn deposit_and_stake(&mut self, amount: U128, account_id: AccountId) {
+        // TODO: only callable by seda_token
+
         self.internal_ping();
 
-        let amount = self.internal_deposit();
+        let amount = self.internal_deposit(amount.into(), account_id);
         self.internal_stake(amount);
 
         self.internal_restake();
