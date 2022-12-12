@@ -3,7 +3,6 @@
 mod tests {
     use std::convert::TryInto;
 
-    use near_contract_standards::fungible_token::receiver::FungibleTokenReceiver;
     use near_sdk::{
         mock::VmAction,
         test_utils::{get_created_receipts, VMContextBuilder},
@@ -104,45 +103,45 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn test_restake_fail() {
-    //     let mut emulator = Emulator::new(
-    //         owner(),
-    //         "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7".to_string(),
-    //         zero_fee(),
-    //     );
-    //     emulator.update_context(bob(), 0);
-    //     emulator.contract.internal_restake();
-    //     let receipts = get_created_receipts();
-    //     assert_eq!(receipts.len(), 2);
-    //     assert_eq!(
-    //         &receipts[0].actions[0],
-    //         &VmAction::Stake {
-    //             stake:      29999999999999000000000000,
-    //             public_key: "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7"
-    //                 .to_string()
-    //                 .parse()
-    //                 .unwrap(),
-    //         }
-    //     );
-    //     emulator.simulate_stake_call();
+    #[test]
+    fn test_restake_fail() {
+        let mut emulator = Emulator::new(
+            owner(),
+            "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7".to_string(),
+            zero_fee(),
+        );
+        emulator.update_context(bob(), 0);
+        emulator.contract.internal_restake();
+        let receipts = get_created_receipts();
+        assert_eq!(receipts.len(), 2);
+        assert_eq!(
+            &receipts[0].actions[0],
+            &VmAction::Stake {
+                stake:      29999999999999000000000000,
+                public_key: "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7"
+                    .to_string()
+                    .parse()
+                    .unwrap(),
+            }
+        );
+        emulator.simulate_stake_call();
 
-    //     emulator.update_context(staking(), 0);
-    //     testing_env_with_promise_results(emulator.context.clone(),
-    // PromiseResult::Failed);     emulator.contract.on_stake_action();
-    //     let receipts = get_created_receipts();
-    //     assert_eq!(receipts.len(), 1);
-    //     assert_eq!(
-    //         &receipts[0].actions[0],
-    //         &VmAction::Stake {
-    //             stake:      0,
-    //             public_key: "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7"
-    //                 .to_string()
-    //                 .parse()
-    //                 .unwrap(),
-    //         }
-    //     );
-    // }
+        emulator.update_context(staking(), 0);
+        testing_env_with_promise_results(emulator.context.clone(), PromiseResult::Failed);
+        emulator.contract.on_stake_action();
+        let receipts = get_created_receipts();
+        assert_eq!(receipts.len(), 1);
+        assert_eq!(
+            &receipts[0].actions[0],
+            &VmAction::Stake {
+                stake:      0,
+                public_key: "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7"
+                    .to_string()
+                    .parse()
+                    .unwrap(),
+            }
+        );
+    }
 
     #[test]
     fn test_deposit_withdraw() {

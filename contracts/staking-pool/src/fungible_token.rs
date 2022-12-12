@@ -1,11 +1,11 @@
 use near_contract_standards::fungible_token::receiver::FungibleTokenReceiver;
-use near_sdk::{env, json_types::U128, log, near_bindgen, require, AccountId, Gas, PromiseOrValue};
+use near_sdk::{env, ext_contract, json_types::U128, log, near_bindgen, require, AccountId, Gas, PromiseOrValue};
 
 use crate::{StakingContract, StakingContractExt};
 
 const BASE_GAS: u64 = 5_000_000_000_000;
 const PROMISE_CALL: u64 = 5_000_000_000_000;
-const GAS_FOR_FT_ON_TRANSFER: Gas = Gas(BASE_GAS + PROMISE_CALL);
+pub const GAS_FOR_FT_ON_TRANSFER: Gas = Gas(BASE_GAS + PROMISE_CALL);
 
 /// Public contract methods
 #[near_bindgen]

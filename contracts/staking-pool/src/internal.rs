@@ -1,6 +1,12 @@
-use near_sdk::log;
+use fungible_token::GAS_FOR_FT_ON_TRANSFER;
+use near_sdk::{ext_contract, json_types::U128};
 
 use crate::{staking::ext_self, *};
+
+#[ext_contract(ft)]
+pub trait FungibleToken {
+    fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>);
+}
 
 /// Contract internal methods
 impl StakingContract {
@@ -54,7 +60,9 @@ impl StakingContract {
             .as_str(),
         );
 
-        Promise::new(account_id).transfer(amount);
+        ft::ext(self.seda_token.clone())
+            .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
+            .ft_transfer(account_id, amount.into(), None);
         self.last_total_balance -= amount;
     }
 
