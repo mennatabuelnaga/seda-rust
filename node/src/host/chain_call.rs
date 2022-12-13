@@ -6,6 +6,7 @@ use seda_runtime_sdk::Chain;
 
 use super::Host;
 use crate::NodeError;
+use seda_config::CONFIG;
 
 #[derive(Message)]
 #[rtype(result = "Result<Option<String>, NodeError>")]
@@ -21,13 +22,17 @@ impl<T: MainChainAdapterTrait> Handler<ChainCall<T>> for Host {
     type Result = ResponseActFuture<Self, Result<Option<String>, NodeError>>;
 
     fn handle(&mut self, msg: ChainCall<T>, _ctx: &mut Self::Context) -> Self::Result {
-        let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
-        let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
-        let gas = dotenv::var("GAS").expect("GAS not set");
-        let deposit = dotenv::var("DEPOSIT").expect("DEPOSIT not set");
-        let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
+        let deposit = msg.deposit;
+
+
 
         let fut = async move {
+            let config = CONFIG.read().await;
+            let node_config = config.node.as_ref().unwrap();
+            let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
+            let signer_sk_str = node_config.secret_key.as_ref().unwrap();
+            let gas = node_config.gas.as_ref().unwrap();
+            let server_url = config.main_chain.as_ref().unwrap().chain_server_url.as_ref().unwrap();
             let signed_txn = T::construct_signed_tx(
                 &signer_acc_str,
                 &signer_sk_str,

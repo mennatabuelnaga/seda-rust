@@ -29,7 +29,7 @@ impl MainChainAdapterTrait for NearMainChain {
     fn new_client(config: &Self::Config) -> Result<Self::Client> {
         Ok(JsonRpcClient::connect(
             config
-                .near_server_url
+                .chain_server_url
                 .as_ref()
                 .ok_or(MainChainAdapterError::MissingNearServerUrlConfig)?,
         ))

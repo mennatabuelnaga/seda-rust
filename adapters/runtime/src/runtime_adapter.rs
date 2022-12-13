@@ -60,7 +60,7 @@ impl HostAdapter for RuntimeAdapter {
     ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus> {
         let host_actor = Host::from_registry();
         let result = host_actor
-            .send(ChainCall::<MainChain> {
+            .send(ChainCall {
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,
@@ -75,7 +75,7 @@ impl HostAdapter for RuntimeAdapter {
     async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let host_actor = Host::from_registry();
         let result = host_actor
-            .send(ChainView::<MainChain> {
+            .send(ChainView {
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,

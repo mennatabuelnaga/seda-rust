@@ -46,7 +46,6 @@ impl HostAdapter for RuntimeTestAdapter {
     }
 
     async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
-        dotenv::dotenv().ok();
         MainChain::view(self.client.clone(), contract_id, method_name, args)
             .await
             .map_err(|err| RuntimeAdapterError::ChainInteractionsError(err.to_string()))
@@ -59,21 +58,22 @@ impl HostAdapter for RuntimeTestAdapter {
         args: Vec<u8>,
         deposit: u128,
     ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus> {
-        dotenv::dotenv().ok();
-        let signer_acc_str = dotenv::var("SIGNER_ACCOUNT_ID").expect("SIGNER_ACCOUNT_ID not set");
-        let signer_sk_str = dotenv::var("SECRET_KEY").expect("SECRET_KEY not set");
-        let gas = dotenv::var("GAS").expect("GAS not set");
-        let server_url = dotenv::var("NEAR_SERVER_URL").expect("NEAR_SERVER_URL not set");
+        let config = CONFIG.read().await;
+        let node_config = config.node.as_ref().unwrap();
+        let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
+        let signer_sk_str = node_config.secret_key.as_ref().unwrap();
+        let gas = node_config.gas.as_ref().unwrap();
+        let server_url = config.main_chain.as_ref().unwrap().chain_server_url.as_ref().unwrap();
 
         let signed_txn = MainChain::construct_signed_tx(
-            &signer_acc_str,
-            &signer_sk_str,
+            signer_acc_str,
+            signer_sk_str,
             contract_id,
             method_name,
             args,
             gas.parse::<u64>()?,
             deposit,
-            &server_url,
+            server_url,
         )
         .await
         .expect("couldn't sign txn");

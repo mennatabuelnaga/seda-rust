@@ -43,7 +43,7 @@ pub enum MainChainAdapterError {
     #[error("near json rpc tx error")]
     JsonRpcTxError(#[from] near_jsonrpc_client::errors::JsonRpcError<RpcBroadcastTxAsyncError>),
 
-    #[error("Config error: near_server_url from env var or config [main_chain] section.")]
+    #[error("Config error: chain_server_url from env var or config [main_chain] section.")]
     MissingNearServerUrlConfig,
 
     #[error("error serializing to vec")]

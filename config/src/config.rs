@@ -20,6 +20,12 @@ pub struct AppConfig {
     pub logging:    Option<LoggerConfig>,
 }
 
+impl AsRef<AppConfig> for AppConfig {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         let mut this = Self {
@@ -36,7 +42,7 @@ impl Default for AppConfig {
 impl Config for AppConfig {
     fn template() -> Self {
         Self {
-            seda_server_url: Some("fill me in".to_string()),
+            seda_server_url: Some("ws://127.0.0.1:12345".to_string()),
             node:            Some(NodeConfig::template()),
             main_chain:      Some(MainChainConfig::template()),
             logging:         Some(LoggerConfig::template()),
