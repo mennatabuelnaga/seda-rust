@@ -7,6 +7,11 @@ const BASE_GAS: u64 = 5_000_000_000_000;
 const PROMISE_CALL: u64 = 5_000_000_000_000;
 pub const GAS_FOR_FT_ON_TRANSFER: Gas = Gas(BASE_GAS + PROMISE_CALL);
 
+#[ext_contract(ft)]
+pub trait FungibleToken {
+    fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>);
+}
+
 /// Public contract methods
 #[near_bindgen]
 impl FungibleTokenReceiver for StakingContract {

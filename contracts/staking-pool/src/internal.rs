@@ -1,12 +1,6 @@
-use fungible_token::GAS_FOR_FT_ON_TRANSFER;
-use near_sdk::{ext_contract, json_types::U128};
+use fungible_token::{GAS_FOR_FT_ON_TRANSFER, ft};
 
 use crate::{staking::ext_self, *};
-
-#[ext_contract(ft)]
-pub trait FungibleToken {
-    fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>);
-}
 
 /// Contract internal methods
 impl StakingContract {
@@ -203,6 +197,7 @@ impl StakingContract {
         // NOTE: We need to subtract `attached_deposit` in case `ping` called from
         // `deposit` call since the attached deposit gets included in the
         // `account_balance`, and we have not accounted it yet.
+        // TODO: calculate NEP-141 balances instead of NEAR balance.
         let total_balance = env::account_locked_balance() + env::account_balance() - env::attached_deposit();
 
         assert!(
