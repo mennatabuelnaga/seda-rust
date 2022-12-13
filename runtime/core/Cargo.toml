@@ -21,3 +21,4 @@ tokio = { workspace = true }
 [dev-dependencies]
 reqwest = { workspace = true }
 seda-runtime-adapters = { workspace = true, features = ["test_host"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

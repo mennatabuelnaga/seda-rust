@@ -2509,9 +2509,11 @@ dependencies = [
 name = "promise-wasm-bin"
 version = "0.1.0"
 dependencies = [
+ "seda-logger",
  "seda-runtime-sdk",
  "serde",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]

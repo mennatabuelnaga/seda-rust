@@ -6,4 +6,6 @@ edition = "2021"
 [dependencies]
 serde_json = { workspace = true }
 serde = { workspace = true }
+seda-logger = { workspace = true }
 seda-runtime-sdk = { workspace = true, features = ["wasm"] }
+tracing = { workspace = true }

@@ -27,15 +27,16 @@ where
     let stdout = stdout.with_line_number(false).with_file(false);
     let subscriber = subscriber.with(stdout);
 
-    if let Some(log_file_path) = config.log_file_path.as_ref() {
-        // Log Rotation set to daily.
-        let file_appender = tracing_appender::rolling::daily(log_file_path, "example.log");
-        let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
-        let mut file_logger = fmt::Layer::new().with_writer(non_blocking);
-        file_logger.set_ansi(false);
-        let subscriber = subscriber.with(file_logger);
-        tracing::subscriber::with_default(subscriber, fun)
-    } else {
-        tracing::subscriber::with_default(subscriber, fun)
+    match config.log_file_path.as_ref() {
+        Some(log_file_path) if cfg!(target_arch = "wasm32") => {
+            // Log Rotation set to daily.
+            let file_appender = tracing_appender::rolling::daily(log_file_path, "example.log");
+            let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+            let mut file_logger = fmt::Layer::new().with_writer(non_blocking);
+            file_logger.set_ansi(false);
+            let subscriber = subscriber.with(file_logger);
+            tracing::subscriber::with_default(subscriber, fun)
+        }
+        _ => tracing::subscriber::with_default(subscriber, fun),
     }
 }

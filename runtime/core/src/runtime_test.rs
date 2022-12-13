@@ -35,7 +35,8 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     );
 
     let vm_result = runtime_execution_result.await;
-    assert!(vm_result.is_ok());
+    let vm_result = vm_result.unwrap();
+    assert!(vm_result.output[0].contains("INFO"));
     let value = RuntimeTestAdapter::db_get("test_value").await.unwrap();
 
     assert!(value.is_some());

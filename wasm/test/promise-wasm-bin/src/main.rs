@@ -8,6 +8,12 @@ use seda_runtime_sdk::{
 fn main() {
     let args: Vec<String> = env::args().collect();
 
+    dbg!("hi");
+    seda_logger::init(|| {
+        tracing::info!("wasm main func hello world log!");
+        Ok::<_, Box<dyn std::error::Error>>(())
+    })
+    .unwrap();
     println!("Hello World {:?}", args);
 
     db_set("from_wasm", "somevalue")

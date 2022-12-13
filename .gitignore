@@ -19,3 +19,7 @@ target/
 
 # generated sqlite test db
 **/*.db3
+
+# emacs files
+*~
+\#*#\

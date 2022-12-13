@@ -19,8 +19,15 @@ pub const FULL_CONFIG_PATH: &str = "/etc/seda-rust/config.toml";
 // Standard config location for windows apps.
 #[cfg(target_family = "windows")]
 pub const FULL_CONFIG_PATH: &str = "C:\\ProgramData\\seda-rust\\config.toml";
+// TODO how to clean up better?
+#[cfg(target_family = "wasm")]
+pub const FULL_CONFIG_PATH: &str = "";
 
 fn config_path() -> PathBuf {
+    if cfg!(target_family = "wasm") {
+        return PathBuf::new();
+    }
+
     let config_path = std::env::var("SEDA_CONFIG_PATH").unwrap_or_default();
     if !config_path.trim().is_empty() {
         Path::new(&config_path).to_path_buf()
@@ -34,6 +41,10 @@ fn config_path() -> PathBuf {
 // Therefore logging isn't loaded until we
 // read some settings from the config file.
 fn create_and_load_or_load_config() -> Arc<RwLock<AppConfig>> {
+    if cfg!(target_family = "wasm") {
+        return Arc::new(RwLock::new(AppConfig::default()));
+    }
+
     let path = CONFIG_PATH.to_path_buf();
     if !path.exists() {
         if let Err(err) = AppConfig::create_template_from_path(&path) {
