@@ -10,7 +10,7 @@ pub struct AnotherConfig {
 impl Config for AnotherConfig {
     fn template() -> Self {
         Self {
-            chain_server_url: Some("fill me in".to_string()),
+            chain_server_url: Some("https://rpc.testnet.near.org".to_string()),
         }
     }
 
