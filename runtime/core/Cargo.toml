@@ -17,6 +17,8 @@ toml = { workspace = true }
 wasmer = { workspace = true }
 wasmer-wasi = { workspace = true }
 tokio = { workspace = true }
+tracing = { workspace = true }
+seda-logger = { workspace = true }
 
 [dev-dependencies]
 reqwest = { workspace = true }

@@ -1,7 +1,7 @@
 use std::env;
 
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
+    wasm::{self, call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
     PromiseStatus,
 };
 
@@ -9,11 +9,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     dbg!("hi");
-    seda_logger::init(|| {
-        tracing::info!("wasm main func hello world log!");
-        Ok::<_, Box<dyn std::error::Error>>(())
-    })
-    .unwrap();
+    wasm::log(wasm::Level::Debug, "wasm main func hello world log!");
     println!("Hello World {:?}", args);
 
     db_set("from_wasm", "somevalue")

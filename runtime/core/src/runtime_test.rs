@@ -21,9 +21,7 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     let wasm_binary = read_wasm();
     let mut runtime = Runtime::new();
-
     runtime.init(wasm_binary).unwrap();
-
     let runtime_execution_result = runtime.start_runtime::<RuntimeTestAdapter>(
         VmConfig {
             args:         vec!["hello world".to_string()],
@@ -33,12 +31,10 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
         },
         memory_adapter(),
     );
-
     let vm_result = runtime_execution_result.await;
-    let vm_result = vm_result.unwrap();
-    assert!(vm_result.output[0].contains("INFO"));
-    let value = RuntimeTestAdapter::db_get("test_value").await.unwrap();
+    assert!(vm_result.is_ok());
 
+    let value = RuntimeTestAdapter::db_get("test_value").await.unwrap();
     assert!(value.is_some());
     assert_eq!(value.unwrap(), "completed");
 }

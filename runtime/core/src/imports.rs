@@ -1,4 +1,5 @@
 use seda_runtime_adapters::MemoryAdapter;
+use serde::{Deserialize, Serialize};
 use wasmer::{imports, Array, Function, ImportObject, Memory, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
@@ -164,6 +165,56 @@ pub fn memory_write_import_obj(store: &Store, vm_context: VmContext) -> Function
     Function::new_native_with_env(store, vm_context, memory_write)
 }
 
+#[derive(Serialize, Deserialize)]
+pub enum Level {
+    Debug,
+    Error,
+    Info,
+    Trace,
+    Warn,
+}
+
+impl Level {
+    fn log(self, message: &str) {
+        match self {
+            Level::Debug => tracing::debug!(message),
+            Level::Error => tracing::error!(message),
+            Level::Info => tracing::info!(message),
+            Level::Trace => tracing::trace!(message),
+            Level::Warn => tracing::warn!(message),
+        }
+    }
+}
+
+pub fn log_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn log(
+        env: &VmContext,
+        level: WasmPtr<u8, Array>,
+        level_len: i32,
+        msg: WasmPtr<u8, Array>,
+        msg_len: i64,
+    ) -> Result<()> {
+        let memory_ref = get_memory(env)?;
+
+        let promise_data_raw = level
+            .get_utf8_string(memory_ref, level_len as u32)
+            .ok_or("Error getting promise data")?;
+
+        let level: Level = serde_json::from_str(&promise_data_raw)?;
+
+        let msg_data_raw = msg
+            .get_utf8_string(memory_ref, msg_len as u32)
+            .ok_or("Error getting promise data")?;
+
+        seda_logger::init(|| {
+            level.log(&msg_data_raw);
+            Ok(())
+        })
+    }
+
+    Function::new_native_with_env(store, vm_context, log)
+}
+
 // Creates the WASM function imports with the stringed names.
 pub fn create_wasm_imports(
     store: &Store,
@@ -178,7 +229,8 @@ pub fn create_wasm_imports(
             "promise_status_write" => promise_status_write_import_obj(store, vm_context.clone()),
             "memory_read" => memory_read_import_obj(store, vm_context.clone()),
             "memory_read_length" => memory_read_length_import_obj(store, vm_context.clone()),
-            "memory_write" => memory_write_import_obj(store, vm_context)
+            "memory_write" => memory_write_import_obj(store, vm_context.clone()),
+            "wasm_log" => log_import_obj(store, vm_context),
         }
     };
 
