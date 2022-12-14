@@ -47,6 +47,7 @@ impl StakingContract {
 
         ft::ext(self.seda_token.clone())
             .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
+            .with_attached_deposit(1)
             .ft_transfer(account_id.clone(), amount.into(), None)
         .then(
             Self::ext(env::current_account_id())

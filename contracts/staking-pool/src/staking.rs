@@ -124,6 +124,7 @@ impl StakingContract {
     /// Withdraws the non staked balance for given account.
     /// It's only allowed if the `unstake` action was not performed in the four
     /// most recent epochs.
+    #[payable]
     pub fn withdraw(&mut self, amount: U128) {
         let need_to_restake = self.internal_ping();
 

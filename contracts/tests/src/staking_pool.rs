@@ -109,25 +109,26 @@ async fn test_deposit_withdraw() {
     );
 
     // alice withdraws
-    // let res = alice
-    //     .call(staking_pool.id(), "withdraw")
-    //     .args_json((transfer_amount,))
-    //     .max_gas()
-    //     .transact()
-    //     .await
-    //     .unwrap();
-    // assert!(res.is_success());
+    let res = alice
+        .call(staking_pool.id(), "withdraw")
+        .args_json((transfer_amount,))
+        .max_gas()
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
 
     // check if alice's balance is now `alice_initial_balance` again
-    // let alice_balance_after_withdraw = alice
-    //     .call(token.id(), "ft_balance_of")
-    //     .args_json((alice.id(),))
-    //     .view()
-    //     .await
-    //     .unwrap()
-    //     .json::<U128>()
-    //     .unwrap();
-    // assert_eq!(alice_balance_after_withdraw, alice_initial_balance);
+    let alice_balance_after_withdraw = alice
+        .call(token.id(), "ft_balance_of")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    assert_eq!(alice_balance_after_withdraw, alice_initial_balance);
 }
 
 #[tokio::test]
