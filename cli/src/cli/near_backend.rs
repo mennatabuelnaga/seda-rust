@@ -41,13 +41,13 @@ impl CliCommands for NearCliBackend {
             .contract_account_id
             .as_ref()
             .ok_or("contract_account_id from cli, env var or config file.")?;
-        let chain_server_url = config
+        let chain_rpc_url = config
             .main_chain
             .as_ref()
             .ok_or("Config [main_chain] section.")?
-            .chain_server_url
+            .chain_rpc_url
             .as_ref()
-            .ok_or("chain_server_url from config [main_chain] section.")?;
+            .ok_or("chain_rpc_url from config [main_chain] section.")?;
         let gas = node_config
             .gas
             .as_ref()
@@ -63,7 +63,7 @@ impl CliCommands for NearCliBackend {
             args,
             gas,
             deposit,
-            chain_server_url,
+            chain_rpc_url,
         )
         .await?;
 
@@ -87,13 +87,13 @@ impl CliCommands for NearCliBackend {
             .contract_account_id
             .as_ref()
             .ok_or("contract_account_id from cli, env var or config file.")?;
-        let chain_server_url = config
+        let chain_rpc_url = config
             .main_chain
             .as_ref()
             .ok_or("Config [main_chain_config] section.")?
-            .chain_server_url
+            .chain_rpc_url
             .as_ref()
-            .ok_or("chain_server_url from config [main_chain_config] section.")?;
+            .ok_or("chain_rpc_url from config [main_chain_config] section.")?;
 
         let signed_tx = Self::MainChainAdapter::construct_signed_tx(
             signer_acc_str,
@@ -103,7 +103,7 @@ impl CliCommands for NearCliBackend {
             args,
             gas,
             deposit,
-            chain_server_url,
+            chain_rpc_url,
         )
         .await?;
         println!("**serialized signed txn {:?}", signed_tx);

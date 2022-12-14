@@ -2,14 +2,11 @@
 name = "seda-node"
 version = "0.1.0"
 edition = "2021"
-<<<<<<< HEAD
 build = "build.rs"
-=======
 
 [features]
 default = []
 near = ["seda-config/near"]
->>>>>>> 0d4f84b (refactor: runtime works with cfg)
 
 [dependencies]
 actix = { workspace = true }

@@ -9,6 +9,7 @@ mod runtime_job;
 
 use actix::prelude::*;
 use seda_chain_adapters::MainChainAdapterTrait;
+use seda_config::CONFIG;
 use seda_p2p_adapters::libp2p::P2PServer;
 use seda_runtime_adapters::RuntimeAdapter;
 use tracing::info;
@@ -43,7 +44,7 @@ pub fn run<T: MainChainAdapterTrait>() {
             p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
             p2p_server.loop_stream().await.expect("P2P listen failed");
         });
-\
+
         // Intercept ctrl+c to stop gracefully the system
         tokio::spawn(async move {
             tokio::signal::ctrl_c().await.expect("failed to listen for event");

@@ -26,7 +26,7 @@ async fn test_cli_demo_view_chain() {
     set_env_vars();
     let wasm_binary = cli_wasm();
 
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await;
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
     let memory_adapter = memory_adapter();
     runtime.init(wasm_binary).unwrap();
     let contract_id = "mc.mennat0.testnet".to_string();

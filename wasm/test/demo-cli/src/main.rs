@@ -57,7 +57,8 @@ fn main() {
                     .start()
                     .then(call_self("chain_view_test_success", vec![]));
             }
-            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}" "870000000000000000000"
+            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
+            // "870000000000000000000"
             Commands::Call {
                 contract_id,
                 method_name,

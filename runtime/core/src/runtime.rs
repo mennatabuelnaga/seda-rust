@@ -27,7 +27,9 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-    async fn new() -> Self;
+    async fn new() -> Result<Self>
+    where
+        Self: Sized;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
     async fn execute_promise_queue(
@@ -48,11 +50,11 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
-    async fn new() -> Self {
-        Self {
+    async fn new() -> Result<Self> {
+        Ok(Self {
             wasm_module:  None,
-            host_adapter: HA::new().await.expect("TODO fix later"),
-        }
+            host_adapter: HA::new().await?,
+        })
     }
 
     /// Initializes the runtime, this speeds up VM execution by caching WASM
@@ -201,7 +203,15 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             }
         }
 
-        let res = self.execute_promise_queue(wasm_module, memory_adapter.clone(), next_promise_queue, output);
+        promise_queue_trace.push(promise_queue_mut.clone());
+
+        let res = self.execute_promise_queue(
+            wasm_module,
+            memory_adapter.clone(),
+            next_promise_queue,
+            output,
+            promise_queue_trace,
+        );
 
         res.await
     }
@@ -223,8 +233,14 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
         let mut output: Vec<String> = vec![];
 
-        let result = self
-            .execute_promise_queue(wasm_module, memory_adapter, promise_queue, &mut output)
+        let exit_code = self
+            .execute_promise_queue(
+                wasm_module,
+                memory_adapter,
+                promise_queue,
+                &mut output,
+                &mut promise_queue_trace,
+            )
             .await?;
 
         // There is always 1 queue with 1 promise in the trace (due this func addinging

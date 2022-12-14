@@ -46,11 +46,10 @@ pub struct JsonRpcServer {
 }
 
 impl JsonRpcServer {
-    pub async fn start<HA: HostAdapter>(runtime_worker: Addr<RuntimeWorker<HA>>) -> Result<Self, Error> {
-        let server = ServerBuilder::default().build("127.0.0.1:12345").await?;
+    pub async fn start<HA: HostAdapter>(runtime_worker: Addr<RuntimeWorker<HA>>, addrs: &str) -> Result<Self, Error> {
+        let server = ServerBuilder::default().build(addrs).await?;
         let rpc = CliServer { runtime_worker };
         let handle = server.start(rpc.into_rpc())?;
-        info!("RPC Server listening on {}", addrs);
 
         Ok(Self { handle })
     }

@@ -72,14 +72,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-<<<<<<< HEAD
-          args: --workspace --exclude demo-cli --exclude cli --exclude promise-wasm-bin
-=======
-          args: --workspace --exclude seda-cli --no-default-features
+          args: --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin
 
       - name: Test Near
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: -p seda-runtime --features near
->>>>>>> 0d4f84b (refactor: runtime works with cfg)

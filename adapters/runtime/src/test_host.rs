@@ -61,7 +61,7 @@ impl HostAdapter for RuntimeTestAdapter {
         let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
         let signer_sk_str = node_config.secret_key.as_ref().unwrap();
         let gas = node_config.gas.as_ref().unwrap();
-        let server_url = config.main_chain.as_ref().unwrap().chain_server_url.as_ref().unwrap();
+        let server_url = config.main_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap();
 
         let signed_txn = MainChain::construct_signed_tx(
             signer_acc_str,

@@ -2,10 +2,9 @@ use std::str;
 
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    wasm::{call_self, execution_result, http_fetch, Promise},
+    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, Promise},
     PromiseStatus,
 };
-use serde_json::json;
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -20,8 +19,20 @@ struct Options {
 #[derive(Subcommand)]
 enum Commands {
     Hello,
-    HttpFetch { url: String },
-    JsonWrite,
+    HttpFetch {
+        url: String,
+    },
+    View {
+        contract_id: String,
+        method_name: String,
+        args:        String,
+    },
+    Call {
+        contract_id: String,
+        method_name: String,
+        args:        String,
+        deposit:     String,
+    },
 }
 
 fn main() {
@@ -29,20 +40,34 @@ fn main() {
 
     if let Some(command) = options.command {
         match command {
+            // cargo run cli http-fetch "https://www.breakingbadapi.com/api/characters/1"
             Commands::HttpFetch { url } => {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
             }
             Commands::Hello => {
                 println!("Hello World from inside wasm");
             }
-            Commands::JsonWrite => {
-                let data = json!({
-                    "someKey": "someValue",
-                });
-
-                let bytes = data.to_string().into_bytes();
-
-                execution_result(bytes);
+            //cargo run cli view mc.mennat0.testnet get_node_owner "{\"node_id\":\"12\"}"
+            Commands::View {
+                contract_id,
+                method_name,
+                args,
+            } => {
+                chain_view(contract_id, method_name, args.into_bytes())
+                    .start()
+                    .then(call_self("chain_view_test_success", vec![]));
+            }
+            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
+            // "870000000000000000000"
+            Commands::Call {
+                contract_id,
+                method_name,
+                args,
+                deposit,
+            } => {
+                chain_call(contract_id, method_name, args.into_bytes(), deposit)
+                    .start()
+                    .then(call_self("chain_call_test_success", vec![]));
             }
         }
     }
@@ -52,10 +77,33 @@ fn main() {
 fn http_fetch_result() {
     let result = Promise::result(0);
 
-    let value_to_print: String = match result {
+    let value_to_store: String = match result {
         PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
 
-    println!("Value: {value_to_print}");
+    println!("Value: {value_to_store}");
+}
+
+#[no_mangle]
+fn chain_view_test_success() {
+    let result = Promise::result(0);
+    let value_to_store: String = match result {
+        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        _ => "Promise failed..".to_string(),
+    };
+    println!("Value: {value_to_store}");
+
+    db_set("chain_view_result", &value_to_store).start();
+}
+
+#[no_mangle]
+fn chain_call_test_success() {
+    let result = Promise::result(0);
+    let value_to_store: String = match result {
+        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        _ => "Promise failed..".to_string(),
+    };
+    println!("Value: {value_to_store}");
+    db_set("chain_call_result", &value_to_store).start();
 }
