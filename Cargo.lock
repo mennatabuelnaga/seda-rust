@@ -4680,6 +4680,7 @@ dependencies = [
  "async-std",
  "futures",
  "libp2p",
+ "seda-config",
  "thiserror",
  "tokio",
  "tracing",

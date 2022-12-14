@@ -1,7 +1,7 @@
 use std::env;
 
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, http_fetch, memory_read, memory_write, Promise},
+    wasm::{call_self, db_get, db_set, execution_result, http_fetch, memory_read, memory_write, Promise},
     PromiseStatus,
 };
 
@@ -49,21 +49,12 @@ fn http_fetch_test() {
 #[no_mangle]
 fn http_fetch_test_success() {
     let result = Promise::result(0);
-<<<<<<< HEAD:test_wasm_bins/promise_wasm_bin/src/main.rs
-    let value_to_store: String = match result {
-        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
-        _ => "Promise failed..".to_string(),
-    };
-
-    execution_result(value_to_store.into_bytes());
-=======
 
     if let PromiseStatus::Fulfilled(bytes) = result {
         let value_to_store = String::from_utf8(bytes).unwrap();
 
         db_set("http_fetch_result", &value_to_store).start();
     }
->>>>>>> 304af74 (refactor(wasm): move wasm to workspace):wasm/test/general/src/lib.rs
 }
 
 #[no_mangle]

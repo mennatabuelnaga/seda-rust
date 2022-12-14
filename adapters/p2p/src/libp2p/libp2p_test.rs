@@ -1,14 +1,15 @@
 use futures::StreamExt;
 use libp2p::swarm::SwarmEvent;
+use seda_config::NodeConfig;
 use tracing::instrument;
 
-use super::{P2PConfig, P2PServer};
+use super::P2PServer;
 
 #[tokio::test]
 #[instrument]
 async fn p2p_service_works() {
-    let p2p_config = P2PConfig::default();
-    let mut p2p_service = P2PServer::start_from_config(p2p_config)
+    let config = NodeConfig::default();
+    let mut p2p_service = P2PServer::start_from_config(&config.p2p_server_address, &config.p2p_known_peers)
         .await
         .expect("P2P swarm cannot be started");
 

@@ -2,7 +2,7 @@ use std::str;
 
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    wasm::{call_self, http_fetch, Promise},
+    wasm::{call_self, execution_result, http_fetch, Promise},
     PromiseStatus,
 };
 use serde_json::json;
