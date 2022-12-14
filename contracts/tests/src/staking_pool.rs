@@ -4,60 +4,6 @@ use near_units::parse_near;
 use crate::utils::{init, register_user};
 
 #[tokio::test]
-async fn test_stake_unstake() {
-    let initial_balance = U128::from(parse_near!("10000 N"));
-    let transfer_amount = U128::from(parse_near!("100 N"));
-    let worker = workspaces::sandbox().await.unwrap();
-    let (token, alice, staking_pool) = init(&worker, initial_balance).await;
-
-    // transfer some tokens to alice
-    let res = token
-        .call("ft_transfer")
-        .args_json((alice.id(), transfer_amount, Option::<bool>::None))
-        .max_gas()
-        .deposit(ONE_YOCTO)
-        .transact()
-        .await
-        .unwrap();
-    assert!(res.is_success());
-
-    // alice deposits into pool
-    let res = alice
-        .call(staking_pool.id(), "deposit")
-        .args_json((transfer_amount, alice.id()))
-        .max_gas()
-        .transact()
-        .await
-        .unwrap();
-    assert!(res.is_success());
-
-    // alice stakes
-    let res = alice
-        .call(staking_pool.id(), "stake")
-        .args_json((transfer_amount,))
-        .max_gas()
-        .transact()
-        .await
-        .unwrap();
-    assert!(res.is_success());
-
-    // check staked balance
-    let alice_staked_balance = alice
-        .call(token.id(), "ft_balance_of")
-        .args_json((alice.id(),))
-        .view()
-        .await
-        .unwrap()
-        .json::<U128>()
-        .unwrap();
-
-    // alice unstakes
-    assert_eq!(alice_staked_balance, transfer_amount);
-
-    // skip epochs
-}
-
-#[tokio::test]
 async fn test_deposit_withdraw() {
     let initial_balance = U128::from(parse_near!("10000 N"));
     let transfer_amount = U128::from(parse_near!("100 N"));
@@ -129,6 +75,86 @@ async fn test_deposit_withdraw() {
         .json::<U128>()
         .unwrap();
     assert_eq!(alice_balance_after_withdraw, alice_initial_balance);
+}
+
+#[tokio::test]
+async fn test_stake() {
+    let initial_balance = U128::from(parse_near!("10000 N"));
+    let transfer_amount = U128::from(parse_near!("100 N"));
+    let worker = workspaces::sandbox().await.unwrap();
+    let (token, alice, staking_pool) = init(&worker, initial_balance).await;
+
+    // transfer some tokens to alice
+    let res = token
+        .call("ft_transfer")
+        .args_json((alice.id(), transfer_amount, Option::<bool>::None))
+        .max_gas()
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+
+    // alice deposits into pool
+    let res = alice
+        .call(token.id(), "ft_transfer_call")
+        .args_json((staking_pool.id(), transfer_amount, Option::<String>::None, "deposit"))
+        .max_gas()
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+
+    // check unstaked and staked balances
+    let unstaked_balance = staking_pool
+        .call("get_account_unstaked_balance")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    let staked_balance = staking_pool
+        .call("get_account_staked_balance")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    assert_eq!(unstaked_balance, transfer_amount);
+    assert_eq!(staked_balance, U128(0));
+
+    // alice stakes entire unstaked balance
+    let res = alice
+        .call(staking_pool.id(), "stake")
+        .args_json((transfer_amount,))
+        .max_gas()
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+
+    // check unstaked and staked balances again
+    let unstaked_balance = staking_pool
+        .call("get_account_unstaked_balance")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    let staked_balance = staking_pool
+        .call("get_account_staked_balance")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    assert_eq!(unstaked_balance, U128(0));
+    assert_eq!(staked_balance, transfer_amount);
 }
 
 #[tokio::test]
