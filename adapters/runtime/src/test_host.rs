@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
 use seda_config::CONFIG;
 
-use crate::{HostAdapter, Result, RuntimeAdapterError};
+use crate::{HostAdapter, Result};
 
 lazy_static! {
     #[derive(Clone, Default)]
