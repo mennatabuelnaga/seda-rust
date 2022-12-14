@@ -20,7 +20,7 @@ use libp2p::{
     NetworkBehaviour,
 };
 
-use super::{super::errors::Result, P2PConfig};
+use super::super::errors::Result;
 use crate::P2PAdapterError;
 
 /// Handles all P2P protocols needed for SEDA.
@@ -34,7 +34,7 @@ pub struct SedaBehaviour {
 }
 
 impl SedaBehaviour {
-    pub async fn new(_p2p_config: &P2PConfig, key_pair: &Keypair) -> Result<Self> {
+    pub async fn new(key_pair: &Keypair) -> Result<Self> {
         let create_message_id = |message: &GossipsubMessage| {
             let mut hasher = DefaultHasher::new();
             message.data.hash(&mut hasher);

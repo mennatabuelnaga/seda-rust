@@ -21,28 +21,15 @@ use crate::{
     libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport},
 };
 
-pub struct P2PConfig {
-    pub server_address: String,
-    pub known_peers:    Vec<String>,
-}
-
-impl Default for P2PConfig {
-    fn default() -> Self {
-        Self {
-            server_address: "/ip4/0.0.0.0/tcp/0".to_string(),
-            known_peers:    Default::default(),
-        }
-    }
-}
-
 pub struct P2PServer {
-    pub config:    P2PConfig,
-    pub local_key: identity::Keypair,
-    pub swarm:     Swarm<SedaBehaviour>,
+    pub known_peers:    Vec<String>,
+    pub local_key:      identity::Keypair,
+    pub server_address: String,
+    pub swarm:          Swarm<SedaBehaviour>,
 }
 
 impl P2PServer {
-    pub async fn start_from_config(config: P2PConfig) -> Result<Self> {
+    pub async fn start_from_config(server_address: &str, known_peers: &[String]) -> Result<Self> {
         // Generate Peer ID
         // TODO: Support peer id from config and storage
         let local_key = identity::Keypair::generate_ed25519();
@@ -51,20 +38,21 @@ impl P2PServer {
 
         // Create transport and behaviour
         let transport = build_tcp_transport(local_key.clone())?;
-        let seda_behaviour = SedaBehaviour::new(&config, &local_key).await?;
+        let seda_behaviour = SedaBehaviour::new(&local_key).await?;
 
         let mut swarm = Swarm::new(transport, seda_behaviour, PeerId::from(local_key.public()));
-        swarm.listen_on(config.server_address.parse()?)?;
+        swarm.listen_on(server_address.parse()?)?;
 
         Ok(Self {
-            config,
+            known_peers: known_peers.to_vec(),
             local_key,
+            server_address: server_address.to_string(),
             swarm,
         })
     }
 
     pub async fn dial_peers(&mut self) -> Result<()> {
-        self.config.known_peers.iter().for_each(|peer_addr| {
+        self.known_peers.iter().for_each(|peer_addr| {
             if let Ok(remote) = peer_addr.parse::<Multiaddr>() {
                 match self.swarm.dial(remote) {
                     Ok(_) => {

@@ -16,6 +16,8 @@ pub struct NodeConfig {
     pub job_manager_interval_ms:   u64,
     pub rpc_server_address:        Option<String>,
     pub runtime_worker_threads:    Option<usize>,
+    pub p2p_server_address:        String,
+    pub p2p_known_peers:           Vec<String>,
 }
 
 impl Config for NodeConfig {
@@ -30,6 +32,8 @@ impl Config for NodeConfig {
             job_manager_interval_ms:   10,
             rpc_server_address:        Some("fill me in".to_string()),
             runtime_worker_threads:    Some(2),
+            p2p_server_address:        "/ip4/0.0.0.0/tcp/0".to_string(),
+            p2p_known_peers:           vec![],
         }
     }
 
@@ -54,6 +58,8 @@ impl Default for NodeConfig {
             job_manager_interval_ms:   10,
             rpc_server_address:        Some("127.0.0.1:12345".to_string()),
             runtime_worker_threads:    Some(2),
+            p2p_server_address:        "/ip4/0.0.0.0/tcp/0".to_string(),
+            p2p_known_peers:           vec![],
         };
         this.overwrite_from_env();
         this
