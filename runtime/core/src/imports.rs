@@ -167,7 +167,6 @@ pub fn memory_write_import_obj(store: &Store, vm_context: VmContext) -> Function
 fn execution_result_import_obj(store: &Store, vm_context: VmContext) -> Function {
     fn execution_result(env: &VmContext, result_ptr: WasmPtr<u8, Array>, result_length: i32) -> Result<()> {
         let memory_ref = get_memory(env)?;
-        let mut vm_result = env.result.lock();
 
         let result = result_ptr
             .deref(memory_ref, 0, result_length as u32)
@@ -175,6 +174,7 @@ fn execution_result_import_obj(store: &Store, vm_context: VmContext) -> Function
 
         let result_bytes: Vec<u8> = result.into_iter().map(|wc| wc.get()).collect();
 
+        let mut vm_result = env.result.lock();
         *vm_result = result_bytes;
 
         Ok(())

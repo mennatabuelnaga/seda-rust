@@ -3054,6 +3054,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
+ "tracing",
  "wasmer",
  "wasmer-wasi",
 ]

@@ -4,6 +4,7 @@ use parking_lot::Mutex;
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
@@ -135,7 +136,7 @@ impl RunnableRuntime for Runtime {
                         // Unwrap the error here after capturing the output
                         // otherwise the output would get lost
                         if let Err(err) = runtime_result {
-                            println!("WASM Error output: {:?}", &output);
+                            info!("WASM Error output: {:?}", &output);
                             return Err(RuntimeError::ExecutionError(err));
                         }
 
@@ -219,13 +220,14 @@ impl RunnableRuntime for Runtime {
         // There is always 1 queue with 1 promise in the trace (due this func addinging
         // the entrypoint)
         let last_queue = promise_queue_trace.last().ok_or("Failed to get last promise queue")?;
-        let last_promise = last_queue
+        let last_promise_status = last_queue
             .queue
             .last()
             .ok_or("Failed to get last promise in promise queue")?
+            .status
             .clone();
 
-        let result_data = match last_promise.status {
+        let result_data = match last_promise_status {
             PromiseStatus::Fulfilled(data) => data,
             PromiseStatus::Rejected(data) => data,
             _ => vec![],
