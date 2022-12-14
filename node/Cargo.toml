@@ -16,7 +16,6 @@ actix = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 jsonrpsee = { workspace = true }
-jsonrpsee-ws-server = { workspace = true }
 parking_lot = { workspace = true }
 reqwest = { workspace = true }
 seda-chain-adapters = { workspace = true }

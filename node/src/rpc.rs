@@ -2,8 +2,8 @@ use actix::prelude::*;
 use jsonrpsee::{
     core::{async_trait, Error},
     proc_macros::rpc,
+    server::{ServerBuilder, ServerHandle},
 };
-use jsonrpsee_ws_server::{WsServerBuilder, WsServerHandle};
 use seda_runtime_adapters::HostAdapter;
 use tracing::debug;
 
@@ -42,12 +42,12 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
     }
 }
 pub struct JsonRpcServer {
-    handle: WsServerHandle,
+    handle: ServerHandle,
 }
 
 impl JsonRpcServer {
     pub async fn start<HA: HostAdapter>(runtime_worker: Addr<RuntimeWorker<HA>>) -> Result<Self, Error> {
-        let server = WsServerBuilder::default().build("127.0.0.1:12345").await?;
+        let server = ServerBuilder::default().build("127.0.0.1:12345").await?;
         let rpc = CliServer { runtime_worker };
         let handle = server.start(rpc.into_rpc())?;
         info!("RPC Server listening on {}", addrs);

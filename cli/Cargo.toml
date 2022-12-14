@@ -23,7 +23,7 @@ path = "src/main.rs"
 async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive", "std"] }
 dotenv = { workspace = true }
-jsonrpsee = { version = "0.16", features = ["full"] }
+jsonrpsee = { workspace = true }
 near-crypto = { workspace = true, optional = true }
 near-jsonrpc-client = { workspace = true, optional = true }
 near-jsonrpc-primitives = { workspace = true, optional = true }
