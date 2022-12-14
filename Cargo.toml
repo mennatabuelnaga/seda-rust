@@ -46,7 +46,6 @@ dotenv = "0.15"
 futures = "0.3"
 jsonrpsee-types = "0.16"
 jsonrpsee = { version = "0.16", features = ["full"] }
-jsonrpsee-types = "0.16"
 lazy_static = "1.4"
 libp2p = "0.48"
 near-crypto = "0.15"

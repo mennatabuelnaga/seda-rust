@@ -38,8 +38,7 @@ impl Handler<ChainCall> for Host {
                 deposit,
                 server_url,
             )
-            .await
-            .expect("couldn't sign txn");
+            .await?;
             let value = MainChain::send_tx(msg.client.clone(), signed_txn).await?;
 
             Ok(value)
