@@ -10,18 +10,21 @@ use libp2p::{
     Transport,
 };
 
+use crate::Result;
+
 /// Builds the transport that serves as a common ground for all connections.
-pub fn build_tcp_transport(key_pair: identity::Keypair) -> transport::Boxed<(PeerId, StreamMuxerBox)> {
+pub fn build_tcp_transport(key_pair: identity::Keypair) -> Result<transport::Boxed<(PeerId, StreamMuxerBox)>> {
     let noise_keys = noise::Keypair::<noise::X25519Spec>::new()
         .into_authentic(&key_pair)
         .unwrap();
     let noise_config = noise::NoiseConfig::xx(noise_keys).into_authenticated();
     let yamux_config = YamuxConfig::default();
 
-    TcpTransport::new(GenTcpConfig::default().nodelay(true))
+    Ok(TcpTransport::new(GenTcpConfig::default().nodelay(true))
         .upgrade(Version::V1)
         .authenticate(noise_config)
         .multiplex(yamux_config)
+        // TODO: use duration from p2p config
         .timeout(Duration::from_secs(20))
-        .boxed()
+        .boxed())
 }

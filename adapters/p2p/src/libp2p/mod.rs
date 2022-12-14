@@ -1,6 +1,9 @@
 mod behaviour;
 mod transport;
 
+#[cfg(test)]
+mod libp2p_test;
+
 use async_std::io::{self, prelude::BufReadExt};
 use libp2p::{
     futures::{select, StreamExt},
@@ -13,8 +16,10 @@ use libp2p::{
 };
 
 use self::behaviour::SedaBehaviour;
-use super::errors::Result;
-use crate::libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport};
+use crate::{
+    errors::Result,
+    libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport},
+};
 
 pub struct P2PConfig {
     pub server_address: String,
@@ -42,11 +47,11 @@ impl P2PServer {
         // TODO: Support peer id from config and storage
         let local_key = identity::Keypair::generate_ed25519();
         let local_peer_id = PeerId::from(local_key.public());
-        println!("Local peer id: {:?}", local_peer_id);
+        tracing::info!("Local peer id: {:?}", local_peer_id);
 
         // Create transport and behaviour
-        let transport = build_tcp_transport(local_key.clone());
-        let seda_behaviour = SedaBehaviour::new(&config, &local_key).await;
+        let transport = build_tcp_transport(local_key.clone())?;
+        let seda_behaviour = SedaBehaviour::new(&config, &local_key).await?;
 
         let mut swarm = Swarm::new(transport, seda_behaviour, PeerId::from(local_key.public()));
         swarm.listen_on(config.server_address.parse()?)?;
@@ -63,12 +68,12 @@ impl P2PServer {
             if let Ok(remote) = peer_addr.parse::<Multiaddr>() {
                 match self.swarm.dial(remote) {
                     Ok(_) => {
-                        println!("Dialed {}", peer_addr);
+                        tracing::debug!("Dialed {}", peer_addr);
                     }
-                    Err(error) => println!("Couldn't dial peer ({}): {:?}", peer_addr, error),
+                    Err(error) => tracing::warn!("Couldn't dial peer ({}): {:?}", peer_addr, error),
                 };
             } else {
-                println!("Couldn't dial peer with address: {}", peer_addr);
+                tracing::warn!("Couldn't dial peer with address: {}", peer_addr);
             }
         });
 
@@ -76,29 +81,31 @@ impl P2PServer {
     }
 
     pub async fn loop_stream(&mut self) -> Result<()> {
+        // TODO: Remove stdin feature
         let mut stdin = io::BufReader::new(io::stdin()).lines().fuse();
         let topic = IdentTopic::new("testnet");
 
         loop {
             select! {
+                // TODO: Remove stdin feature
                 line = stdin.select_next_some() => {
                     if let Err(e) = self.swarm
                         .behaviour_mut().gossipsub
                         .publish(topic.clone(), line.expect("Stdin not to close").as_bytes()) {
-                        println!("Publish error: {e:?}");
+                        tracing::error!("Publish error: {e:?}");
                     }
                 },
                 event = self.swarm.select_next_some() => match event {
-                    SwarmEvent::NewListenAddr { address, .. } => println!("Listening on {:?}", address),
+                    SwarmEvent::NewListenAddr { address, .. } => tracing::info!("Listening on {:?}", address),
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Discovered(list))) => {
                         for (peer_id, _multiaddr) in list {
-                            println!("mDNS discovered a new peer: {}", peer_id);
+                            tracing::debug!("mDNS discovered a new peer: {}", peer_id);
                             self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
                         }
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Expired(list))) => {
                         for (peer_id, _multiaddr) in list {
-                            println!("mDNS discover peer has expired: {}", peer_id);
+                            tracing::debug!("mDNS discover peer has expired: {}", peer_id);
                             self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
                         }
                     }
@@ -106,43 +113,12 @@ impl P2PServer {
                         propagation_source: peer_id,
                         message_id: id,
                         message,
-                    })) => println!(
+                    })) => tracing::info!(
                         "Got message: '{}' with id: {id} from peer: {peer_id}",
                         String::from_utf8_lossy(&message.data),
                     ),
 
                     _ => {}
-                }
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use futures::StreamExt;
-    use libp2p::swarm::SwarmEvent;
-    use tracing::instrument;
-
-    use super::{P2PConfig, P2PServer};
-
-    #[tokio::test]
-    #[instrument]
-    async fn p2p_service_works() {
-        let p2p_config = P2PConfig::default();
-        let mut p2p_service = P2PServer::start_from_config(p2p_config)
-            .await
-            .expect("P2P swarm cannot be started");
-
-        loop {
-            match p2p_service.swarm.select_next_some().await {
-                SwarmEvent::NewListenAddr { .. } => {
-                    // listener address registered, we are good to go
-                    break;
-                }
-                _ => {
-                    tracing::error!("Unexpected event");
-                    panic!("Unexpected event")
                 }
             }
         }

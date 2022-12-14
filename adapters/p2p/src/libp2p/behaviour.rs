@@ -20,7 +20,8 @@ use libp2p::{
     NetworkBehaviour,
 };
 
-use super::P2PConfig;
+use super::{super::errors::Result, P2PConfig};
+use crate::P2PAdapterError;
 
 /// Handles all P2P protocols needed for SEDA.
 #[derive(NetworkBehaviour)]
@@ -33,7 +34,7 @@ pub struct SedaBehaviour {
 }
 
 impl SedaBehaviour {
-    pub async fn new(_p2p_config: &P2PConfig, key_pair: &Keypair) -> Self {
+    pub async fn new(_p2p_config: &P2PConfig, key_pair: &Keypair) -> Result<Self> {
         let create_message_id = |message: &GossipsubMessage| {
             let mut hasher = DefaultHasher::new();
             message.data.hash(&mut hasher);
@@ -47,16 +48,16 @@ impl SedaBehaviour {
             .build()
             .expect("Valid config");
 
-        let mut gossipsub =
-            Gossipsub::new(MessageAuthenticity::Signed(key_pair.clone()), gossipsub_config).expect("Correct config");
+        let mut gossipsub = Gossipsub::new(MessageAuthenticity::Signed(key_pair.clone()), gossipsub_config)
+            .map_err(|e| P2PAdapterError::Gossip(e.to_string()))?;
 
         let topic = IdentTopic::new("test-net");
-        gossipsub.subscribe(&topic).unwrap();
+        gossipsub.subscribe(&topic)?;
 
-        Self {
-            mdns: Mdns::new(MdnsConfig::default()).await.unwrap(),
+        Ok(Self {
+            mdns: Mdns::new(MdnsConfig::default()).await?,
             gossipsub,
-        }
+        })
     }
 }
 

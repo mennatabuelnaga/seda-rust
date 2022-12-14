@@ -4579,6 +4579,8 @@ dependencies = [
  "futures",
  "libp2p",
  "thiserror",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

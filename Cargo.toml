@@ -42,7 +42,7 @@ futures = "0.3"
 jsonrpsee = { version = "0.16", features = ["full"] }
 jsonrpsee-types = "0.16"
 lazy_static = "1.4"
-libp2p = "0.48.0"
+libp2p = "0.48"
 near-crypto = "0.15"
 near-jsonrpc-client = { version = "0.4", default-features = false, features = [
 	"auth",
