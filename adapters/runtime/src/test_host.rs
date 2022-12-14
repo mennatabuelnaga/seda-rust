@@ -46,9 +46,7 @@ impl HostAdapter for RuntimeTestAdapter {
     }
 
     async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
-        MainChain::view(self.client.clone(), contract_id, method_name, args)
-            .await
-            .map_err(|err| RuntimeAdapterError::ChainInteractionsError(err.to_string()))
+        Ok(MainChain::view(self.client.clone(), contract_id, method_name, args).await?)
     }
 
     async fn chain_call(
@@ -77,8 +75,6 @@ impl HostAdapter for RuntimeTestAdapter {
         )
         .await
         .expect("couldn't sign txn");
-        MainChain::send_tx(self.client.clone(), signed_txn)
-            .await
-            .map_err(|err| RuntimeAdapterError::ChainInteractionsError(err.to_string()))
+        Ok(MainChain::send_tx(self.client.clone(), signed_txn).await?)
     }
 }

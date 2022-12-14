@@ -35,9 +35,6 @@ pub enum RuntimeError {
     #[error("{0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("Chain Interactions Error: {0}")]
-    ChainInteractionsError(String),
-
     #[error(transparent)]
     RuntimeAdapterError(#[from] RuntimeAdapterError),
 

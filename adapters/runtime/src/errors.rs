@@ -14,8 +14,6 @@ pub enum RuntimeAdapterError {
     ReqwestError(#[from] reqwest::Error),
     #[error("Rusqlite Error: {0}")]
     RuqliteError(#[from] rusqlite::Error),
-    #[error("Chain Interactions Error: {0}")]
-    ChainInteractionsError(String),
 
     #[error("Mailbox Error Error: {0}")]
     MailboxError(#[from] MailboxError),
