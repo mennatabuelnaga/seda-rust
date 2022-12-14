@@ -39,7 +39,7 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .unwrap();
     assert!(res.is_success());
 
-    // create alice account and storage deposit
+    // create alice account
     let alice = token_contract
         .as_account()
         .create_subaccount("alice")
@@ -49,16 +49,9 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .unwrap()
         .into_result()
         .unwrap();
+
+    // alice storage deposits into token contract
     register_user(&token_contract, alice.id()).await;
-    let res = token_contract
-        .call("storage_deposit")
-        .args_json((alice.id(), Option::<bool>::None))
-        .deposit(near_sdk::env::storage_byte_cost() * 125)
-        .max_gas()
-        .transact()
-        .await
-        .unwrap();
-    assert!(res.is_success());
 
     // deploy and initialize staking pool contract
     let staking_pool_contract = worker
@@ -80,6 +73,9 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .await
         .unwrap();
     assert!(res.is_success());
+
+    // staking pool contract storage deposits into token contract
+    register_user(&token_contract, staking_pool_contract.id()).await;
 
     return (token_contract, alice, staking_pool_contract);
 }

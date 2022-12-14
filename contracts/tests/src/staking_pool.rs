@@ -8,7 +8,7 @@ async fn test_stake_unstake() {
     let initial_balance = U128::from(parse_near!("10000 N"));
     let transfer_amount = U128::from(parse_near!("100 N"));
     let worker = workspaces::sandbox().await.unwrap();
-    let (token, alice, _staking_pool) = init(&worker, initial_balance).await;
+    let (token, alice, staking_pool) = init(&worker, initial_balance).await;
 
     // transfer some tokens to alice
     let res = token
@@ -22,14 +22,112 @@ async fn test_stake_unstake() {
     assert!(res.is_success());
 
     // alice deposits into pool
-    // let res = staking_pool
-    //     .call("deposit")
-    //     .args_json((alice.id(), transfer_amount, Option::<bool>::None))
+    let res = alice
+        .call(staking_pool.id(), "deposit")
+        .args_json((transfer_amount, alice.id()))
+        .max_gas()
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+
+    // alice stakes
+    let res = alice
+        .call(staking_pool.id(), "stake")
+        .args_json((transfer_amount,))
+        .max_gas()
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+
+    // check staked balance
+    let alice_staked_balance = alice
+        .call(token.id(), "ft_balance_of")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+
+    // alice unstakes
+    assert_eq!(alice_staked_balance, transfer_amount);
+
+    // skip epochs
+}
+
+#[tokio::test]
+async fn test_deposit_withdraw() {
+    let initial_balance = U128::from(parse_near!("10000 N"));
+    let transfer_amount = U128::from(parse_near!("100 N"));
+    let worker = workspaces::sandbox().await.unwrap();
+    let (token, alice, staking_pool) = init(&worker, initial_balance).await;
+
+    // transfer some tokens to alice
+    let res = token
+        .call("ft_transfer")
+        .args_json((alice.id(), transfer_amount, Option::<bool>::None))
+        .max_gas()
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+    let alice_initial_balance = alice
+        .call(token.id(), "ft_balance_of")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+
+    // alice deposits into pool
+    let res = alice
+        .call(token.id(), "ft_transfer_call")
+        .args_json((staking_pool.id(), transfer_amount, Option::<String>::None, "deposit"))
+        .max_gas()
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
+
+    // check if alice's balance has decreased by `transfer_amount`
+    let alice_balance_after_deposit = alice
+        .call(token.id(), "ft_balance_of")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    assert_eq!(
+        alice_balance_after_deposit,
+        U128(alice_initial_balance.0 - transfer_amount.0)
+    );
+
+    // alice withdraws
+    // let res = alice
+    //     .call(staking_pool.id(), "withdraw")
+    //     .args_json((transfer_amount,))
     //     .max_gas()
     //     .transact()
-    //     .await?;
-    // println!("res: {:?}", res);
+    //     .await
+    //     .unwrap();
     // assert!(res.is_success());
+
+    // check if alice's balance is now `alice_initial_balance` again
+    // let alice_balance_after_withdraw = alice
+    //     .call(token.id(), "ft_balance_of")
+    //     .args_json((alice.id(),))
+    //     .view()
+    //     .await
+    //     .unwrap()
+    //     .json::<U128>()
+    //     .unwrap();
+    // assert_eq!(alice_balance_after_withdraw, alice_initial_balance);
 }
 
 #[tokio::test]
@@ -85,49 +183,5 @@ async fn simulate_transfer_call_promise_panics_for_a_full_refund() {
         .json::<U128>()
         .unwrap();
     assert_eq!(initial_balance, root_balance);
-    assert_eq!(0, defi_balance.0);
-}
-
-#[tokio::test]
-async fn simulate_transfer_call_when_called_contract_not_registered_with_ft() {
-    let initial_balance = U128::from(parse_near!("10000 N"));
-    let transfer_amount = U128::from(parse_near!("100 N"));
-    let worker = workspaces::sandbox().await.unwrap();
-    let (token, _, staking_pool_contract) = init(&worker, initial_balance).await;
-
-    // call fails because DEFI contract is not registered as FT user
-    let res = token
-        .call("ft_transfer_call")
-        .args_json((
-            staking_pool_contract.id(),
-            transfer_amount,
-            Option::<String>::None,
-            "deposit",
-        ))
-        .max_gas()
-        .deposit(ONE_YOCTO)
-        .transact()
-        .await
-        .unwrap();
-    assert!(res.is_failure());
-
-    // balances remain unchanged
-    let root_balance = token
-        .call("ft_balance_of")
-        .args_json((token.id(),))
-        .view()
-        .await
-        .unwrap()
-        .json::<U128>()
-        .unwrap();
-    let defi_balance = token
-        .call("ft_balance_of")
-        .args_json((staking_pool_contract.id(),))
-        .view()
-        .await
-        .unwrap()
-        .json::<U128>()
-        .unwrap();
-    assert_eq!(initial_balance.0, root_balance.0);
     assert_eq!(0, defi_balance.0);
 }

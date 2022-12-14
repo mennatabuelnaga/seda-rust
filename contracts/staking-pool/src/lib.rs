@@ -17,6 +17,7 @@ mod fungible_token;
 mod internal;
 pub mod staking;
 mod staking_test;
+mod callbacks;
 
 /// The amount of gas given to complete `vote` call.
 const _VOTE_GAS: u64 = 100_000_000_000_000;

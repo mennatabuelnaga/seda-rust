@@ -10,6 +10,7 @@ pub const GAS_FOR_FT_ON_TRANSFER: Gas = Gas(BASE_GAS + PROMISE_CALL);
 #[ext_contract(ft)]
 pub trait FungibleToken {
     fn ft_transfer(&mut self, receiver_id: AccountId, amount: U128, memo: Option<String>);
+    fn ft_balance_of(&self, account_id: AccountId) -> U128;
 }
 
 /// Public contract methods
@@ -19,7 +20,7 @@ impl FungibleTokenReceiver for StakingContract {
         // Verifying that we were called by fungible token contract that we expect.
         require!(
             env::predecessor_account_id() == self.seda_token,
-            "Only supports the one fungible token contract"
+            "Unsupported fungible token contract"
         );
         log!(
             "in {} tokens from @{} ft_on_transfer, msg = {}",
@@ -28,16 +29,15 @@ impl FungibleTokenReceiver for StakingContract {
             msg
         );
         let account_id = env::signer_account_id();
+        let prepaid_gas = env::prepaid_gas();
         match msg.as_str() {
-            "deposit" => {
-                let prepaid_gas = env::prepaid_gas();
+            "deposit" => {                
                 Self::ext(env::current_account_id())
                     .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
                     .deposit(amount, account_id)
                     .into()
             }
             "deposit-and-stake" => {
-                let prepaid_gas = env::prepaid_gas();
                 Self::ext(env::current_account_id())
                     .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
                     .deposit_and_stake(amount, account_id)

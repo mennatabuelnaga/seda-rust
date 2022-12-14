@@ -9,7 +9,7 @@ use near_sdk::{
     Balance,
     Promise,
     PromiseResult,
-    PublicKey,
+    PublicKey, PromiseOrValue,
 };
 
 use crate::{StakingContract, StakingContractExt, U256};
@@ -80,7 +80,7 @@ impl StakingContract {
     }
 
     /// Deposits the attached amount into the inner account of the predecessor.
-    pub fn deposit(&mut self, amount: U128, account_id: AccountId) {
+    pub fn deposit(&mut self, amount: U128, account_id: AccountId) -> PromiseOrValue<U128> {
         // TODO: only callable by seda_token
 
         let need_to_restake = self.internal_ping();
@@ -90,12 +90,14 @@ impl StakingContract {
         if need_to_restake {
             self.internal_restake();
         }
+
+        PromiseOrValue::Value(U128::from(0))
     }
 
     /// Deposits the attached amount into the inner account of the predecessor
     /// and stakes it.
     #[payable]
-    pub fn deposit_and_stake(&mut self, amount: U128, account_id: AccountId) {
+    pub fn deposit_and_stake(&mut self, amount: U128, account_id: AccountId) -> PromiseOrValue<U128> {
         // TODO: only callable by seda_token
 
         self.internal_ping();
@@ -104,6 +106,8 @@ impl StakingContract {
         self.internal_stake(amount, account_id);
 
         self.internal_restake();
+
+        PromiseOrValue::Value(U128::from(0))
     }
 
     /// Withdraws the entire unstaked balance from the predecessor account.
@@ -114,11 +118,7 @@ impl StakingContract {
 
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
-        self.internal_withdraw(account.unstaked);
-
-        if need_to_restake {
-            self.internal_restake();
-        }
+        self.internal_withdraw(account.unstaked, need_to_restake);
     }
 
     /// Withdraws the non staked balance for given account.
@@ -128,11 +128,7 @@ impl StakingContract {
         let need_to_restake = self.internal_ping();
 
         let amount: Balance = amount.into();
-        self.internal_withdraw(amount);
-
-        if need_to_restake {
-            self.internal_restake();
-        }
+        self.internal_withdraw(amount, need_to_restake);
     }
 
     /// Stakes all available unstaked balance from the inner account of the

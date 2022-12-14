@@ -9,10 +9,10 @@ crate-type = ["cdylib"]
 [dependencies]
 near-sdk = { workspace = true }
 near-contract-standards = { workspace = true }
-schemars = "0.8"
 staking-pool = { path = "../staking-pool" }
 
 [dev-dependencies]
+schemars = "0.8"
 workspaces = "0.7.0"
 tokio = { workspace = true }
 near-units = "0.2.0"

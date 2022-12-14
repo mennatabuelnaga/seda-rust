@@ -28,3 +28,5 @@ seda_log.*
 **/*.wasm
 # WASM build files
 **/res
+
+**/.DS_Store

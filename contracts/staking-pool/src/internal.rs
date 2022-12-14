@@ -33,31 +33,26 @@ impl StakingContract {
         amount
     }
 
-    pub(crate) fn internal_withdraw(&mut self, amount: Balance) {
+    /// Perform checks for valid withdraw action, calls `ft_transfer` on token, then uses `withdraw_callback` to update state
+    pub(crate) fn internal_withdraw(&mut self, amount: Balance, need_to_restake: bool) -> Promise {
         assert!(amount > 0, "Withdrawal amount should be positive");
 
         let account_id = env::predecessor_account_id();
-        let mut account = self.internal_get_account(&account_id);
+        let account = self.internal_get_account(&account_id);
         assert!(account.unstaked >= amount, "Not enough unstaked balance to withdraw");
         assert!(
             account.unstaked_available_epoch_height <= env::epoch_height(),
             "The unstaked balance is not yet available due to unstaking delay"
         );
-        account.unstaked -= amount;
-        self.internal_save_account(&account_id, &account);
-
-        env::log_str(
-            format!(
-                "@{} withdrawing {}. New unstaked balance is {}",
-                account_id, amount, account.unstaked
-            )
-            .as_str(),
-        );
 
         ft::ext(self.seda_token.clone())
             .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
-            .ft_transfer(account_id, amount.into(), None);
-        self.last_total_balance -= amount;
+            .ft_transfer(account_id.clone(), amount.into(), None)
+        .then(
+            Self::ext(env::current_account_id())
+            .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
+            .withdraw_callback(account_id, need_to_restake, amount.into())
+        )
     }
 
     pub(crate) fn internal_stake(&mut self, amount: Balance, account_id: AccountId) {
