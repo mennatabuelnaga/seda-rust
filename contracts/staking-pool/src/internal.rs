@@ -1,21 +1,9 @@
-use fungible_token::{GAS_FOR_FT_ON_TRANSFER, ft};
+use fungible_token::{ft, GAS_FOR_FT_ON_TRANSFER};
 
-use crate::{staking::ext_self, *};
+use crate::*;
 
 /// Contract internal methods
 impl StakingContract {
-    /// Restakes the current `total_staked_balance` again.
-    pub(crate) fn internal_restake(&mut self) {
-        if self.paused {
-            return;
-        }
-        // Stakes with the staking public key. If the public key is invalid the entire
-        // function call will be rolled back.
-        Promise::new(env::current_account_id())
-            .stake(self.total_staked_balance, self.stake_public_key.clone())
-            .then(ext_self::ext(env::current_account_id()).on_stake_action());
-    }
-
     pub(crate) fn internal_deposit(&mut self, amount: u128, account_id: AccountId) -> u128 {
         env::log_str(format!("account_id is {}", account_id).as_str());
         let mut account = self.internal_get_account(&account_id);
@@ -33,8 +21,9 @@ impl StakingContract {
         amount
     }
 
-    /// Perform checks for valid withdraw action, calls `ft_transfer` on token, then uses `withdraw_callback` to update state
-    pub(crate) fn internal_withdraw(&mut self, amount: Balance, need_to_restake: bool) -> Promise {
+    /// Perform checks for valid withdraw action, calls `ft_transfer` on token,
+    /// then uses `withdraw_callback` to update state
+    pub(crate) fn internal_withdraw(&mut self, amount: Balance) -> Promise {
         assert!(amount > 0, "Withdrawal amount should be positive");
 
         let account_id = env::predecessor_account_id();
@@ -49,11 +38,11 @@ impl StakingContract {
             .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
             .with_attached_deposit(1)
             .ft_transfer(account_id.clone(), amount.into(), None)
-        .then(
-            Self::ext(env::current_account_id())
-            .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
-            .withdraw_callback(account_id, need_to_restake, amount.into())
-        )
+            .then(
+                Self::ext(env::current_account_id())
+                    .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
+                    .withdraw_callback(account_id, amount.into()),
+            )
     }
 
     pub(crate) fn internal_stake(&mut self, amount: Balance, account_id: AccountId) {

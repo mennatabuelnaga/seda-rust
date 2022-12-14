@@ -34,15 +34,3 @@ macro_rules! assert_eq_in_near {
         assert_eq!(yton($a), yton($b), $c)
     };
 }
-
-pub fn testing_env_with_promise_results(context: VMContext, promise_result: PromiseResult) {
-    near_sdk::env::set_blockchain_interface(MockedBlockchain::new(
-        context,
-        VMConfig::test(),
-        RuntimeFeesConfig::test(),
-        vec![promise_result],
-        near_sdk::mock::with_mocked_blockchain(|b| b.take_storage()),
-        Default::default(),
-        None,
-    ));
-}

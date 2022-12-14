@@ -8,8 +8,9 @@ use near_sdk::{
     AccountId,
     Balance,
     Promise,
+    PromiseOrValue,
     PromiseResult,
-    PublicKey, PromiseOrValue,
+    PublicKey,
 };
 
 use crate::{StakingContract, StakingContractExt, U256};
@@ -74,22 +75,16 @@ pub trait SelfContract {
 impl StakingContract {
     /// Distributes rewards and restakes if needed.
     pub fn ping(&mut self) {
-        if self.internal_ping() {
-            self.internal_restake();
-        }
+        self.internal_ping();
     }
 
     /// Deposits the attached amount into the inner account of the predecessor.
     pub fn deposit(&mut self, amount: U128, account_id: AccountId) -> PromiseOrValue<U128> {
-        // TODO: only callable by seda_token
+        // TODO: only callable by this contract
 
-        let need_to_restake = self.internal_ping();
+        self.internal_ping();
 
         self.internal_deposit(amount.into(), account_id);
-
-        if need_to_restake {
-            self.internal_restake();
-        }
 
         PromiseOrValue::Value(U128::from(0))
     }
@@ -98,14 +93,12 @@ impl StakingContract {
     /// and stakes it.
     #[payable]
     pub fn deposit_and_stake(&mut self, amount: U128, account_id: AccountId) -> PromiseOrValue<U128> {
-        // TODO: only callable by seda_token
+        // TODO: only callable by this contract
 
         self.internal_ping();
 
         let amount = self.internal_deposit(amount.into(), account_id.clone());
         self.internal_stake(amount, account_id);
-
-        self.internal_restake();
 
         PromiseOrValue::Value(U128::from(0))
     }
@@ -114,11 +107,11 @@ impl StakingContract {
     /// It's only allowed if the `unstake` action was not performed in the four
     /// most recent epochs.
     pub fn withdraw_all(&mut self) {
-        let need_to_restake = self.internal_ping();
+        self.internal_ping();
 
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
-        self.internal_withdraw(account.unstaked, need_to_restake);
+        self.internal_withdraw(account.unstaked);
     }
 
     /// Withdraws the non staked balance for given account.
@@ -126,10 +119,10 @@ impl StakingContract {
     /// most recent epochs.
     #[payable]
     pub fn withdraw(&mut self, amount: U128) {
-        let need_to_restake = self.internal_ping();
+        self.internal_ping();
 
         let amount: Balance = amount.into();
-        self.internal_withdraw(amount, need_to_restake);
+        self.internal_withdraw(amount);
     }
 
     /// Stakes all available unstaked balance from the inner account of the
@@ -141,8 +134,6 @@ impl StakingContract {
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         self.internal_stake(account.unstaked, env::signer_account_id());
-
-        self.internal_restake();
     }
 
     /// Stakes the given amount from the inner account of the predecessor.
@@ -153,8 +144,6 @@ impl StakingContract {
 
         let amount: Balance = amount.into();
         self.internal_stake(amount, env::signer_account_id());
-
-        self.internal_restake();
     }
 
     /// Unstakes all staked balance from the inner account of the predecessor.
@@ -168,8 +157,6 @@ impl StakingContract {
         let account = self.internal_get_account(&account_id);
         let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
         self.inner_unstake(amount);
-
-        self.internal_restake();
     }
 
     /// Unstakes the given amount from the inner account of the predecessor.
@@ -182,8 +169,6 @@ impl StakingContract {
 
         let amount: Balance = amount.into();
         self.inner_unstake(amount);
-
-        self.internal_restake();
     }
 
     /*************** */
@@ -304,9 +289,8 @@ impl StakingContract {
     pub fn update_staking_key(&mut self, stake_public_key: PublicKey) {
         self.assert_owner();
         // When updating the staking key, the contract has to restake.
-        let _need_to_restake = self.internal_ping();
+        self.internal_ping();
         self.stake_public_key = stake_public_key;
-        self.internal_restake();
     }
 
     /// Owner's method.
@@ -315,11 +299,8 @@ impl StakingContract {
         self.assert_owner();
         reward_fee_fraction.assert_valid();
 
-        let need_to_restake = self.internal_ping();
+        self.internal_ping();
         self.reward_fee_fraction = reward_fee_fraction;
-        if need_to_restake {
-            self.internal_restake();
-        }
     }
 
     /// Owner's method.
@@ -354,6 +335,5 @@ impl StakingContract {
 
         self.internal_ping();
         self.paused = false;
-        self.internal_restake();
     }
 }

@@ -31,18 +31,14 @@ impl FungibleTokenReceiver for StakingContract {
         let account_id = env::signer_account_id();
         let prepaid_gas = env::prepaid_gas();
         match msg.as_str() {
-            "deposit" => {                
-                Self::ext(env::current_account_id())
-                    .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
-                    .deposit(amount, account_id)
-                    .into()
-            }
-            "deposit-and-stake" => {
-                Self::ext(env::current_account_id())
-                    .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
-                    .deposit_and_stake(amount, account_id)
-                    .into()
-            }
+            "deposit" => Self::ext(env::current_account_id())
+                .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
+                .deposit(amount, account_id)
+                .into(),
+            "deposit-and-stake" => Self::ext(env::current_account_id())
+                .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
+                .deposit_and_stake(amount, account_id)
+                .into(),
             _ => {
                 panic!("Unexpected message");
             }

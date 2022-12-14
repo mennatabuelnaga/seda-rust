@@ -13,11 +13,11 @@ use uint::construct_uint;
 
 use crate::staking::RewardFeeFraction;
 
+mod callbacks;
 mod fungible_token;
 mod internal;
 pub mod staking;
 mod staking_test;
-mod callbacks;
 
 /// The amount of gas given to complete `vote` call.
 const _VOTE_GAS: u64 = 100_000_000_000_000;
@@ -156,7 +156,7 @@ impl StakingContract {
             env::is_valid_account_id(seda_token.as_bytes()),
             "The SEDA token account ID is invalid"
         );
-        let mut this = Self {
+        let this = Self {
             owner_id,
             stake_public_key,
             last_epoch_height: env::epoch_height(),
@@ -168,8 +168,6 @@ impl StakingContract {
             paused: false,
             seda_token,
         };
-        // Staking with the current pool to make sure the staking key is valid.
-        this.internal_restake();
         this
     }
 }
