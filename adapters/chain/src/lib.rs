@@ -3,7 +3,6 @@
 mod another_mainchain;
 pub use another_mainchain::AnotherMainChain;
 use jsonrpsee_types::Params;
-use seda_config::AppConfig;
 use seda_runtime_sdk::Chain;
 
 mod errors;
@@ -24,17 +23,6 @@ pub enum Client {
 }
 
 impl Client {
-    pub fn new(client: Chain, config: &AppConfig) -> Result<Self> {
-        Ok(match client {
-            Chain::Another => Self::Another(Arc::new(AnotherMainChain::new_client(
-                config.another_chain.as_ref().expect("TODO remove when de-optioning"),
-            )?)),
-            Chain::Near => Self::Near(Arc::new(NearMainChain::new_client(
-                config.near_chain.as_ref().expect("TODO remove when de-optioning"),
-            )?)),
-        })
-    }
-
     fn another(&self) -> Arc<()> {
         if let Self::Another(v) = self {
             v.clone()
