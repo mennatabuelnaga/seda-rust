@@ -1,8 +1,5 @@
-#[cfg(feature = "near")]
 use near_crypto::ParseKeyError;
-#[cfg(feature = "near")]
 use near_jsonrpc_client::methods::broadcast_tx_async::RpcBroadcastTxAsyncError;
-#[cfg(feature = "near")]
 use near_primitives::account::id::ParseAccountError;
 use thiserror::Error;
 #[derive(Error, Debug)]
@@ -12,6 +9,9 @@ pub enum MainChainAdapterError {
 
     #[error("error calling contract view method")]
     CallViewMethod,
+
+    #[error("error failed to send tx: `{0}`")]
+    FailedTx(String),
 
     #[error("time limit exceeded for the transaction to be recognized")]
     BadTransactionTimestamp,
@@ -25,21 +25,17 @@ pub enum MainChainAdapterError {
     #[error("Bad Parameters for method `{0}`")]
     BadParams(String),
 
-    #[cfg(feature = "near")]
     #[error("error parsing string to near secretkey")]
     ParseAccountId(#[from] ParseAccountError),
 
-    #[cfg(feature = "near")]
     #[error("near json rpc query error")]
     JsonRpcQueryError(
         #[from] near_jsonrpc_client::errors::JsonRpcError<near_jsonrpc_client::methods::query::RpcQueryError>,
     ),
 
-    #[cfg(feature = "near")]
     #[error("error parsing string to near AccountId")]
     ParseKey(#[from] ParseKeyError),
 
-    #[cfg(feature = "near")]
     #[error("near json rpc tx error")]
     JsonRpcTxError(#[from] near_jsonrpc_client::errors::JsonRpcError<RpcBroadcastTxAsyncError>),
 

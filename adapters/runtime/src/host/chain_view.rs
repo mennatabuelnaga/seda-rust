@@ -1,24 +1,25 @@
-use std::sync::Arc;
-
 use actix::prelude::*;
-use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
+use seda_chain_adapters::{chain, Client};
+use seda_runtime_sdk::Chain;
 
 use crate::{Host, Result};
 
 #[derive(Message)]
 #[rtype(result = "Result<String>")]
 pub struct ChainView {
+    pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
-    pub client:      Arc<<MainChain as MainChainAdapterTrait>::Client>,
+    pub client:      Client,
 }
+
 impl Handler<ChainView> for Host {
     type Result = ResponseActFuture<Self, Result<String>>;
 
     fn handle(&mut self, msg: ChainView, _ctx: &mut Self::Context) -> Self::Result {
         let fut = async move {
-            let value = MainChain::view(msg.client.clone(), &msg.contract_id, &msg.method_name, msg.args).await?;
+            let value = chain::view(msg.chain, msg.client, &msg.contract_id, &msg.method_name, msg.args).await?;
 
             Ok(value)
         };

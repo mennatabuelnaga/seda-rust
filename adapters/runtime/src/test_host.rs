@@ -2,8 +2,9 @@ use std::{collections::HashMap, sync::Arc};
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
+use seda_chain_adapters::{chain, AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
 use seda_config::CONFIG;
+use seda_runtime_sdk::Chain;
 
 use crate::{HostAdapter, Result};
 
@@ -14,7 +15,8 @@ lazy_static! {
 }
 
 pub struct RuntimeTestAdapter {
-    pub client: Arc<<MainChain as MainChainAdapterTrait>::Client>,
+    pub another_client: Client,
+    pub near_client:    Client,
 }
 
 #[async_trait::async_trait]
@@ -22,11 +24,22 @@ impl HostAdapter for RuntimeTestAdapter {
     async fn new() -> Result<Self> {
         let config = CONFIG.read().await;
         // Safe to unwrap here, it's already been checked.
-        let main_chain_config = config.main_chain.as_ref().unwrap();
-
+        let config = config.as_ref();
         Ok(Self {
-            client: Arc::new(MainChain::new_client(main_chain_config)?),
+            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(
+                config.another_chain.as_ref().expect("TODO clean up when de-optioning."),
+            )?)),
+            near_client:    Client::Near(Arc::new(NearMainChain::new_client(
+                config.near_chain.as_ref().expect("TODO clean up when de-optioning."),
+            )?)),
         })
+    }
+
+    fn select_client_from_chain(&self, chain: Chain) -> Client {
+        match chain {
+            Chain::Another => self.another_client.clone(),
+            Chain::Near => self.near_client.clone(),
+        }
     }
 
     async fn db_get(&self, key: &str) -> Result<Option<String>> {
@@ -45,25 +58,31 @@ impl HostAdapter for RuntimeTestAdapter {
         Ok(reqwest::get(url).await?.text().await?)
     }
 
-    async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
-        Ok(MainChain::view(self.client.clone(), contract_id, method_name, args).await?)
+    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
+        let client = self.select_client_from_chain(chain);
+        Ok(chain::view(chain, client, contract_id, method_name, args).await?)
     }
 
     async fn chain_call(
         &self,
+        chain: Chain,
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
-    ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus> {
+    ) -> Result<Vec<u8>> {
         let config = CONFIG.read().await;
         let node_config = config.node.as_ref().unwrap();
         let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
         let signer_sk_str = node_config.secret_key.as_ref().unwrap();
         let gas = node_config.gas.as_ref().unwrap();
-        let server_url = config.main_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap();
+        let server_url = match chain {
+            Chain::Another => config.another_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
+            Chain::Near => config.near_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
+        };
 
-        let signed_txn = MainChain::construct_signed_tx(
+        let signed_txn = chain::construct_signed_tx(
+            chain,
             signer_acc_str,
             signer_sk_str,
             contract_id,
@@ -73,8 +92,8 @@ impl HostAdapter for RuntimeTestAdapter {
             deposit,
             server_url,
         )
-        .await
-        .expect("couldn't sign txn");
-        Ok(MainChain::send_tx(self.client.clone(), signed_txn).await?)
+        .await?;
+        let client = self.select_client_from_chain(chain);
+        Ok(chain::send_tx(chain, client, &signed_txn).await?)
     }
 }

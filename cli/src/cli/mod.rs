@@ -1,14 +1,14 @@
 use clap::{arg, command, Parser, Subcommand};
+use seda_chain_adapters::{AnotherMainChain, NearMainChain};
 use seda_config::{overwrite_config_field, CONFIG};
+use seda_runtime_sdk::Chain;
 
 use crate::{errors::CliError, Result};
+
 mod cli_commands;
 use cli_commands::*;
-#[cfg(feature = "near")]
-mod near_backend;
 
-#[cfg(feature = "near")]
-pub type CliBackend = near_backend::NearCliBackend;
+mod near_backend;
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -16,6 +16,8 @@ pub type CliBackend = near_backend::NearCliBackend;
 #[command(version = "0.1.0")]
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
+    #[arg(short, long)]
+    chain:   Chain,
     #[command(subcommand)]
     command: Command,
 }
@@ -212,27 +214,42 @@ impl CliOptions {
         Ok(())
     }
 
-    pub fn handle<T: CliCommands>() -> Result<()> {
+    pub fn handle() -> Result<()> {
         let options = CliOptions::parse();
         dotenv::dotenv().ok();
 
         if let Command::Run { rpc_server_address } = options.command {
             {
                 let mut config = CONFIG.blocking_write();
-                config
-                    .main_chain
-                    .as_ref()
-                    .ok_or("Missing config [main_chain] section")?;
+                match options.chain {
+                    Chain::Another => {
+                        config
+                            .another_chain
+                            .as_ref()
+                            .ok_or("Missing config [another_config] section")?;
+                    }
+                    Chain::Near => {
+                        config.near_chain.as_ref().ok_or("Missing config [chain] section")?;
+                    }
+                }
+
                 let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
                 overwrite_config_field!(node_config.rpc_server_address, rpc_server_address);
             }
 
             return seda_logger::init(|| {
-                seda_node::run::<T::MainChainAdapter>();
+                match options.chain {
+                    Chain::Another => seda_node::run::<AnotherMainChain>(),
+                    Chain::Near => seda_node::run::<NearMainChain>(),
+                };
+
                 Ok::<_, CliError>(())
             });
         }
 
-        seda_logger::init(|| Self::rest_of_options::<T>(options.command))
+        seda_logger::init(|| match options.chain {
+            Chain::Another => unimplemented!(),
+            Chain::Near => Self::rest_of_options::<near_backend::NearCliBackend>(options.command),
+        })
     }
 }

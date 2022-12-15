@@ -2,7 +2,6 @@ use jsonrpsee::{
     core::{client::ClientT, params::ArrayParams, rpc_params},
     ws_client::WsClientBuilder,
 };
-use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::CONFIG;
 use serde_json::json;
 use tracing::debug;
@@ -13,8 +12,6 @@ use crate::Result;
 // Maybe move this trait to adapters once that refactor happens.
 #[async_trait::async_trait]
 pub trait CliCommands: Send + Sync {
-    type MainChainAdapter: MainChainAdapterTrait;
-
     async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String> {
         let config = CONFIG.read().await;
 
@@ -28,11 +25,7 @@ pub trait CliCommands: Send + Sync {
         Ok(response)
     }
 
-    async fn format_tx_and_request_seda_server(
-        method: &str,
-        args: Vec<u8>,
-        deposit: u128,
-    ) -> Result<<Self::MainChainAdapter as MainChainAdapterTrait>::FinalExecutionStatus>;
+    async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>, deposit: u128) -> Result<Vec<u8>>;
 
     async fn register_node(socket_address: String) -> Result<()>;
 

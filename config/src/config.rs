@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 use crate::{
     env_overwrite,
     errors::{Result, TomlError},
+    AnotherConfig,
     Config,
     LoggerConfig,
-    MainChainConfig,
+    NearConfig,
     NodeConfig,
 };
 
@@ -15,9 +16,10 @@ use crate::{
 pub struct AppConfig {
     pub seda_server_url: Option<String>,
 
-    pub main_chain: Option<MainChainConfig>,
-    pub node:       Option<NodeConfig>,
-    pub logging:    Option<LoggerConfig>,
+    pub another_chain: Option<AnotherConfig>,
+    pub near_chain:    Option<NearConfig>,
+    pub node:          Option<NodeConfig>,
+    pub logging:       Option<LoggerConfig>,
 }
 
 impl AsRef<AppConfig> for AppConfig {
@@ -31,7 +33,8 @@ impl Default for AppConfig {
         let mut this = Self {
             seda_server_url: None,
             node:            Some(Default::default()),
-            main_chain:      Some(MainChainConfig::default()),
+            another_chain:   Some(AnotherConfig::default()),
+            near_chain:      Some(NearConfig::default()),
             logging:         Some(Default::default()),
         };
         this.overwrite_from_env();
@@ -44,15 +47,19 @@ impl Config for AppConfig {
         Self {
             seda_server_url: Some("ws://127.0.0.1:12345".to_string()),
             node:            Some(NodeConfig::template()),
-            main_chain:      Some(MainChainConfig::template()),
+            another_chain:   Some(AnotherConfig::template()),
+            near_chain:      Some(NearConfig::template()),
             logging:         Some(LoggerConfig::template()),
         }
     }
 
     fn overwrite_from_env(&mut self) {
         env_overwrite!(self.seda_server_url, "SEDA_SERVER_URL");
-        if let Some(main_chain_config) = self.main_chain.as_mut() {
-            main_chain_config.overwrite_from_env()
+        if let Some(another_chain) = self.another_chain.as_mut() {
+            another_chain.overwrite_from_env()
+        }
+        if let Some(near_config) = self.near_chain.as_mut() {
+            near_config.overwrite_from_env()
         }
         if let Some(node_config) = self.node.as_mut() {
             node_config.overwrite_from_env()

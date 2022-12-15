@@ -3,6 +3,7 @@ use std::str;
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, chain_view, db_set, http_fetch, Promise},
+    Chain,
     PromiseStatus,
 };
 
@@ -23,11 +24,13 @@ enum Commands {
         url: String,
     },
     View {
+        chain:       Chain,
         contract_id: String,
         method_name: String,
         args:        String,
     },
     Call {
+        chain:       Chain,
         contract_id: String,
         method_name: String,
         args:        String,
@@ -49,23 +52,25 @@ fn main() {
             }
             //cargo run cli view mc.mennat0.testnet get_node_owner "{\"node_id\":\"12\"}"
             Commands::View {
+                chain,
                 contract_id,
                 method_name,
                 args,
             } => {
-                chain_view(contract_id, method_name, args.into_bytes())
+                chain_view(chain, contract_id, method_name, args.into_bytes())
                     .start()
                     .then(call_self("chain_view_test_success", vec![]));
             }
             // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
             // "870000000000000000000"
             Commands::Call {
+                chain,
                 contract_id,
                 method_name,
                 args,
                 deposit,
             } => {
-                chain_call(contract_id, method_name, args.into_bytes(), deposit)
+                chain_call(chain, contract_id, method_name, args.into_bytes(), deposit)
                     .start()
                     .then(call_self("chain_call_test_success", vec![]));
             }

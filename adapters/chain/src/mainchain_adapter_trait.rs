@@ -1,8 +1,7 @@
 use std::{fmt::Debug, sync::Arc};
 
-use borsh::BorshSerialize;
 use jsonrpsee_types::Params;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{MainChainAdapterError, Result};
@@ -38,10 +37,6 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
     type Config: seda_config::Config + Send + Sync;
     /// The Client type for the adapter specific implementation.
     type Client: Send + Sync + 'static;
-    /// The execution status type for the adapter specific implementation.
-    type FinalExecutionStatus: Debug + Send + Sync + BorshSerialize + 'static;
-    /// The signed transaction type for the adapter specific implementation.
-    type SignedTransaction: Debug + Send + Sync + Serialize + DeserializeOwned;
 
     /// Returns an new instance of the client given the server address.
     fn new_client(config: &Self::Config) -> Result<Self::Client>;
@@ -57,31 +52,24 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
         gas: u64,
         deposit: u128,
         server_url: &str,
-    ) -> Result<Self::SignedTransaction>;
+    ) -> Result<Vec<u8>>;
     /// Default trait function that calls sign and send specific
     /// implementations.
-    async fn sign_and_send_tx(
-        client: Arc<Self::Client>,
-        tx_params: TransactionParams,
-    ) -> Result<Self::FinalExecutionStatus> {
+    async fn sign_and_send_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Vec<u8>> {
         let signed_tx = Self::sign_tx(client.clone(), tx_params).await?;
-        Self::send_tx(client, signed_tx).await
+        Self::send_tx(client, &signed_tx).await
     }
 
     /// To sign a transaction for the adapter specific implementation.
-    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Self::SignedTransaction>;
+    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Vec<u8>>;
 
     /// To send a transaction for the adapter specific implementation.
-    async fn send_tx(
-        client: Arc<Self::Client>,
-        signed_tx: Self::SignedTransaction,
-    ) -> Result<Self::FinalExecutionStatus>;
+    async fn send_tx(client: Arc<Self::Client>, signed_tx: &[u8]) -> Result<Vec<u8>>;
     /// To view for the adapter specific implementation.
     async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
     /// Default trait function to get the node owner.
     async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
         let method_name = "get_node_owner";
-        dbg!(&params);
         let params = params
             .one::<NodeIds>()
             .map_err(|e| MainChainAdapterError::BadParams(format!("{method_name}: {e}")))?;
@@ -119,32 +107,29 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
     }
 
     /// Default trait function to register the node.
-    async fn register_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Self::FinalExecutionStatus> {
+    async fn register_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let signed_tx = params
-            .one::<Self::SignedTransaction>()
+            .one::<Vec<u8>>()
             .map_err(|_| MainChainAdapterError::BadParams("register_node".to_string()))?;
 
-        Self::send_tx(client, signed_tx).await
+        Self::send_tx(client, &signed_tx).await
     }
 
     /// Default trait function to remove the node.
-    async fn remove_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Self::FinalExecutionStatus> {
+    async fn remove_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let signed_tx = params
-            .one::<Self::SignedTransaction>()
+            .one::<Vec<u8>>()
             .map_err(|_| MainChainAdapterError::BadParams("register_node".to_string()))?;
 
-        Self::send_tx(client, signed_tx).await
+        Self::send_tx(client, &signed_tx).await
     }
 
     /// Default trait function to set the node socket address.
-    async fn set_node_socket_address(
-        client: Arc<Self::Client>,
-        params: Params<'_>,
-    ) -> Result<Self::FinalExecutionStatus> {
+    async fn set_node_socket_address(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let signed_tx = params
-            .one::<Self::SignedTransaction>()
+            .one::<Vec<u8>>()
             .map_err(|_| MainChainAdapterError::BadParams("register_node".to_string()))?;
 
-        Self::send_tx(client, signed_tx).await
+        Self::send_tx(client, &signed_tx).await
     }
 }

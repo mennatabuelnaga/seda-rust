@@ -1,6 +1,4 @@
-#[cfg(feature = "near")]
 use near_crypto::ParseKeyError;
-#[cfg(feature = "near")]
 use near_primitives::account::id::ParseAccountError;
 use seda_chain_adapters::MainChainAdapterError;
 use seda_config::ConfigError;
@@ -8,15 +6,12 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum CliError {
-    #[cfg(feature = "near")]
     #[error("near json rpc error")]
     JsonRpcError(#[from] near_jsonrpc_client::errors::JsonRpcError<near_jsonrpc_client::methods::query::RpcQueryError>),
     #[error("jsonrpsee client error")]
     JsonRpcClientError(#[from] jsonrpsee::core::error::Error),
     #[error("error parsing string to near AccountId")]
-    #[cfg(feature = "near")]
     ParseAccountId(#[from] ParseAccountError),
-    #[cfg(feature = "near")]
     #[error("error parsing string to near AccountId")]
     ParseKey(#[from] ParseKeyError),
     #[error(transparent)]

@@ -178,6 +178,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let resp = self
                             .host_adapter
                             .chain_view(
+                                chain_view_action.chain,
                                 &chain_view_action.contract_id,
                                 &chain_view_action.method_name,
                                 chain_view_action.args.clone(),
@@ -190,6 +191,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let resp = self
                             .host_adapter
                             .chain_call(
+                                chain_call_action.chain,
                                 &chain_call_action.contract_id,
                                 &chain_call_action.method_name,
                                 chain_call_action.args.clone(),

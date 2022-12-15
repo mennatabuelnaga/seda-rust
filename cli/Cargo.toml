@@ -3,17 +3,6 @@ name = "seda-cli"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = ["near"]
-near = [
-	"near-crypto",
-	"near-jsonrpc-client",
-	"near-jsonrpc-primitives",
-	"near-primitives",
-	"seda-chain-adapters/near",
-	"seda-config/near",
-	"seda-node/near",
-]
 
 [[bin]]
 name = "seda"
@@ -24,14 +13,15 @@ async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive", "std"] }
 dotenv = { workspace = true }
 jsonrpsee = { workspace = true }
-near-crypto = { workspace = true, optional = true }
-near-jsonrpc-client = { workspace = true, optional = true }
-near-jsonrpc-primitives = { workspace = true, optional = true }
-near-primitives = { workspace = true, optional = true }
+near-crypto = { workspace = true }
+near-jsonrpc-client = { workspace = true }
+near-jsonrpc-primitives = { workspace = true }
+near-primitives = { workspace = true }
 seda-chain-adapters = { workspace = true }
 seda-config = { workspace = true }
 seda-logger = { workspace = true }
 seda-node = { workspace = true }
+seda-runtime-sdk = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

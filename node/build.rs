@@ -16,7 +16,6 @@ fn build_and_copy(node_dir: &Path, wasm_bin: &str) {
     wasm_dir.push("wasm");
     wasm_dir.push(wasm_bin);
 
-    dbg!(wasm_dir.display(), wasm_dir.exists());
     let status = Command::new("cargo")
         .arg("build")
         .arg("--target")
@@ -38,8 +37,6 @@ fn build_and_copy(node_dir: &Path, wasm_bin: &str) {
     }
     node_dir.push(wasm_file);
 
-    dbg!(wasm_bin_path.display(), wasm_bin_path.exists());
-    dbg!(node_dir.display(), node_dir.exists());
     fs::copy(wasm_bin_path, node_dir).unwrap_or_else(|e| panic!("Failed to copy {wasm_bin}.wasm: `{e}`"));
 }
 

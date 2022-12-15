@@ -1,4 +1,5 @@
-use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
+use seda_chain_adapters::Client;
+use seda_runtime_sdk::Chain;
 
 use crate::Result;
 
@@ -8,17 +9,20 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
     where
         Self: Sized;
 
+    fn select_client_from_chain(&self, chain: Chain) -> Client;
+
     async fn db_get(&self, key: &str) -> Result<Option<String>>;
     async fn db_set(&self, key: &str, value: &str) -> Result<()>;
     async fn http_fetch(&self, url: &str) -> Result<String>;
 
     async fn chain_call(
         &self,
+        chain: Chain,
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
-    ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus>;
+    ) -> Result<Vec<u8>>;
 
-    async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
+    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
 }

@@ -1,22 +1,22 @@
-use std::sync::Arc;
-
 use actix::prelude::*;
-use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
+use seda_chain_adapters::{chain, Client};
 use seda_config::CONFIG;
+use seda_runtime_sdk::Chain;
 
 use crate::{Host, Result};
 #[derive(Message)]
-#[rtype(result = "Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus>")]
+#[rtype(result = "Result<Vec<u8>>")]
 pub struct ChainCall {
+    pub chain:       Chain,
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
     pub deposit:     u128,
-    pub client:      Arc<<MainChain as MainChainAdapterTrait>::Client>,
+    pub client:      Client,
 }
 
 impl Handler<ChainCall> for Host {
-    type Result = ResponseActFuture<Self, Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus>>;
+    type Result = ResponseActFuture<Self, Result<Vec<u8>>>;
 
     fn handle(&mut self, msg: ChainCall, _ctx: &mut Self::Context) -> Self::Result {
         let deposit = msg.deposit;
@@ -26,9 +26,13 @@ impl Handler<ChainCall> for Host {
             let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
             let signer_sk_str = node_config.secret_key.as_ref().unwrap();
             let gas = node_config.gas.as_ref().unwrap();
-            let server_url = config.main_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap();
+            let server_url = match msg.chain {
+                Chain::Another => config.another_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
+                Chain::Near => config.near_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
+            };
 
-            let signed_txn = MainChain::construct_signed_tx(
+            let signed_txn = chain::construct_signed_tx(
+                msg.chain,
                 signer_acc_str,
                 signer_sk_str,
                 &msg.contract_id,
@@ -39,7 +43,7 @@ impl Handler<ChainCall> for Host {
                 server_url,
             )
             .await?;
-            let value = MainChain::send_tx(msg.client.clone(), signed_txn).await?;
+            let value = chain::send_tx(msg.chain, msg.client, &signed_txn).await?;
 
             Ok(value)
         };

@@ -4589,6 +4589,7 @@ dependencies = [
  "near-jsonrpc-primitives",
  "near-primitives 0.15.0",
  "seda-config",
+ "seda-runtime-sdk",
  "serde",
  "serde_json",
  "thiserror",
@@ -4612,6 +4613,7 @@ dependencies = [
  "seda-config",
  "seda-logger",
  "seda-node",
+ "seda-runtime-sdk",
  "serde",
  "serde_json",
  "thiserror",
@@ -4742,6 +4744,7 @@ dependencies = [
 name = "seda-runtime-sdk"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "serde",
  "serde_json",
 ]

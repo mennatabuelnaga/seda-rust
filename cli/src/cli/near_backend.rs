@@ -1,6 +1,5 @@
 use jsonrpsee::{core::client::ClientT, rpc_params, ws_client::WsClientBuilder};
-use near_primitives::views::FinalExecutionStatus;
-use seda_chain_adapters::{MainChain, MainChainAdapterTrait, NodeDetails, NodeIds};
+use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain, NodeDetails, NodeIds};
 use seda_config::CONFIG;
 use serde_json::json;
 use tracing::debug;
@@ -16,13 +15,7 @@ pub struct NearCliBackend;
 // already check they exist in the CLI.
 #[async_trait::async_trait]
 impl CliCommands for NearCliBackend {
-    type MainChainAdapter = MainChain;
-
-    async fn format_tx_and_request_seda_server(
-        method: &str,
-        args: Vec<u8>,
-        deposit: u128,
-    ) -> Result<FinalExecutionStatus> {
+    async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>, deposit: u128) -> Result<Vec<u8>> {
         let config = CONFIG.read().await;
         let node_config = config.node.as_ref().unwrap();
         let seda_server_url = config
@@ -42,12 +35,12 @@ impl CliCommands for NearCliBackend {
             .as_ref()
             .ok_or("contract_account_id from cli, env var or config file.")?;
         let chain_rpc_url = config
-            .main_chain
+            .near_chain
             .as_ref()
-            .ok_or("Config [main_chain] section.")?
+            .ok_or("Config [near_chain] section.")?
             .chain_rpc_url
             .as_ref()
-            .ok_or("chain_rpc_url from config [main_chain] section.")?;
+            .ok_or("chain_rpc_url from config [near_chain] section.")?;
         let gas = node_config
             .gas
             .as_ref()
@@ -55,7 +48,7 @@ impl CliCommands for NearCliBackend {
             .parse()
             .map_err(|e| format!("gas from config file was not a valid number: '{e}'."))?;
 
-        let signed_tx = Self::MainChainAdapter::construct_signed_tx(
+        let signed_tx = NearMainChain::construct_signed_tx(
             signer_acc_str,
             signer_sk_str,
             contract_id,

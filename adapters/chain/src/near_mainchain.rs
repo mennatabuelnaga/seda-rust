@@ -1,14 +1,15 @@
 use std::sync::Arc;
 
+use borsh::{BorshDeserialize, BorshSerialize};
 use near_crypto::InMemorySigner;
 use near_jsonrpc_client::{methods, JsonRpcClient};
 use near_jsonrpc_primitives::types::{query::QueryResponseKind, transactions::TransactionInfo};
 use near_primitives::{
     transaction::{Action, FunctionCallAction, SignedTransaction, Transaction},
     types::{AccountId, BlockReference, Finality, FunctionArgs},
-    views::QueryRequest,
+    views::{FinalExecutionStatus, QueryRequest},
 };
-use seda_config::MainChainConfig;
+use seda_config::NearConfig;
 use serde_json::from_slice;
 use tokio::time;
 use tracing::info;
@@ -22,9 +23,7 @@ pub struct NearMainChain;
 #[async_trait::async_trait]
 impl MainChainAdapterTrait for NearMainChain {
     type Client = JsonRpcClient;
-    type Config = MainChainConfig;
-    type FinalExecutionStatus = near_primitives::views::FinalExecutionStatus;
-    type SignedTransaction = near_primitives::transaction::SignedTransaction;
+    type Config = NearConfig;
 
     fn new_client(config: &Self::Config) -> Result<Self::Client> {
         Ok(JsonRpcClient::connect(
@@ -44,7 +43,7 @@ impl MainChainAdapterTrait for NearMainChain {
         gas: u64,
         deposit: u128,
         server_url: &str,
-    ) -> Result<Self::SignedTransaction> {
+    ) -> Result<Vec<u8>> {
         let client = JsonRpcClient::connect(server_url);
 
         let signer_account_id: AccountId = signer_acc_str.parse()?;
@@ -81,10 +80,10 @@ impl MainChainAdapterTrait for NearMainChain {
             })],
         };
         let signed_transaction = transaction.sign(&signer);
-        Ok(signed_transaction)
+        Ok(signed_transaction.try_to_vec()?)
     }
 
-    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Self::SignedTransaction> {
+    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Vec<u8>> {
         let signer_account_id: AccountId = tx_params.signer_acc_str.parse()?;
 
         let signer_secret_key: near_crypto::SecretKey = tx_params.signer_sk_str.parse()?;
@@ -118,10 +117,11 @@ impl MainChainAdapterTrait for NearMainChain {
             })],
         };
         let signed_transaction = transaction.sign(&signer);
-        Ok(signed_transaction)
+        Ok(signed_transaction.try_to_vec()?)
     }
 
-    async fn send_tx(client: Arc<Self::Client>, signed_tx: SignedTransaction) -> Result<Self::FinalExecutionStatus> {
+    async fn send_tx(client: Arc<Self::Client>, signed_tx: &[u8]) -> Result<Vec<u8>> {
+        let signed_tx = SignedTransaction::try_from_slice(signed_tx)?;
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
             signed_transaction: signed_tx.clone(),
         };
@@ -158,7 +158,11 @@ impl MainChainAdapterTrait for NearMainChain {
 
                     info!("response.status: {:#?}", response.status);
 
-                    return Ok(response.status);
+                    if let FinalExecutionStatus::SuccessValue(value) = response.status {
+                        return Ok(value);
+                    } else {
+                        return Err(MainChainAdapterError::FailedTx(format!("{:?}", response.status)));
+                    }
                 }
             }
         }

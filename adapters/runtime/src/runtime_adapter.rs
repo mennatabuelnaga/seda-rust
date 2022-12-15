@@ -2,12 +2,14 @@ use std::sync::Arc;
 
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
-use seda_chain_adapters::{MainChain, MainChainAdapterTrait};
+use seda_chain_adapters::{AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
 use seda_config::CONFIG;
+use seda_runtime_sdk::Chain;
 
 use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch, Result};
 pub struct RuntimeAdapter {
-    pub client: Arc<<MainChain as MainChainAdapterTrait>::Client>,
+    pub another_client: Client,
+    pub near_client:    Client,
 }
 
 #[async_trait::async_trait]
@@ -15,11 +17,22 @@ impl HostAdapter for RuntimeAdapter {
     async fn new() -> Result<Self> {
         let config = CONFIG.read().await;
         // Safe to unwrap here, it's already been checked.
-        let main_chain_config = config.main_chain.as_ref().unwrap();
-
+        let config = config.as_ref();
         Ok(Self {
-            client: Arc::new(MainChain::new_client(main_chain_config)?),
+            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(
+                config.another_chain.as_ref().expect("TODO clean up when de-optioning."),
+            )?)),
+            near_client:    Client::Near(Arc::new(NearMainChain::new_client(
+                config.near_chain.as_ref().expect("TODO clean up when de-optioning."),
+            )?)),
         })
+    }
+
+    fn select_client_from_chain(&self, chain: Chain) -> Client {
+        match chain {
+            Chain::Another => self.another_client.clone(),
+            Chain::Near => self.near_client.clone(),
+        }
     }
 
     async fn db_get(&self, key: &str) -> Result<Option<String>> {
@@ -53,33 +66,38 @@ impl HostAdapter for RuntimeAdapter {
 
     async fn chain_call(
         &self,
+        chain: Chain,
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
-    ) -> Result<<MainChain as MainChainAdapterTrait>::FinalExecutionStatus> {
+    ) -> Result<Vec<u8>> {
         let host_actor = Host::from_registry();
+        let client = self.select_client_from_chain(chain);
         let result = host_actor
             .send(ChainCall {
+                chain,
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,
                 deposit,
-                client: self.client.clone(),
+                client,
             })
             .await??;
 
         Ok(result)
     }
 
-    async fn chain_view(&self, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
         let host_actor = Host::from_registry();
+        let client = self.select_client_from_chain(chain);
         let result = host_actor
             .send(ChainView {
+                chain,
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,
-                client: self.client.clone(),
+                client,
             })
             .await??;
 
