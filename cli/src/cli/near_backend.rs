@@ -72,45 +72,6 @@ impl CliCommands for NearCliBackend {
         Ok(response)
     }
 
-    async fn sign_txn(method_name: String, args: Vec<u8>, gas: u64, deposit: u128) -> Result<()> {
-        let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
-        let signer_acc_str = node_config
-            .signer_account_id
-            .as_ref()
-            .ok_or("signer_account_id from cli, env var or config file.")?;
-        let signer_sk_str = node_config
-            .secret_key
-            .as_ref()
-            .ok_or("secret_key from cli, env var or config file.")?;
-        let contract_id = node_config
-            .contract_account_id
-            .as_ref()
-            .ok_or("contract_account_id from cli, env var or config file.")?;
-        let chain_rpc_url = config
-            .main_chain
-            .as_ref()
-            .ok_or("Config [main_chain_config] section.")?
-            .chain_rpc_url
-            .as_ref()
-            .ok_or("chain_rpc_url from config [main_chain_config] section.")?;
-
-        let signed_tx = Self::MainChainAdapter::construct_signed_tx(
-            signer_acc_str,
-            signer_sk_str,
-            contract_id,
-            &method_name,
-            args,
-            gas,
-            deposit,
-            chain_rpc_url,
-        )
-        .await?;
-        println!("**serialized signed txn {:?}", signed_tx);
-
-        Ok(())
-    }
-
     async fn register_node(socket_address: String) -> Result<()> {
         let method_name = "register_node";
 
