@@ -2,11 +2,16 @@
 name = "seda-contracts"
 version = "0.1.0"
 edition = "2021"
+resolver = "2"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = { workspace = true }
+# Not sure why `unit-testing` feature doesn't work when it's only a dev dep.
+near-sdk = { workspace = true, features = ["legacy", "unit-testing"] }
 serde = { workspace = true }
-sha2 = { workspace = true }
+sha2 = { workspace = true, features = ["std"] }
+
+[dev.dependencies]
+near-sdk = { workspace = true, features = [] }

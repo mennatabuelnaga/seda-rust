@@ -13,12 +13,12 @@ seda-runtime-sdk = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-toml = { workspace = true }
-wasmer = { workspace = true }
-wasmer-wasi = { workspace = true }
 tracing = { workspace = true }
-rusqlite = { workspace = true }
-borsh = { workspace = true }
+wasmer = { workspace = true, features = [
+	"default-cranelift",
+	"default-universal",
+] }
+wasmer-wasi = { workspace = true, features = ["host-fs", "sys"] }
 
 [dev-dependencies]
 reqwest = { workspace = true }

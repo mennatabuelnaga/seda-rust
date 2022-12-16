@@ -26,9 +26,6 @@ pub enum RuntimeError {
     #[error("VM Host Error: {0}")]
     VmHostError(String),
 
-    #[error("Database Error: {0}")]
-    DatabaseError(#[from] rusqlite::Error),
-
     #[error("{0}")]
     WasiFsError(#[from] FsError),
 

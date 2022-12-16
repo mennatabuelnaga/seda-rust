@@ -55,7 +55,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-#[should_panic(expected = "input bytes aren't valid utf-8")]
+#[should_panic(expected = "Unexpected EOF")]
 async fn test_bad_wasm_file() {
     set_env_vars();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();

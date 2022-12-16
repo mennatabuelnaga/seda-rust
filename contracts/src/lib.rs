@@ -60,3 +60,11 @@ impl MainchainContract {
         }
     }
 }
+
+// #[cfg(test)]
+// #[path = ""]
+// mod tests {
+//     mod block_test;
+//     mod data_request_test;
+//     mod node_registry_test;
+// }

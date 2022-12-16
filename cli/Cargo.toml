@@ -12,7 +12,7 @@ path = "src/main.rs"
 async-trait = { workspace = true }
 clap = { workspace = true, features = ["derive", "std"] }
 dotenv = { workspace = true }
-jsonrpsee = { workspace = true }
+jsonrpsee = { workspace = true, features = ["client"] }
 near-crypto = { workspace = true }
 near-jsonrpc-client = { workspace = true }
 near-jsonrpc-primitives = { workspace = true }
@@ -26,5 +26,4 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
-toml = { workspace = true }
 tracing = { workspace = true }

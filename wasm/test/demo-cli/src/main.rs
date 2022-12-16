@@ -1,5 +1,3 @@
-use std::str;
-
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, chain_view, db_set, http_fetch, Promise},

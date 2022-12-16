@@ -8,7 +8,7 @@ build = "build.rs"
 actix = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
-jsonrpsee = { workspace = true }
+jsonrpsee = { workspace = true, features = ["macros", "server"] }
 parking_lot = { workspace = true }
 reqwest = { workspace = true }
 seda-chain-adapters = { workspace = true }

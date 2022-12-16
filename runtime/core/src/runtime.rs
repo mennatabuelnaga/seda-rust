@@ -1,6 +1,5 @@
 use std::{io::Read, sync::Arc};
 
-use borsh::BorshSerialize;
 use parking_lot::Mutex;
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
@@ -199,7 +198,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             )
                             .await?;
 
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.try_to_vec().unwrap());
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
                     }
                 }
             }

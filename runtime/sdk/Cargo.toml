@@ -5,9 +5,9 @@ edition = "2021"
 
 [features]
 default = []
-wasm = []
+wasm = ["serde_json"]
 
 [dependencies]
 clap = { workspace = true, features = ["derive", "std"] }
-serde = { workspace = true }
-serde_json = { workspace = true }
+serde = { workspace = true, features = ["std"] }
+serde_json = { workspace = true, optional = true, features = ["std"] }

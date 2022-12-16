@@ -8,6 +8,10 @@ edition = "2021"
 [dependencies]
 seda-config = { workspace = true }
 serde = { workspace = true }
-tracing = { workspace = true }
+tracing = { workspace = true, features = ["std"] }
 tracing-appender = { workspace = true }
-tracing-subscriber = { workspace = true }
+tracing-subscriber = { workspace = true, features = [
+	"ansi",
+	"env-filter",
+	"smallvec",
+] }

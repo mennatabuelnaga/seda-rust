@@ -9,8 +9,7 @@ test_host = []
 [dependencies]
 actix = { workspace = true }
 async-trait = { workspace = true }
-dotenv = { workspace = true }
-futures = { workspace = true }
+futures = { workspace = true, features = ["executor"] }
 lazy_static = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
@@ -21,3 +20,6 @@ rusqlite = { workspace = true }
 seda-chain-adapters = { workspace = true }
 seda-config = { workspace = true }
 seda-runtime-sdk = { workspace = true }
+
+[dev-dependencies]
+futures = { workspace = true }
