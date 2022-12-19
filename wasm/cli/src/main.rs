@@ -7,6 +7,9 @@ use seda_runtime_sdk::{
     PromiseStatus,
 };
 
+mod commands;
+use commands::{get_nodes, get_node_owner};
+
 #[derive(Parser)]
 #[command(name = "seda")]
 #[command(author = "https://github.com/SedaProtocol")]
@@ -35,6 +38,13 @@ enum Commands {
         method_name: String,
         args:        String,
         deposit:     String,
+    },
+    GetNodes {
+        offset: String,
+        limit:  String,
+    },
+    GetNodeOwner {
+        node_id: String,
     },
 }
 
@@ -75,6 +85,14 @@ fn main() {
                     .start()
                     .then(call_self("chain_call_test_success", vec![]));
             }
+            Commands::GetNodes { offset, limit } => {
+                get_nodes(limit, offset);
+            }
+            // cargo run -- -c near get-node-owner "12"
+            Commands::GetNodeOwner { node_id } => {
+                get_node_owner(node_id);
+             
+            }
         }
     }
 }
@@ -113,3 +131,5 @@ fn chain_call_test_success() {
     println!("Value: {value_to_store}");
     db_set("chain_call_result", &value_to_store).start();
 }
+
+

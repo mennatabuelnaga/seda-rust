@@ -107,21 +107,19 @@ impl CliCommands for NearCliBackend {
     }
 
     async fn get_node_owner(node_id: u64) -> Result<()> {
+       
         let config = CONFIG.read().await;
-        let node_config = &config.node;
-        let contract_id = &node_config.contract_account_id;
+        let seda_server_url = &config.seda_server_url;
+       
 
-        let response = Self::view_seda_server(
-            "get_node_owner",
-            rpc_params![NodeIds {
-                contract_id: contract_id.to_string(),
-                node_id
-            }],
-        )
-        .await?;
+        let client = WsClientBuilder::default().build(&seda_server_url).await?;
 
-        debug!("response from server: {:?}", response);
+        let response: Vec<String> = client.request("get_node_owner", rpc_params![node_id]).await?;
+
+        response.iter().for_each(|s| print!("{s}"));
 
         Ok(())
+
+     
     }
 }

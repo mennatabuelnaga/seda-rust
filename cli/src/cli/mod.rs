@@ -223,14 +223,14 @@ impl CliOptions {
             // cargo run --bin seda get-node-owner --node-id 9
             Command::GetNodeOwner {
                 node_id,
-                contract_account_id,
+                contract_account_id: _,
             } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
+                // {
+                //     let mut config = CONFIG.blocking_write();
+                //     if let Some(contract_account_id) = contract_account_id {
+                //         config.node.contract_account_id = contract_account_id;
+                //     }
+                // }
                 T::get_node_owner(node_id).await?
             }
             Command::Cli { args } => T::call_cli(&args).await?,
