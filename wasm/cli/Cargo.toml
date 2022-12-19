@@ -8,3 +8,4 @@ clap = { workspace = true, features = ["derive", "std", "string"] }
 serde_json = { workspace = true }
 serde = { workspace = true }
 seda-runtime-sdk = { workspace = true, features = ["wasm"] }
+thiserror = { workspace = true }

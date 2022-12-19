@@ -15,7 +15,7 @@ use tokio::sync::RwLock;
 
 // Standard config location for unix apps.
 #[cfg(target_family = "unix")]
-pub const FULL_CONFIG_PATH: &str = "/etc/seda-rust/config.toml";
+pub const FULL_CONFIG_PATH: &str = "./config.toml";
 // Standard config location for windows apps.
 #[cfg(target_family = "windows")]
 pub const FULL_CONFIG_PATH: &str = "C:\\ProgramData\\seda-rust\\config.toml";
@@ -37,14 +37,14 @@ fn create_and_load_or_load_config() -> Arc<RwLock<AppConfig>> {
     let path = CONFIG_PATH.to_path_buf();
     if !path.exists() {
         if let Err(err) = AppConfig::create_template_from_path(&path) {
-            eprintln!("{err}");
+            eprintln!("wut {err}");
             std::process::exit(1);
         }
     }
     match AppConfig::read_from_path(path) {
         Ok(config) => Arc::new(RwLock::new(config)),
         Err(err) => {
-            eprintln!("{err}");
+            eprintln!("tja {err}");
             std::process::exit(1);
         }
     }

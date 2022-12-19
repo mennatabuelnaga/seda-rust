@@ -1,0 +1,18 @@
+seda_server_url = 'ws://127.0.0.1:12345'
+
+[main_chain]
+near_server_url = 'https://rpc.testnet.near.org'
+
+[node]
+deposit_for_register_node = '870000000000000000000'
+gas = '300000000000000'
+secret_key = 'fill me in'
+signer_account_id = 'fill me in'
+contract_account_id = 'fill me in'
+public_key = 'fill me in'
+job_manager_interval_ms = 10
+server_address = 'fill me in'
+runtime_worker_threads = 2
+
+[logging]
+log_file_path = '/workspace'

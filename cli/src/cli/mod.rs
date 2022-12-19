@@ -215,8 +215,11 @@ impl CliOptions {
     }
 
     pub fn handle() -> Result<()> {
+        println!("wtffffffff before");
         let options = CliOptions::parse();
         dotenv::dotenv().ok();
+
+        println!("wtffffffff");
 
         if let Command::Run { rpc_server_address } = options.command {
             {

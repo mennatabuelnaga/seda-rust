@@ -7,6 +7,11 @@ use seda_runtime_sdk::{
     PromiseStatus,
 };
 
+use crate::commands::get_nodes;
+
+mod commands;
+mod errors;
+
 #[derive(Parser)]
 #[command(name = "seda")]
 #[command(author = "https://github.com/SedaProtocol")]
@@ -22,6 +27,10 @@ enum Commands {
     Hello,
     HttpFetch {
         url: String,
+    },
+    GetNodes {
+        offset: u64,
+        limit:  u64,
     },
     View {
         chain:       Chain,
@@ -74,6 +83,10 @@ fn main() {
                 chain_call(chain, contract_id, method_name, args.into_bytes(), deposit)
                     .start()
                     .then(call_self("chain_call_test_success", vec![]));
+            }
+
+            Commands::GetNodes { offset, limit } => {
+                get_nodes(limit, offset);
             }
         }
     }
