@@ -1,6 +1,6 @@
 use clap::{arg, command, Parser, Subcommand};
 use seda_chain_adapters::{AnotherMainChain, NearMainChain};
-use seda_config::{overwrite_config_field, CONFIG};
+use seda_config::CONFIG;
 use seda_runtime_sdk::Chain;
 
 use crate::{errors::CliError, Result};
@@ -113,7 +113,8 @@ impl CliOptions {
     #[tokio::main]
     async fn rest_of_options<T: CliCommands>(command: Command) -> Result<()> {
         match command {
-            // cargo run --bin seda register-node --socket-address 127.0.0.1:9000
+            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
+            // "870000000000000000000"
             Command::RegisterNode {
                 socket_address,
                 seda_server_url,
@@ -123,11 +124,19 @@ impl CliOptions {
             } => {
                 {
                     let mut config = CONFIG.blocking_write();
-                    overwrite_config_field!(config.seda_server_url, seda_server_url);
-                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                    overwrite_config_field!(node_config.signer_account_id, signer_account_id);
-                    overwrite_config_field!(node_config.secret_key, secret_key);
-                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                    if let Some(seda_server_url) = seda_server_url {
+                        config.seda_server_url = seda_server_url;
+                    }
+
+                    if let Some(signer_account_id) = signer_account_id {
+                        config.node.signer_account_id = signer_account_id;
+                    }
+                    if let Some(secret_key) = secret_key {
+                        config.node.secret_key = secret_key;
+                    }
+                    if let Some(contract_account_id) = contract_account_id {
+                        config.node.contract_account_id = contract_account_id;
+                    }
                 }
                 T::register_node(socket_address).await?
             }
@@ -139,8 +148,9 @@ impl CliOptions {
             } => {
                 {
                     let mut config = CONFIG.blocking_write();
-                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                    if let Some(contract_account_id) = contract_account_id {
+                        config.node.contract_account_id = contract_account_id;
+                    }
                 }
                 T::get_nodes(limit, offset).await?
             }
@@ -151,8 +161,9 @@ impl CliOptions {
             } => {
                 {
                     let mut config = CONFIG.blocking_write();
-                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                    if let Some(contract_account_id) = contract_account_id {
+                        config.node.contract_account_id = contract_account_id;
+                    }
                 }
                 T::get_node_socket_address(node_id).await?
             }
@@ -166,11 +177,19 @@ impl CliOptions {
             } => {
                 {
                     let mut config = CONFIG.blocking_write();
-                    overwrite_config_field!(config.seda_server_url, seda_server_url);
-                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                    overwrite_config_field!(node_config.signer_account_id, signer_account_id);
-                    overwrite_config_field!(node_config.secret_key, secret_key);
-                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                    if let Some(seda_server_url) = seda_server_url {
+                        config.seda_server_url = seda_server_url;
+                    }
+
+                    if let Some(signer_account_id) = signer_account_id {
+                        config.node.signer_account_id = signer_account_id;
+                    }
+                    if let Some(secret_key) = secret_key {
+                        config.node.secret_key = secret_key;
+                    }
+                    if let Some(contract_account_id) = contract_account_id {
+                        config.node.contract_account_id = contract_account_id;
+                    }
                 }
                 T::remove_node(node_id).await?
             }
@@ -185,11 +204,19 @@ impl CliOptions {
             } => {
                 {
                     let mut config = CONFIG.blocking_write();
-                    overwrite_config_field!(config.seda_server_url, seda_server_url);
-                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                    overwrite_config_field!(node_config.signer_account_id, signer_account_id);
-                    overwrite_config_field!(node_config.secret_key, secret_key);
-                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                    if let Some(seda_server_url) = seda_server_url {
+                        config.seda_server_url = seda_server_url;
+                    }
+
+                    if let Some(signer_account_id) = signer_account_id {
+                        config.node.signer_account_id = signer_account_id;
+                    }
+                    if let Some(secret_key) = secret_key {
+                        config.node.secret_key = secret_key;
+                    }
+                    if let Some(contract_account_id) = contract_account_id {
+                        config.node.contract_account_id = contract_account_id;
+                    }
                 }
                 T::set_node_socket_address(node_id, socket_address).await?
             }
@@ -200,8 +227,9 @@ impl CliOptions {
             } => {
                 {
                     let mut config = CONFIG.blocking_write();
-                    let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                    overwrite_config_field!(node_config.contract_account_id, contract_account_id);
+                    if let Some(contract_account_id) = contract_account_id {
+                        config.node.contract_account_id = contract_account_id;
+                    }
                 }
                 T::get_node_owner(node_id).await?
             }
@@ -221,20 +249,10 @@ impl CliOptions {
         if let Command::Run { rpc_server_address } = options.command {
             {
                 let mut config = CONFIG.blocking_write();
-                match options.chain {
-                    Chain::Another => {
-                        config
-                            .another_chain
-                            .as_ref()
-                            .ok_or("Missing config [another_config] section")?;
-                    }
-                    Chain::Near => {
-                        config.near_chain.as_ref().ok_or("Missing config [chain] section")?;
-                    }
-                }
 
-                let node_config = config.node.as_mut().ok_or("Missing config [node] section")?;
-                overwrite_config_field!(node_config.rpc_server_address, rpc_server_address);
+                if let Some(rpc_server_address) = rpc_server_address {
+                    config.node.rpc_server_address = rpc_server_address;
+                }
             }
 
             return seda_logger::init(|| {

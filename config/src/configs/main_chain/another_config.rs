@@ -4,13 +4,13 @@ use crate::{env_overwrite, Config};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnotherConfig {
-    pub chain_rpc_url: Option<String>,
+    pub chain_rpc_url: String,
 }
 
 impl Config for AnotherConfig {
     fn template() -> Self {
         Self {
-            chain_rpc_url: Some("https://rpc.testnet.near.org".to_string()),
+            chain_rpc_url: "https://rpc.testnet.near.org".to_string(),
         }
     }
 
@@ -21,7 +21,9 @@ impl Config for AnotherConfig {
 
 impl Default for AnotherConfig {
     fn default() -> Self {
-        let mut this = Self { chain_rpc_url: None };
+        let mut this = Self {
+            chain_rpc_url: "https://rpc.testnet.near.org".to_string(),
+        };
         this.overwrite_from_env();
         this
     }

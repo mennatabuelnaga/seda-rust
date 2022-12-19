@@ -22,13 +22,13 @@ impl Handler<ChainCall> for Host {
         let deposit = msg.deposit;
         let fut = async move {
             let config = CONFIG.read().await;
-            let node_config = config.node.as_ref().unwrap();
-            let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
-            let signer_sk_str = node_config.secret_key.as_ref().unwrap();
-            let gas = node_config.gas.as_ref().unwrap();
+            let node_config = &config.node;
+            let signer_acc_str = &node_config.signer_account_id;
+            let signer_sk_str = &node_config.secret_key;
+            let gas = &node_config.gas;
             let server_url = match msg.chain {
-                Chain::Another => config.another_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
-                Chain::Near => config.near_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
+                Chain::Another => &config.another_chain.chain_rpc_url,
+                Chain::Near => &config.near_chain.chain_rpc_url,
             };
 
             let signed_txn = chain::construct_signed_tx(
