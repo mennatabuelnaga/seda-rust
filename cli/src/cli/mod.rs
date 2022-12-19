@@ -3,7 +3,7 @@ use seda_chain_adapters::{AnotherMainChain, NearMainChain};
 use seda_config::CONFIG;
 use seda_runtime_sdk::Chain;
 
-use crate::{errors::CliError, Result};
+use crate::Result;
 
 mod cli_commands;
 use cli_commands::*;
@@ -244,7 +244,6 @@ impl CliOptions {
 
     pub fn handle() -> Result<()> {
         let options = CliOptions::parse();
-        dotenv::dotenv().ok();
 
         if let Command::Run { rpc_server_address } = options.command {
             {
@@ -255,19 +254,17 @@ impl CliOptions {
                 }
             }
 
-            return seda_logger::init(|| {
-                match options.chain {
-                    Chain::Another => seda_node::run::<AnotherMainChain>(),
-                    Chain::Near => seda_node::run::<NearMainChain>(),
-                };
+            match options.chain {
+                Chain::Another => seda_node::run::<AnotherMainChain>(),
+                Chain::Near => seda_node::run::<NearMainChain>(),
+            }
 
-                Ok::<_, CliError>(())
-            });
+            return Ok(());
         }
 
-        seda_logger::init(|| match options.chain {
+        match options.chain {
             Chain::Another => unimplemented!(),
             Chain::Near => Self::rest_of_options::<near_backend::NearCliBackend>(options.command),
-        })
+        }
     }
 }

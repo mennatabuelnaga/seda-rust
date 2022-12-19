@@ -3,33 +3,41 @@ use std::io;
 use seda_config::CONFIG;
 use tracing_subscriber::{fmt, prelude::__tracing_subscriber_SubscriberExt, EnvFilter};
 
-pub fn init<T, E>(fun: T) -> Result<(), E>
-where
-    T: FnOnce() -> Result<(), E>,
-{
+pub fn init() {
     let config = CONFIG.blocking_read();
     let config = &config.logging;
 
     // Grabs from RUST_LOG env var and if not defaults to
     // TRACE for debug, and info for non debug.
-    let level_filter = EnvFilter::from_default_env();
+    let level_filter = EnvFilter::try_from_default_env().unwrap_or_default();
     #[cfg(debug_assertions)]
-    let level_filter = level_filter.add_directive(tracing::Level::TRACE.into());
+    let level_filter = level_filter
+        .add_directive("seda_chain_adapters=trace".parse().unwrap())
+        .add_directive("seda_p2p_adapters=trace".parse().unwrap())
+        .add_directive("seda_cli=trace".parse().unwrap())
+        .add_directive("seda_node=trace".parse().unwrap())
+        .add_directive("seda_runtime=trace".parse().unwrap());
     #[cfg(not(debug_assertions))]
-    let level_filter = level_filter.add_directive(tracing::Level::INFO.into());
+    let level_filter = level_filter
+        .add_directive("seda_chain_adapters=info".parse().unwrap())
+        .add_directive("seda_p2p_adapters=info".parse().unwrap())
+        .add_directive("seda_cli=info".parse().unwrap())
+        .add_directive("seda_node=info".parse().unwrap())
+        .add_directive("seda_runtime=info".parse().unwrap());
 
-    let subscriber = tracing_subscriber::registry().with(level_filter);
-
-    let stdout = fmt::Layer::new().with_writer(io::stdout).pretty();
+    let stdout = fmt::Layer::new().with_writer(io::stdout).pretty().with_thread_ids(true);
     // Logging shows files and line number but only for debug builds.
     #[cfg(not(debug_assertions))]
     let stdout = stdout.with_line_number(false).with_file(false);
-    let subscriber = subscriber.with(stdout);
 
-    let file_appender = tracing_appender::rolling::daily(&config.log_file_path, "example.log");
+    let file_appender = tracing_appender::rolling::daily(&config.log_file_path, "seda_log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     let mut file_logger = fmt::Layer::new().with_writer(non_blocking);
     file_logger.set_ansi(false);
-    let subscriber = subscriber.with(file_logger);
-    tracing::subscriber::with_default(subscriber, fun)
+
+    let subscriber = tracing_subscriber::registry()
+        .with(level_filter)
+        .with(stdout)
+        .with(file_logger);
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to set logger.");
 }

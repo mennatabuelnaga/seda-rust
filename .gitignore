@@ -15,7 +15,7 @@ target/
 /.vscode/
 
 # Generated log files
-*.log.*
+seda_log.*
 
 # generated sqlite test db
 **/*.db3

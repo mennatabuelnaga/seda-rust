@@ -1,6 +1,6 @@
 use wasmer_wasi::{WasiEnv, WasiState};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct VmConfig {
     /// Name of the binary, ex. "consensus", "fisherman", etc
     pub program_name: String,

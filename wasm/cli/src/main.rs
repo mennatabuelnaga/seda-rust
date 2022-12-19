@@ -1,11 +1,11 @@
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, Promise},
+    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, log, Promise},
     Chain,
     PromiseStatus,
 };
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[command(name = "seda")]
 #[command(author = "https://github.com/SedaProtocol")]
 #[command(version = "0.1.0")]
@@ -15,7 +15,7 @@ struct Options {
     command: Option<Commands>,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 enum Commands {
     Hello,
     HttpFetch {
@@ -38,6 +38,7 @@ enum Commands {
 
 fn main() {
     let options = Options::parse();
+    log(seda_runtime_sdk::wasm::Level::Debug, &format!("options: {options:?}"));
 
     if let Some(command) = options.command {
         match command {
