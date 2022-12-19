@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Chain;
+use crate::{Chain, Event};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PromiseAction {
@@ -10,6 +10,7 @@ pub enum PromiseAction {
     Http(HttpAction),
     ChainView(ChainViewAction),
     ChainCall(ChainCallAction),
+    TriggerEvent(TriggerEventAction),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -50,4 +51,9 @@ pub struct ChainCallAction {
     pub method_name: String,
     pub args:        Vec<u8>,
     pub deposit:     String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct TriggerEventAction {
+    pub event: Event,
 }

@@ -201,6 +201,9 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.try_to_vec().unwrap());
                     }
+                    PromiseAction::TriggerEvent(trigger_event_action) => {
+                        HA::trigger_event(trigger_event_action.event.clone()).await?;
+                    }
                 }
             }
         }

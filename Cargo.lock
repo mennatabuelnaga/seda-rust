@@ -4669,6 +4669,7 @@ dependencies = [
  "seda-p2p-adapters",
  "seda-runtime",
  "seda-runtime-adapters",
+ "seda-runtime-sdk",
  "serde",
  "serde_json",
  "thiserror",

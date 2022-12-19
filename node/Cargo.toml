@@ -5,6 +5,7 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
+
 actix = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
@@ -16,6 +17,7 @@ seda-config = { workspace = true }
 seda-p2p-adapters = { workspace = true }
 seda-runtime = { workspace = true }
 seda-runtime-adapters = { workspace = true }
+seda-runtime-sdk = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -1,5 +1,5 @@
 use seda_chain_adapters::Client;
-use seda_runtime_sdk::Chain;
+use seda_runtime_sdk::{Chain, Event};
 
 use crate::Result;
 
@@ -14,6 +14,7 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
     async fn db_get(&self, key: &str) -> Result<Option<String>>;
     async fn db_set(&self, key: &str, value: &str) -> Result<()>;
     async fn http_fetch(&self, url: &str) -> Result<String>;
+    async fn trigger_event(event: Event) -> Result<()>;
 
     async fn chain_call(
         &self,

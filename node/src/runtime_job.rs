@@ -4,8 +4,7 @@ use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
 use seda_runtime::{Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{HostAdapter, InMemory};
-
-use crate::event_queue::{Event, EventData};
+use seda_runtime_sdk::{Event, EventData};
 
 #[derive(MessageResponse)]
 pub struct RuntimeJobResult {

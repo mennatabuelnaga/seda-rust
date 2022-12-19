@@ -5,12 +5,10 @@ use jsonrpsee::{
     server::{ServerBuilder, ServerHandle},
 };
 use seda_runtime_adapters::HostAdapter;
+use seda_runtime_sdk::{Event, EventData};
 use tracing::debug;
 
-use crate::{
-    event_queue::{Event, EventData},
-    runtime_job::{RuntimeJob, RuntimeWorker},
-};
+use crate::runtime_job::{RuntimeJob, RuntimeWorker};
 
 #[rpc(server)]
 pub trait Rpc {

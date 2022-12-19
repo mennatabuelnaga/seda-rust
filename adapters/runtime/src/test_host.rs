@@ -4,7 +4,7 @@ use futures::lock::Mutex;
 use lazy_static::lazy_static;
 use seda_chain_adapters::{chain, AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
 use seda_config::CONFIG;
-use seda_runtime_sdk::Chain;
+use seda_runtime_sdk::{Chain, Event};
 
 use crate::{HostAdapter, Result};
 
@@ -95,5 +95,10 @@ impl HostAdapter for RuntimeTestAdapter {
         .await?;
         let client = self.select_client_from_chain(chain);
         Ok(chain::send_tx(chain, client, &signed_txn).await?)
+    }
+
+    async fn trigger_event(event: Event) -> Result<()> {
+        dbg!(event);
+        Ok(())
     }
 }

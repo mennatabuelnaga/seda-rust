@@ -4,13 +4,10 @@ use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_config::CONFIG;
 use seda_runtime_adapters::HostAdapter;
+use seda_runtime_sdk::EventId;
 use tracing::info;
 
-use crate::{
-    event_queue::{EventId, EventQueue},
-    rpc::JsonRpcServer,
-    runtime_job::RuntimeWorker,
-};
+use crate::{event_queue::EventQueue, rpc::JsonRpcServer, runtime_job::RuntimeWorker};
 
 mod job_manager;
 mod shutdown;
