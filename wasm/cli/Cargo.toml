@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 clap = { workspace = true, features = ["derive", "help", "std", "string"] }
 seda-runtime-sdk = { workspace = true, features = ["wasm"] }
+# seda-config = { workspace = true }
+thiserror = { workspace = true }

@@ -51,6 +51,7 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
         let args: Vec<String> = match msg.event.data {
             EventData::MainChainTick => vec![],
             EventData::CliCall(args) => args,
+
         };
 
         let vm_config = VmConfig {
