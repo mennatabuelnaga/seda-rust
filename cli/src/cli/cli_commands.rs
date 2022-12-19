@@ -15,10 +15,7 @@ pub trait CliCommands: Send + Sync {
     async fn view_seda_server(method: &str, params: ArrayParams) -> Result<String> {
         let config = CONFIG.read().await;
 
-        let seda_server_url = config
-            .seda_server_url
-            .as_ref()
-            .ok_or("seda_server_url from cli, env var or config file.")?;
+        let seda_server_url = &config.seda_server_url;
 
         let client = WsClientBuilder::default().build(seda_server_url).await?;
         let response = client.request(method, params).await?;
@@ -63,10 +60,7 @@ pub trait CliCommands: Send + Sync {
 
     async fn call_cli(args: &[String]) -> Result<()> {
         let config = CONFIG.read().await;
-        let seda_server_url = config
-            .seda_server_url
-            .as_ref()
-            .ok_or("seda_server_url from cli, env var or config file.")?;
+        let seda_server_url = &config.seda_server_url;
 
         let client = WsClientBuilder::default().build(&seda_server_url).await?;
 

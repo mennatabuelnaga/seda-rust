@@ -26,12 +26,8 @@ impl HostAdapter for RuntimeTestAdapter {
         // Safe to unwrap here, it's already been checked.
         let config = config.as_ref();
         Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(
-                config.another_chain.as_ref().expect("TODO clean up when de-optioning."),
-            )?)),
-            near_client:    Client::Near(Arc::new(NearMainChain::new_client(
-                config.near_chain.as_ref().expect("TODO clean up when de-optioning."),
-            )?)),
+            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another_chain)?)),
+            near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near_chain)?)),
         })
     }
 
@@ -72,13 +68,13 @@ impl HostAdapter for RuntimeTestAdapter {
         deposit: u128,
     ) -> Result<Vec<u8>> {
         let config = CONFIG.read().await;
-        let node_config = config.node.as_ref().unwrap();
-        let signer_acc_str = node_config.signer_account_id.as_ref().unwrap();
-        let signer_sk_str = node_config.secret_key.as_ref().unwrap();
-        let gas = node_config.gas.as_ref().unwrap();
+        let node_config = &config.node;
+        let signer_acc_str = &node_config.signer_account_id;
+        let signer_sk_str = &node_config.secret_key;
+        let gas = &node_config.gas;
         let server_url = match chain {
-            Chain::Another => config.another_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
-            Chain::Near => config.near_chain.as_ref().unwrap().chain_rpc_url.as_ref().unwrap(),
+            Chain::Another => &config.another_chain.chain_rpc_url,
+            Chain::Near => &config.near_chain.chain_rpc_url,
         };
 
         let signed_txn = chain::construct_signed_tx(

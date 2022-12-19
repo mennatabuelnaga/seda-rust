@@ -14,12 +14,12 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppConfig {
-    pub seda_server_url: Option<String>,
+    pub seda_server_url: String,
 
-    pub another_chain: Option<AnotherConfig>,
-    pub near_chain:    Option<NearConfig>,
-    pub node:          Option<NodeConfig>,
-    pub logging:       Option<LoggerConfig>,
+    pub another_chain: AnotherConfig,
+    pub near_chain:    NearConfig,
+    pub node:          NodeConfig,
+    pub logging:       LoggerConfig,
 }
 
 impl AsRef<AppConfig> for AppConfig {
@@ -31,11 +31,11 @@ impl AsRef<AppConfig> for AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         let mut this = Self {
-            seda_server_url: None,
-            node:            Some(Default::default()),
-            another_chain:   Some(AnotherConfig::default()),
-            near_chain:      Some(NearConfig::default()),
-            logging:         Some(Default::default()),
+            seda_server_url: "ws://127.0.0.1:12345".to_string(),
+            node:            Default::default(),
+            another_chain:   AnotherConfig::default(),
+            near_chain:      NearConfig::default(),
+            logging:         Default::default(),
         };
         this.overwrite_from_env();
         this
@@ -45,28 +45,20 @@ impl Default for AppConfig {
 impl Config for AppConfig {
     fn template() -> Self {
         Self {
-            seda_server_url: Some("ws://127.0.0.1:12345".to_string()),
-            node:            Some(NodeConfig::template()),
-            another_chain:   Some(AnotherConfig::template()),
-            near_chain:      Some(NearConfig::template()),
-            logging:         Some(LoggerConfig::template()),
+            seda_server_url: "ws://127.0.0.1:12345".to_string(),
+            node:            NodeConfig::template(),
+            another_chain:   AnotherConfig::template(),
+            near_chain:      NearConfig::template(),
+            logging:         LoggerConfig::template(),
         }
     }
 
     fn overwrite_from_env(&mut self) {
         env_overwrite!(self.seda_server_url, "SEDA_SERVER_URL");
-        if let Some(another_chain) = self.another_chain.as_mut() {
-            another_chain.overwrite_from_env()
-        }
-        if let Some(near_config) = self.near_chain.as_mut() {
-            near_config.overwrite_from_env()
-        }
-        if let Some(node_config) = self.node.as_mut() {
-            node_config.overwrite_from_env()
-        }
-        if let Some(logging_config) = self.logging.as_mut() {
-            logging_config.overwrite_from_env()
-        }
+        self.another_chain.overwrite_from_env();
+        self.near_chain.overwrite_from_env();
+        self.node.overwrite_from_env();
+        self.logging.overwrite_from_env();
     }
 }
 

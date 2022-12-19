@@ -26,12 +26,7 @@ impl MainChainAdapterTrait for NearMainChain {
     type Config = NearConfig;
 
     fn new_client(config: &Self::Config) -> Result<Self::Client> {
-        Ok(JsonRpcClient::connect(
-            config
-                .chain_rpc_url
-                .as_ref()
-                .ok_or(MainChainAdapterError::MissingNearServerUrlConfig)?,
-        ))
+        Ok(JsonRpcClient::connect(&config.chain_rpc_url))
     }
 
     async fn construct_signed_tx(
@@ -75,7 +70,7 @@ impl MainChainAdapterTrait for NearMainChain {
             actions:     vec![Action::FunctionCall(FunctionCallAction {
                 method_name: method_name.to_string(),
                 args,
-                gas, // 100 TeraGas
+                gas,
                 deposit,
             })],
         };

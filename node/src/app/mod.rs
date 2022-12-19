@@ -27,10 +27,10 @@ impl<HA: HostAdapter> App<HA> {
     pub async fn new() -> Self {
         let config = CONFIG.read().await;
         // Okay to unwrap since CLI already checks if node section exists.
-        let worker_threads = config.node.as_ref().unwrap().runtime_worker_threads.unwrap_or(2);
+        let worker_threads = config.node.runtime_worker_threads;
         let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker { runtime: None });
 
-        let rpc_server_address = config.node.as_ref().unwrap().rpc_server_address.as_ref().unwrap();
+        let rpc_server_address = &config.node.rpc_server_address;
         let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
