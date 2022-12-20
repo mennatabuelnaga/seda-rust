@@ -6,5 +6,9 @@ edition = "2021"
 [dependencies]
 clap = { workspace = true, features = ["derive", "help", "std", "string"] }
 seda-runtime-sdk = { workspace = true, features = ["wasm"] }
-# seda-config = { workspace = true }
 thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+borsh = "0.9.3"
+parse-display = "0.7.0"

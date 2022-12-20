@@ -24,5 +24,5 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
         deposit: u128,
     ) -> Result<Vec<u8>>;
 
-    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
+    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>>;
 }

@@ -54,7 +54,7 @@ impl HostAdapter for RuntimeTestAdapter {
         Ok(reqwest::get(url).await?.text().await?)
     }
 
-    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>> {
         let client = self.select_client_from_chain(chain);
         Ok(chain::view(chain, client, contract_id, method_name, args).await?)
     }

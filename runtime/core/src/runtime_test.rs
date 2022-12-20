@@ -215,8 +215,8 @@ async fn test_cli_demo_view_near_chain() {
     let memory_adapter = memory_adapter();
     runtime.init(wasm_binary).unwrap();
     let contract_id = "mc.mennat0.testnet".to_string();
-    let method_name = "get_node_socket_address".to_string();
-    let args = json!({"node_id": "12".to_string()}).to_string();
+    let method_name = "get_node".to_string();
+    let args = json!({"node_id": "1".to_string()}).to_string();
 
     let runtime_execution_result = runtime
         .start_runtime(
@@ -233,39 +233,8 @@ async fn test_cli_demo_view_near_chain() {
 
     let db_result = runtime.host_adapter.db_get("chain_view_result").await.unwrap();
     assert!(db_result.is_some());
-
-    assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
-}
-
-
-
-
-#[tokio::test(flavor = "multi_thread")]
-async fn test_cli_get_node_owner() {
-    set_env_vars();
-    let wasm_binary = read_wasm_target("demo-cli");
-
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
-    let memory_adapter = memory_adapter();
-    runtime.init(wasm_binary).unwrap();
-    let method_name = "get-node-owner".to_string();
-    let args = "12".to_string();
-
-    let runtime_execution_result = runtime
-        .start_runtime(
-            VmConfig {
-                args:         vec![method_name, args],
-                program_name: "consensus".to_string(),
-                start_func:   None,
-                debug:        true,
-            },
-            memory_adapter.clone(),
-        )
-        .await;
-    assert!(runtime_execution_result.is_ok());
-
-    let db_result = runtime.host_adapter.db_get("get_node_owner_result").await.unwrap();
-    assert!(db_result.is_some());
-
-    assert_eq!(db_result.unwrap(), "mennat0.testnet".to_string());
+    assert_eq!(
+        db_result.unwrap(),
+        "{\"owner\":\"mennat0.testnet\",\"pending_owner\":null,\"socket_address\":\"127.0.0.1:8080\"}"
+    );
 }

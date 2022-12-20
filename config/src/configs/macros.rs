@@ -7,7 +7,6 @@ macro_rules! env_overwrite {
     };
 }
 
-
 #[macro_export]
 macro_rules! overwrite_config_field {
     ($field:expr, $value:expr) => {

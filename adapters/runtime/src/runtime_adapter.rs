@@ -84,7 +84,7 @@ impl HostAdapter for RuntimeAdapter {
         Ok(result)
     }
 
-    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>> {
         let host_actor = Host::from_registry();
         let client = self.select_client_from_chain(chain);
         let result = host_actor
