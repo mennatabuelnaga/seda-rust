@@ -10,3 +10,7 @@ serde = { workspace = true }
 seda-runtime-sdk = { workspace = true, features = ["wasm"] }
 # seda-config = { workspace = true }
 thiserror = { workspace = true }
+
+
+borsh = "0.9.3"
+parse-display = "0.7.0"

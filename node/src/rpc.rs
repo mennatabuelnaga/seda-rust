@@ -16,9 +16,6 @@ use crate::{
 pub trait Rpc {
     #[method(name = "cli")]
     async fn cli(&self, args: Vec<String>) -> Result<Vec<String>, Error>;
-
-    #[method(name = "get_node_owner")]
-    async fn get_node_owner(&self, node_id: u64) -> Result<Vec<String>, Error>;
 }
 
 pub struct CliServer<HA: HostAdapter> {
@@ -36,23 +33,6 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
                 event: Event {
                     id:   "test".to_string(),
                     data: EventData::CliCall(args),
-                },
-            })
-            .await
-            .map_err(|err| Error::Custom(err.to_string()))?;
-
-        Ok(result.map_err(|err| Error::Custom(err.to_string()))?.vm_result.output)
-    }
-
-    async fn get_node_owner(&self, node_id: u64) -> Result<Vec<String>, Error> {
-        debug!("***********{:?}", &node_id);
-
-        let result = self
-            .runtime_worker
-            .send(RuntimeJob {
-                event: Event {
-                    id:   "test".to_string(),
-                    data: EventData::CliCall(vec!["get-node-owner".to_string(), node_id.to_string()]),
                 },
             })
             .await

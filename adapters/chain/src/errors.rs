@@ -25,7 +25,7 @@ pub enum MainChainAdapterError {
     #[error("Bad Parameters for method `{0}`")]
     BadParams(String),
 
-    #[error("error parsing string to near secretkey")]
+    #[error("error parsing string to near account")]
     ParseAccountId(#[from] ParseAccountError),
 
     #[error("near json rpc query error")]
