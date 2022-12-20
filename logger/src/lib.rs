@@ -1,9 +1,10 @@
 use std::io;
 
 use seda_config::CONFIG;
+use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{fmt, prelude::__tracing_subscriber_SubscriberExt, EnvFilter};
 
-pub fn init() {
+pub fn init() -> Vec<WorkerGuard> {
     let config = CONFIG.blocking_read();
     let config = &config.logging;
 
@@ -25,13 +26,18 @@ pub fn init() {
         .add_directive("seda_node=info".parse().unwrap())
         .add_directive("seda_runtime=info".parse().unwrap());
 
-    let stdout = fmt::Layer::new().with_writer(io::stdout).pretty().with_thread_ids(true);
+    let mut guards = Vec::new();
+
+    let (stdout, stdout_guard) = tracing_appender::non_blocking(io::stdout());
+    guards.push(stdout_guard);
+    let stdout = fmt::Layer::new().with_writer(stdout).pretty().with_thread_ids(true);
     // Logging shows files and line number but only for debug builds.
     #[cfg(not(debug_assertions))]
     let stdout = stdout.with_line_number(false).with_file(false);
 
     let file_appender = tracing_appender::rolling::daily(&config.log_file_path, "seda_log");
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    let (non_blocking, file_guard) = tracing_appender::non_blocking(file_appender);
+    guards.push(file_guard);
     let mut file_logger = fmt::Layer::new().with_writer(non_blocking);
     file_logger.set_ansi(false);
 
@@ -40,4 +46,5 @@ pub fn init() {
         .with(stdout)
         .with(file_logger);
     tracing::subscriber::set_global_default(subscriber).expect("Failed to set logger.");
+    guards
 }
