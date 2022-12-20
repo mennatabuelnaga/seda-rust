@@ -11,3 +11,4 @@ wasm = ["serde_json"]
 clap = { workspace = true, features = ["derive", "std"] }
 serde = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, optional = true, features = ["std"] }
+tracing = { workspace = true }

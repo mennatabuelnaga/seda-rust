@@ -1,5 +1,7 @@
 mod chain;
 pub use chain::Chain;
+mod level;
+pub use level::Level;
 mod promises;
 
 #[cfg(feature = "wasm")]

@@ -1,5 +1,5 @@
 use seda_runtime_adapters::MemoryAdapter;
-use serde::{Deserialize, Serialize};
+use seda_runtime_sdk::Level;
 use wasmer::{imports, Array, Function, ImportObject, Memory, Module, Store, WasmPtr};
 use wasmer_wasi::WasiEnv;
 
@@ -182,27 +182,6 @@ fn execution_result_import_obj(store: &Store, vm_context: VmContext) -> Function
     }
 
     Function::new_native_with_env(store, vm_context, execution_result)
-}
-
-#[derive(Serialize, Deserialize)]
-pub enum Level {
-    Debug,
-    Error,
-    Info,
-    Trace,
-    Warn,
-}
-
-impl Level {
-    fn log(self, message: &str) {
-        match self {
-            Level::Debug => tracing::debug!(message),
-            Level::Error => tracing::error!(message),
-            Level::Info => tracing::info!(message),
-            Level::Trace => tracing::trace!(message),
-            Level::Warn => tracing::warn!(message),
-        }
-    }
 }
 
 pub fn log_import_obj(store: &Store, vm_context: VmContext) -> Function {

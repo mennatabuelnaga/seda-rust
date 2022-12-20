@@ -38,7 +38,7 @@ enum Commands {
 
 fn main() {
     let options = Options::parse();
-    log(seda_runtime_sdk::wasm::Level::Debug, &format!("options: {options:?}"));
+    log!(seda_runtime_sdk::Level::Debug, "options: {options:?}");
 
     if let Some(command) = options.command {
         match command {
