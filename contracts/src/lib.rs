@@ -1,10 +1,7 @@
 pub mod block;
-pub mod block_test;
 pub mod data_request;
-pub mod data_request_test;
 pub mod merkle;
 pub mod node_registry;
-pub mod node_registry_test;
 pub mod storage;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
@@ -61,10 +58,10 @@ impl MainchainContract {
     }
 }
 
-// #[cfg(test)]
-// #[path = ""]
-// mod tests {
-//     mod block_test;
-//     mod data_request_test;
-//     mod node_registry_test;
-// }
+#[cfg(test)]
+#[path = ""]
+mod tests {
+    mod block_test;
+    mod data_request_test;
+    mod node_registry_test;
+}
