@@ -1,7 +1,7 @@
 use super::raw;
 use crate::Level;
 
-pub fn _log(_file: &str, _line: u32, level: Level, msg: &str) {
+pub fn _log(level: Level, msg: &str) {
     let level_str = serde_json::to_string(&level).unwrap();
 
     // TODO pass file and line to this, but only once I figure out
@@ -20,7 +20,9 @@ pub fn _log(_file: &str, _line: u32, level: Level, msg: &str) {
 macro_rules! log {
     ($level:expr, $($arg:tt)*) => {
 				let _msg = format!($($arg)*);
-        seda_runtime_sdk::wasm::_log(file!(), line!(), $level, &_msg)
+				#[cfg(debug_assertions)]
+				let _msg = format!("{_msg}\n    at {}:{}", file!(), line!());
+				seda_runtime_sdk::wasm::_log($level, &_msg)
     };
 }
 
