@@ -8,7 +8,6 @@ mod rpc;
 mod runtime_job;
 
 use actix::prelude::*;
-use seda_chain_adapters::MainChainAdapterTrait;
 use seda_config::CONFIG;
 use seda_p2p_adapters::libp2p::P2PServer;
 use seda_runtime_adapters::RuntimeAdapter;
@@ -22,7 +21,7 @@ pub mod test {
     mod event_queue_test;
 }
 
-pub fn run<T: MainChainAdapterTrait>() {
+pub fn run() {
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {

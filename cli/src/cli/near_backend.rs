@@ -10,9 +10,6 @@ use crate::errors::Result;
 #[derive(Debug, Default)]
 pub struct NearCliBackend;
 
-// It's safe to call unwrap on the sub configs
-// in the functions below. THis is because we
-// already check they exist in the CLI.
 #[async_trait::async_trait]
 impl CliCommands for NearCliBackend {
     async fn format_tx_and_request_seda_server(method: &str, args: Vec<u8>, deposit: u128) -> Result<Vec<u8>> {

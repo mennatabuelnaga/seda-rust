@@ -3970,7 +3970,6 @@ dependencies = [
  "jsonrpsee",
  "parking_lot 0.12.1",
  "reqwest",
- "seda-chain-adapters",
  "seda-config",
  "seda-p2p-adapters",
  "seda-runtime",

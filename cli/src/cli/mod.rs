@@ -1,5 +1,4 @@
 use clap::{arg, command, Parser, Subcommand};
-use seda_chain_adapters::{AnotherMainChain, NearMainChain};
 use seda_config::CONFIG;
 use seda_runtime_sdk::Chain;
 
@@ -244,27 +243,24 @@ impl CliOptions {
 
     pub fn handle() -> Result<()> {
         let options = CliOptions::parse();
-
+        dotenv::dotenv().ok();
         if let Command::Run { rpc_server_address } = options.command {
             {
                 let mut config = CONFIG.blocking_write();
-
                 if let Some(rpc_server_address) = rpc_server_address {
                     config.node.rpc_server_address = rpc_server_address;
                 }
             }
 
-            match options.chain {
-                Chain::Another => seda_node::run::<AnotherMainChain>(),
-                Chain::Near => seda_node::run::<NearMainChain>(),
-            }
+            return seda_logger::init(|| {
+                seda_node::run();
 
-            return Ok(());
+                Ok::<_, CliError>(())
+            });
         }
-
-        match options.chain {
+        seda_logger::init(|| match options.chain {
             Chain::Another => unimplemented!(),
             Chain::Near => Self::rest_of_options::<near_backend::NearCliBackend>(options.command),
-        }
+        })
     }
 }
