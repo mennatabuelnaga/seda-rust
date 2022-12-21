@@ -701,6 +701,7 @@ dependencies = [
  "borsh",
  "clap",
  "parse-display",
+ "seda-config",
  "seda-runtime-sdk",
  "serde",
  "serde_json",
@@ -4655,6 +4656,7 @@ dependencies = [
 name = "seda-config"
 version = "0.1.0"
 dependencies = [
+ "borsh",
  "lazy_static",
  "serde",
  "thiserror",
@@ -4728,6 +4730,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "reqwest",
  "rusqlite",
+ "seda-config",
  "seda-runtime-adapters",
  "seda-runtime-sdk",
  "serde",

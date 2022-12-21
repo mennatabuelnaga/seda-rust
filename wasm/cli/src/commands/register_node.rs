@@ -1,3 +1,4 @@
+use seda_config::CONFIG;
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, Promise},
     Chain,
@@ -5,6 +6,7 @@ use seda_runtime_sdk::{
 };
 use serde_json::{from_slice, json};
 
+// cargo run -- -c near cli register-node 127.0.0.1:8080 870000000000000000000
 pub fn register_node(socket_address: String, deposit: String) {
     // TODO: Get the node config
     let contract_id = "mc.mennat0.testnet".to_string();

@@ -1,8 +1,8 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
 
 use crate::{env_overwrite, Config};
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, BorshDeserialize, BorshSerialize, Clone)]
 /// The configuration for the seda engine.
 pub struct NodeConfig {
     pub deposit:                 String,

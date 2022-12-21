@@ -44,7 +44,7 @@ pub trait RunnableRuntime {
         promise_queue_trace: &mut Vec<PromiseQueue>,
     ) -> Result<u8>;
 
-    async fn start_runtime(&self, config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult>;
+    async fn start_runtime(&self, vm_config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult>;
 }
 
 #[async_trait::async_trait]
@@ -217,8 +217,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         res.await
     }
 
-    async fn start_runtime(&self, config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult> {
-        let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
+    async fn start_runtime(&self, vm_config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult> {
+        let function_name = vm_config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
         let mut promise_queue_trace: Vec<PromiseQueue> = Vec::new();
@@ -227,7 +227,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         promise_queue.add_promise(Promise {
             action: PromiseAction::CallSelf(CallSelfAction {
                 function_name,
-                args: config.args,
+                args: vm_config.args,
             }),
             status: PromiseStatus::Unfulfilled,
         });

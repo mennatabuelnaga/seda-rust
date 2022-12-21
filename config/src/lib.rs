@@ -25,7 +25,7 @@ fn config_path() -> PathBuf {
     if !config_path.trim().is_empty() {
         Path::new(&config_path).to_path_buf()
     } else {
-        Path::new(FULL_CONFIG_PATH).to_path_buf()
+        Path::new("./template_config.toml").to_path_buf()
     }
 }
 

@@ -1,4 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use seda_config::CONFIG;
 use seda_runtime_sdk::{
     wasm::{call_self, chain_view, Promise},
     Chain,
@@ -7,6 +8,7 @@ use seda_runtime_sdk::{
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, json};
 
+// cargo run -- -c near cli get-nodes 0 2
 pub fn get_nodes(limit: u64, offset: u64) {
     // TODO: Get the node config
     let contract_id = "mc.mennat0.testnet".to_string();

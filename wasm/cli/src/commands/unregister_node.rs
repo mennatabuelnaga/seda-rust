@@ -1,3 +1,4 @@
+use seda_config::CONFIG;
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, Promise},
     Chain,
@@ -5,6 +6,7 @@ use seda_runtime_sdk::{
 };
 use serde_json::json;
 
+// cargo run -- -c near cli unregister-node 1
 pub fn unregister_node(node_id: u64) {
     // TODO: Get the node config
     let contract_id = "mc.mennat0.testnet".to_string();
