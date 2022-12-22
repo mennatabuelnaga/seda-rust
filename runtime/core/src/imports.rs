@@ -37,7 +37,7 @@ pub fn promise_status_length_import_obj(store: &Store, vm_context: VmContext) ->
         let promise_info = promises_queue_ref
             .queue
             .get(promise_index as usize)
-            .ok_or_else(|| format!("Could not find promise at index: {}", promise_index))?;
+            .ok_or_else(|| format!("Could not find promise at index: {promise_index}"))?;
 
         // The length depends on the full status enum + result in JSON
         let status = serde_json::to_string(&promise_info.status)?;
@@ -61,7 +61,7 @@ pub fn promise_status_write_import_obj(store: &Store, vm_context: VmContext) -> 
         let promise_info = promises_ref
             .queue
             .get(promise_index as usize)
-            .ok_or_else(|| RuntimeError::VmHostError(format!("Could not find promise at index: {}", promise_index)))?;
+            .ok_or_else(|| RuntimeError::VmHostError(format!("Could not find promise at index: {promise_index}")))?;
 
         let promise_status = serde_json::to_string(&promise_info.status)?;
 

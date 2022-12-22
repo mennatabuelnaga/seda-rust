@@ -53,7 +53,8 @@
 				"serayuzgur.crates",
 				"Tyriar.sort-lines",
 				"2gua.rainbow-brackets",
-				"oderwat.indent-rainbow"
+				"oderwat.indent-rainbow",
+				"dtsvet.vscode-wasm"
 			]
 		}
 	},

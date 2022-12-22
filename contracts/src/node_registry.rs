@@ -33,12 +33,12 @@ impl MainchainContract {
     }
 
     pub fn assert_node_owner(&self, account_id: &AccountId, node_owner: &AccountId) {
-        assert_eq!(account_id, node_owner, "Only {} can call this method", node_owner);
+        assert_eq!(account_id, node_owner, "Only {node_owner} can call this method");
     }
 
     pub fn assert_node_pending_owner(&self, account_id: &AccountId, node_pending_owner: &Option<AccountId>) {
         let pending_owner = node_pending_owner.as_ref().expect("Node does not have a pending owner");
-        assert_eq!(account_id, pending_owner, "Only {} can call this method", pending_owner);
+        assert_eq!(account_id, pending_owner, "Only {pending_owner} can call this method");
     }
 }
 

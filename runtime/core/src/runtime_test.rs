@@ -8,14 +8,14 @@ use crate::{RunnableRuntime, Runtime, VmConfig};
 
 fn read_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/promise-wasm-bin.wasm");
+    path_prefix.push("../../target/wasm32-wasi/debug/promise-wasm-bin.wasm");
 
     fs::read(path_prefix).unwrap()
 }
 
 fn cli_wasm() -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/demo-cli.wasm");
+    path_prefix.push("../../target/wasm32-wasi/debug/demo-cli.wasm");
 
     fs::read(path_prefix).unwrap()
 }
@@ -132,10 +132,11 @@ async fn test_promise_queue_http_fetch() {
     // Compare result with real API fetch
     let expected_result = reqwest::get(fetch_url).await.unwrap().text().await.unwrap();
 
-    println!("Decoded result {}", result);
+    println!("Decoded result {result}");
     assert_eq!(result, expected_result);
 }
 
+#[allow(clippy::await_holding_lock)]
 #[tokio::test(flavor = "multi_thread")]
 async fn test_memory_adapter() {
     set_env_vars();
@@ -211,35 +212,4 @@ async fn test_cli_demo_view_another_chain() {
     assert!(db_result.is_some());
 
     assert_eq!(db_result.unwrap(), "view".to_string());
-}
-
-#[tokio::test(flavor = "multi_thread")]
-async fn test_cli_demo_view_near_chain() {
-    set_env_vars();
-    let wasm_binary = cli_wasm();
-
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
-    let memory_adapter = memory_adapter();
-    runtime.init(wasm_binary).unwrap();
-    let contract_id = "mc.mennat0.testnet".to_string();
-    let method_name = "get_node_socket_address".to_string();
-    let args = json!({"node_id": "12".to_string()}).to_string();
-
-    let runtime_execution_result = runtime
-        .start_runtime(
-            VmConfig {
-                args:         vec!["view".to_string(), "near".to_string(), contract_id, method_name, args],
-                program_name: "consensus".to_string(),
-                start_func:   None,
-                debug:        true,
-            },
-            memory_adapter.clone(),
-        )
-        .await;
-    assert!(runtime_execution_result.is_ok());
-
-    let db_result = runtime.host_adapter.db_get("chain_view_result").await.unwrap();
-    assert!(db_result.is_some());
-
-    assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
 }

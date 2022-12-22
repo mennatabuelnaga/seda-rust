@@ -50,7 +50,7 @@ mod tests {
 
         for i in 0..300 {
             testing_env!(get_context_with_deposit("bob_near".to_string()));
-            contract.post_data_request(format!("data_request_{}", i));
+            contract.post_data_request(format!("data_request_{i}"));
             testing_env!(get_context("bob_near".to_string()));
             contract.compute_merkle_root();
         }

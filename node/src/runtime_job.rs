@@ -28,7 +28,7 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
     fn started(&mut self, _ctx: &mut Self::Context) {
         // TODO: Replace the binary condinationally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path_prefix.push("wasm_files/cli.wasm");
+        path_prefix.push("../target/wasm32-wasi/debug/cli.wasm");
 
         let mut runtime = futures::executor::block_on(async move { Runtime::new().await.expect("TODO") });
 

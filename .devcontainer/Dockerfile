@@ -11,14 +11,16 @@ RUN apt-get update \
 # Tools
 RUN apt-get -y install --no-install-recommends vim
 
-# WASM dependencies + Rustup
-RUN apt-get -y install --no-install-recommends binaryen
-RUN rustup target add wasm32-wasi
-RUN rustup target add wasm32-unknown-unknown
-
 # Rustfmt with nightly toolchain
 RUN rustup install nightly
 RUN rustup component add rustfmt --toolchain nightly
 
+# WASM dependencies + Rustup
+RUN apt-get -y install --no-install-recommends binaryen
+RUN rustup +nightly target add wasm32-wasi
+RUN rustup +nightly target add wasm32-unknown-unknown
+
 # Dependencies
 RUN apt-get -y install --no-install-recommends protobuf-compiler
+
+RUN rustup default nightly

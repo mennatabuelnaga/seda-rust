@@ -8,7 +8,7 @@ use seda_runtime_sdk::{
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    println!("Hello World {:?}", args);
+    println!("Hello World {args:?}");
 
     db_set("from_wasm", "somevalue")
         .start()
@@ -19,7 +19,7 @@ fn main() {
 #[no_mangle]
 fn db_fetch_success() {
     let args: Vec<String> = env::args().collect();
-    println!("Inside the callback {:?}", args);
+    println!("Inside the callback {args:?}");
     Promise::result(1);
 
     db_set("another_one", "a")
@@ -39,7 +39,7 @@ fn completed_all() {
 #[no_mangle]
 fn http_fetch_test() {
     let args: Vec<String> = env::args().collect();
-    println!("Hello world {:?}", args);
+    println!("Hello world {args:?}");
 
     http_fetch(args.get(1).unwrap())
         .start()

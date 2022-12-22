@@ -34,10 +34,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install Rust Stable
-        uses: dtolnay/rust-toolchain@stable
+      # - name: Install Rust Stable
+      #   uses: dtolnay/rust-toolchain@stable
+      #   with:
+      #     toolchain: stable
+      #     components: clippy
+
+      - name: Install Rust Nightly
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: stable
+          toolchain: nightly
           components: clippy
 
       - name: Install Rust Toolchain wasm32-wasi
@@ -68,8 +74,11 @@ jobs:
           args: --all-features
 
       - name: Test
-        if: always()
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin
+        run: sh ./test.sh
+
+      # - name: Test
+      #   if: always()
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: +nighlty test
+      #     args: --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin
