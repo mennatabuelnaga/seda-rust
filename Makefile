@@ -1,7 +1,7 @@
+.PHONY: build check clean fmt run run-build run-build-wasm test test-build wasm
+
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR := $(dir $(MKFILE_PATH))
-
-.PHONY: build check clean fmt run run-build test test-build wasm
 
 SEDA_BIN := seda
 SEDA_BIN_PATH := $(MKFILE_DIR)target/debug/$(SEDA_BIN)
@@ -9,14 +9,14 @@ SEDA_BIN_PATH := $(MKFILE_DIR)target/debug/$(SEDA_BIN)
 WASM_MODULES := $(notdir $(filter-out $(MKFILE_DIR)wasm/test,$(wildcard $(MKFILE_DIR)wasm/*)))
 WASM_TEST_MODULES := $(notdir $(wildcard $(MKFILE_DIR)wasm/test/*))
 
+build: wasm
+	cargo build
+
 check:
 	RUSTFLAGS="-D warnings" cargo clippy --all-features
 
 clean:
 	cargo clean
-
-build: wasm
-	cargo build
 
 fmt:
 	cargo +nightly fmt --all
@@ -24,12 +24,12 @@ fmt:
 run:
 	$(SEDA_BIN_PATH) $(ARGS)
 
-# Builds only the wasm's before re-running
-run-build-wasm: wasm
-	$(SEDA_BIN_PATH) $(ARGS)
-
 # Builds everything before running
 run-build: build
+	$(SEDA_BIN_PATH) $(ARGS)
+
+# Builds only the wasm's before re-running
+run-build-wasm: wasm
 	$(SEDA_BIN_PATH) $(ARGS)
 
 test:
