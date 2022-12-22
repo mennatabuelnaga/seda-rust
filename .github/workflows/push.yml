@@ -60,16 +60,8 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Clippy Check
-        env:
-          RUSTFLAGS: '-D warnings'
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-features
+        run: make check
 
       - name: Test
         if: always()
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin
+        run: make test
