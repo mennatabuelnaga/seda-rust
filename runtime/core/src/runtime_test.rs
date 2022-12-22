@@ -6,16 +6,10 @@ use serde_json::json;
 
 use crate::{RunnableRuntime, Runtime, VmConfig};
 
-fn read_wasm() -> Vec<u8> {
+fn read_wasm_target(file: &str) -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/promise-wasm-bin.wasm");
-
-    fs::read(path_prefix).unwrap()
-}
-
-fn cli_wasm() -> Vec<u8> {
-    let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path_prefix.push("./test_files/demo-cli.wasm");
+    path_prefix.push("../../target/wasm32-wasi/debug");
+    path_prefix.push(&format!("{file}.wasm"));
 
     fs::read(path_prefix).unwrap()
 }
@@ -31,7 +25,7 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     set_env_vars();
-    let wasm_binary = read_wasm();
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
 
     runtime.init(wasm_binary).unwrap();
@@ -81,7 +75,7 @@ async fn test_bad_wasm_file() {
 #[should_panic(expected = "non_existing_function")]
 async fn test_non_existing_function() {
     set_env_vars();
-    let wasm_binary = read_wasm();
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
     runtime.init(wasm_binary).unwrap();
 
@@ -106,7 +100,7 @@ async fn test_promise_queue_http_fetch() {
     set_env_vars();
     let fetch_url = "https://www.breakingbadapi.com/api/characters/1".to_string();
 
-    let wasm_binary = read_wasm();
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
     runtime.init(wasm_binary).unwrap();
 
@@ -141,7 +135,7 @@ async fn test_memory_adapter() {
     set_env_vars();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
     let memory_adapter = memory_adapter();
-    let wasm_binary = read_wasm();
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -179,7 +173,7 @@ async fn test_memory_adapter() {
 #[should_panic(expected = "not implemented")]
 async fn test_cli_demo_view_another_chain() {
     set_env_vars();
-    let wasm_binary = cli_wasm();
+    let wasm_binary = read_wasm_target("demo-cli");
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
 
     let memory_adapter = memory_adapter();
@@ -216,7 +210,7 @@ async fn test_cli_demo_view_another_chain() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_cli_demo_view_near_chain() {
     set_env_vars();
-    let wasm_binary = cli_wasm();
+    let wasm_binary = read_wasm_target("demo-cli");
 
     let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
     let memory_adapter = memory_adapter();
