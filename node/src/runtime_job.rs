@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
+use seda_config::CONFIG;
 use seda_runtime::{Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{HostAdapter, InMemory};
 
@@ -57,8 +58,8 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
         };
 
         let runtime = self.runtime.as_ref().unwrap();
-
-        let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter))?;
+        let config = Arc::new(CONFIG.blocking_read());
+        let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter, config))?;
 
         Ok(RuntimeJobResult { vm_result: res })
     }

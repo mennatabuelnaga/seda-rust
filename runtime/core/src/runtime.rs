@@ -1,6 +1,7 @@
 use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
+use seda_config::AppConfig;
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
@@ -44,7 +45,7 @@ pub trait RunnableRuntime {
         promise_queue_trace: &mut Vec<PromiseQueue>,
     ) -> Result<u8>;
 
-    async fn start_runtime(&self, vm_config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult>;
+    async fn start_runtime(&self, vm_config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>, config: Arc<tokio::sync::RwLockReadGuard<'_, AppConfig>>) -> Result<VmResult>;
 }
 
 #[async_trait::async_trait]
@@ -200,6 +201,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
                     }
+                    
                 }
             }
         }
@@ -217,7 +219,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         res.await
     }
 
-    async fn start_runtime(&self, vm_config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult> {
+    async fn start_runtime(&self, vm_config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>, config: Arc<tokio::sync::RwLockReadGuard<'_, AppConfig>>) -> Result<VmResult> {
         let function_name = vm_config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 

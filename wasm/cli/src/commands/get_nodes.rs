@@ -1,5 +1,4 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use seda_config::CONFIG;
 use seda_runtime_sdk::{
     wasm::{call_self, chain_view, Promise},
     Chain,

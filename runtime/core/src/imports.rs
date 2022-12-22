@@ -183,6 +183,24 @@ fn execution_result_import_obj(store: &Store, vm_context: VmContext) -> Function
     Function::new_native_with_env(store, vm_context, execution_result)
 }
 
+fn config_result_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn config_result(env: &VmContext, result_ptr: WasmPtr<u8, Array>, result_length: i32) -> Result<()> {
+        let memory_ref = get_memory(env)?;
+
+        let result = result_ptr
+            .deref(memory_ref, 0, result_length as u32)
+            .ok_or("Invalid pointer")?;
+
+        let result_bytes: Vec<u8> = result.into_iter().map(|wc| wc.get()).collect();
+
+        let mut vm_result = env.result.lock();
+        *vm_result = result_bytes;
+
+        Ok(())
+    }
+
+    Function::new_native_with_env(store, vm_context, config_result)
+}
 // Creates the WASM function imports with the stringed names.
 pub fn create_wasm_imports(
     store: &Store,
@@ -198,7 +216,9 @@ pub fn create_wasm_imports(
             "memory_read" => memory_read_import_obj(store, vm_context.clone()),
             "memory_read_length" => memory_read_length_import_obj(store, vm_context.clone()),
             "memory_write" => memory_write_import_obj(store, vm_context.clone()),
-            "execution_result" => execution_result_import_obj(store, vm_context),
+            "execution_result" => execution_result_import_obj(store, vm_context.clone()),
+            "config_result" => config_result_import_obj(store, vm_context),
+
         }
     };
 
