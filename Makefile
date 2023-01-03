@@ -34,21 +34,29 @@ clean:
 fmt:
 	cargo +nightly fmt --all
 
-# Just runs the prebuilt binary.
+# If the first argument is "run"...
+ifneq (,$(findstring run,$(firstword $(MAKECMDGOALS))))
+  # use the rest as arguments for "run"
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
+# Just runs the prebuilt binary with the given args.
 run:
-	$(SEDA_BIN_PATH) $(ARGS)
+	$(SEDA_BIN_PATH) $(RUN_ARGS)
 
-# Builds only seda-before running
+# Builds only seda-before running with the given args.
 run-build: build
-	$(SEDA_BIN_PATH) $(ARGS)
+	$(SEDA_BIN_PATH) $(RUN_ARGS)
 
-# Builds everything before running
+# Builds everything before running with the given args.
 run-build-all: build-wasm
-	$(SEDA_BIN_PATH) $(ARGS)
+	$(SEDA_BIN_PATH) $(RUN_ARGS)
 
-# Builds only the wasm's before re-running
+# Builds only the wasm's before re-running with the given args.
 run-build-wasm: wasm
-	$(SEDA_BIN_PATH) $(ARGS)
+	$(SEDA_BIN_PATH) $(RUN_ARGS)
 
 # Runs cargo test --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin.
 test:
