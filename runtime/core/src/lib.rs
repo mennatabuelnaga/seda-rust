@@ -20,6 +20,5 @@ pub use runtime::*;
 #[cfg(test)]
 #[path = ""]
 pub mod test {
-    #[cfg(not(feature = "near"))]
     mod runtime_test;
 }

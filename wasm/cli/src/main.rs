@@ -39,6 +39,7 @@ enum Commands {
 fn main() {
     let options = Options::parse();
     log!(seda_runtime_sdk::Level::Debug, "options: {options:?}");
+    println!("Hello Wasm CLI!");
 
     if let Some(command) = options.command {
         match command {

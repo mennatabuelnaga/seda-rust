@@ -46,5 +46,6 @@ pub fn init() -> Vec<WorkerGuard> {
         .with(stdout)
         .with(file_logger);
     tracing::subscriber::set_global_default(subscriber).expect("Failed to set logger.");
+
     guards
 }

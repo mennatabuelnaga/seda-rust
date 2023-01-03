@@ -191,6 +191,8 @@ pub fn log_import_obj(store: &Store, vm_context: VmContext) -> Function {
         level_len: i32,
         msg: WasmPtr<u8, Array>,
         msg_len: i64,
+        line_info: WasmPtr<u8, Array>,
+        line_info_len: i64,
     ) -> Result<()> {
         let memory_ref = get_memory(env)?;
 
@@ -204,7 +206,11 @@ pub fn log_import_obj(store: &Store, vm_context: VmContext) -> Function {
             .get_utf8_string(memory_ref, msg_len as u32)
             .ok_or("Error getting promise data")?;
 
-        level.log(&msg_data_raw);
+        let line_info_raw = line_info
+            .get_utf8_string(memory_ref, line_info_len as u32)
+            .ok_or("Error getting promise data")?;
+        level.log(&msg_data_raw, &line_info_raw);
+
         Ok(())
     }
 

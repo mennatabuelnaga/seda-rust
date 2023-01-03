@@ -9,8 +9,10 @@ pub enum Level {
     Warn,
 }
 
+// TODO only log line_info with a config option.
 impl Level {
-    pub fn log(self, message: &str) {
+    pub fn log(self, message: &str, line_info: &str) {
+        let message = format!("{message}\n    at {line_info}");
         match self {
             Level::Debug => tracing::debug!(message),
             Level::Error => tracing::error!(message),

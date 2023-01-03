@@ -6,5 +6,12 @@ extern "C" {
     pub fn memory_read_length(key: *const u8, key_length: i64) -> i64;
     pub fn memory_write(key: *const u8, key_length: i64, value: *const u8, value_length: i64);
     pub fn execution_result(result: *const u8, result_length: i32);
-    pub fn _log(level: *const u8, level_len: i32, msg: *const u8, msg_len: i64);
+    pub fn _log(
+        level: *const u8,
+        level_len: i32,
+        msg: *const u8,
+        msg_len: i64,
+        line_info: *const u8,
+        line_info_len: i64,
+    );
 }
