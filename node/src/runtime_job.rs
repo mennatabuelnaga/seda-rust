@@ -4,6 +4,7 @@ use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
 use seda_runtime::{Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{HostAdapter, InMemory};
+use tracing::info;
 
 use crate::event_queue::{Event, EventData};
 
@@ -62,6 +63,8 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
         let runtime = self.runtime.as_ref().unwrap();
 
         let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter))?;
+        // TODO maybe set up a prettier log format rather than debug of this type?
+        info!(vm_result = ?res);
 
         Ok(RuntimeJobResult { vm_result: res })
     }

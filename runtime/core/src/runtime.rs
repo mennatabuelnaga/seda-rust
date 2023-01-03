@@ -93,7 +93,6 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     PromiseAction::CallSelf(call_action) => {
                         let wasm_store = Store::default();
 
-                        // TODO: Use our logging library with stdout/stderr
                         let stdout_pipe = Pipe::new();
                         let stderr_pipe = Pipe::new();
 
