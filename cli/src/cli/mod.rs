@@ -61,6 +61,6 @@ impl CliOptions {
             return Ok(());
         }
 
-        Self::rest_of_options::<near_backend::NearCliBackend>(options.command)
+        Self::rest_of_options(options.command)
     }
 }

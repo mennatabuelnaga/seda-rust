@@ -11,7 +11,6 @@ pub async fn call_cli(args: &[String]) -> Result<()> {
     let seda_server_url = &config.seda_server_url;
 
     let client = WsClientBuilder::default().build(&seda_server_url).await?;
-    dbg!(args);
     let response: Vec<String> = client.request("cli", rpc_params![args]).await?;
 
     response.iter().for_each(|s| print!("{s}"));

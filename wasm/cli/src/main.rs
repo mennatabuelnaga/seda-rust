@@ -9,7 +9,6 @@ mod commands;
 use commands::{get_node, get_nodes, register_node, unregister_node, update_node, UpdateNode};
 
 #[derive(Debug, Parser)]
-#[derive(Parser)]
 #[command(name = "seda")]
 #[command(author = "https://github.com/SedaProtocol")]
 #[command(version = "0.1.0")]
@@ -112,7 +111,7 @@ fn main() {
             } => {
                 register_node(socket_address, deposit);
             }
-            // cargo run -- -c near cli update-node 1 SetSocketAddress\(\"127.0.0.1:7070\"\)
+            // cargo run -- -c near cli update-node 16 "SetSocketAddress(127.0.0.1:8000)"
             Commands::UpdateNode { node_id, command } => {
                 update_node(node_id, command);
             }

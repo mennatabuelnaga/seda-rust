@@ -77,3 +77,4 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }
+parse-display = "0.7.0"
