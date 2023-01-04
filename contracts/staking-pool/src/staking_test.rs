@@ -36,6 +36,7 @@ mod tests {
                 stake_public_key.parse().unwrap(),
                 reward_fee_fraction,
                 token().try_into().unwrap(),
+                mainchain().try_into().unwrap()
             );
             let last_total_staked_balance = contract.total_staked_balance;
             let last_total_stake_shares = contract.total_stake_shares;

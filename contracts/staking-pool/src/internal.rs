@@ -1,6 +1,7 @@
 use fungible_token::{ft, GAS_FOR_FT_ON_TRANSFER};
+use near_sdk::serde_json::json;
 
-use crate::*;
+use crate::{callbacks::PingAction, *};
 
 /// Contract internal methods
 impl StakingContract {
@@ -23,10 +24,9 @@ impl StakingContract {
 
     /// Perform checks for valid withdraw action, calls `ft_transfer` on token,
     /// then uses `withdraw_callback` to update state
-    pub(crate) fn internal_withdraw(&mut self, amount: Balance) -> Promise {
+    pub(crate) fn internal_withdraw(&mut self, amount: Balance, account_id: AccountId) -> Promise {
         assert!(amount > 0, "Withdrawal amount should be positive");
 
-        let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         assert!(account.unstaked >= amount, "Not enough unstaked balance to withdraw");
         assert!(
@@ -171,62 +171,28 @@ impl StakingContract {
     /// Distributes rewards after the new epoch. It's automatically called
     /// before every action. Returns true if the current epoch height is
     /// different from the last epoch height.
-    pub(crate) fn internal_ping(&mut self) -> bool {
-        let epoch_height = env::epoch_height();
-        if self.last_epoch_height == epoch_height {
-            return false;
-        }
-        self.last_epoch_height = epoch_height;
-
-        // New total amount (both locked and unlocked balances).
-        // NOTE: We need to subtract `attached_deposit` in case `ping` called from
-        // `deposit` call since the attached deposit gets included in the
-        // `account_balance`, and we have not accounted it yet.
-        // TODO: calculate NEP-141 balances instead of NEAR balance.
-        let total_balance = env::account_locked_balance() + env::account_balance() - env::attached_deposit();
-
-        assert!(
-            total_balance >= self.last_total_balance,
-            "The new total balance should not be less than the old total balance"
+    pub(crate) fn internal_ping(&mut self, action: PingAction) -> Promise {
+        let get_epoch_promise = Promise::new(self.mainchain_contract.clone()).function_call(
+            "get_epoch".to_owned(),
+            vec![],
+            0,
+            GAS_FOR_FT_ON_TRANSFER, // TODO
         );
-        let total_reward = total_balance - self.last_total_balance;
-        if total_reward > 0 {
-            // The validation fee that the contract owner takes.
-            let owners_fee = self.reward_fee_fraction.multiply(total_reward);
 
-            // Distributing the remaining reward to the delegators first.
-            let remaining_reward = total_reward - owners_fee;
-            self.total_staked_balance += remaining_reward;
+        let staking_pool_balance_promise = Promise::new(self.seda_token.clone()).function_call(
+            "ft_balance_of".to_owned(),
+            json!({ "account_id": env::current_account_id() })
+                .to_string()
+                .into_bytes(),
+            0,
+            GAS_FOR_FT_ON_TRANSFER, // TODO
+        );
 
-            // Now buying "stake" shares for the contract owner at the new share price.
-            let num_shares = self.num_shares_from_staked_amount_rounded_down(owners_fee);
-            if num_shares > 0 {
-                // Updating owner's inner account
-                let owner_id = self.owner_id.clone();
-                let mut account = self.internal_get_account(&owner_id);
-                account.stake_shares += num_shares;
-                self.internal_save_account(&owner_id, &account);
-                // Increasing the total amount of "stake" shares.
-                self.total_stake_shares += num_shares;
-            }
-            // Increasing the total staked balance by the owners fee, no matter whether the
-            // owner received any shares or not.
-            self.total_staked_balance += owners_fee;
-
-            env::log_str(
-                format!(
-                    "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
-                    epoch_height, total_reward, self.total_staked_balance, self.total_stake_shares,
-                )
-                    .as_str(),
-            );
-            if num_shares > 0 {
-                env::log_str(format!("Total rewards fee is {} stake shares.", num_shares).as_str());
-            }
-        }
-
-        self.last_total_balance = total_balance;
-        true
+        get_epoch_promise.and(staking_pool_balance_promise).then(
+            Self::ext(env::current_account_id())
+                .with_static_gas(GAS_FOR_FT_ON_TRANSFER) // TODO
+                .ping_callback(action),
+        )
     }
 
     /// Returns the number of "stake" shares rounded down corresponding to the

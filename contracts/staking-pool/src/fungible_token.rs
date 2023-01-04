@@ -30,6 +30,7 @@ impl FungibleTokenReceiver for StakingContract {
         );
         let account_id = env::signer_account_id();
         let prepaid_gas = env::prepaid_gas();
+        // TODO: chain together `internal_ping()` call.
         match msg.as_str() {
             "deposit" => Self::ext(env::current_account_id())
                 .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)

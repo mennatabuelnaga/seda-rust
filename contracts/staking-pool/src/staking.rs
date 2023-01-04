@@ -9,11 +9,11 @@ use near_sdk::{
     Balance,
     Promise,
     PromiseOrValue,
-    PromiseResult,
     PublicKey,
+    PromiseError
 };
 
-use crate::{StakingContract, StakingContractExt, U256};
+use crate::{callbacks::PingAction, StakingContract, StakingContractExt, U256};
 
 /// Represents an account structure readable by humans.
 #[derive(Serialize, Deserialize)]
@@ -58,40 +58,38 @@ pub trait VoteContract {
     fn vote(&mut self, is_vote: bool);
 }
 
-/// Interface for the contract itself.
-#[ext_contract(ext_self)]
-pub trait SelfContract {
-    /// A callback to check the result of the staking action.
-    /// In case the stake amount is less than the minimum staking threshold, the
-    /// staking action fails, and the stake amount is not changed. This
-    /// might lead to inconsistent state and the follow withdraw calls might
-    /// fail. To mitigate this, the contract will issue a new unstaking
-    /// action in case of the failure of the first staking action.
-    fn on_stake_action(&mut self);
-}
-
 /// Contract public methods
 #[near_bindgen]
 impl StakingContract {
     /// Distributes rewards and restakes if needed.
     pub fn ping(&mut self) {
-        self.internal_ping();
+        self.internal_ping(PingAction::Ping);
     }
 
     /// Deposits the attached amount into the inner account of the predecessor.
     pub fn deposit(&mut self, amount: U128, account_id: AccountId) -> PromiseOrValue<U128> {
         // TODO: only callable by this contract
 
-        self.internal_ping();
+        self.internal_ping(PingAction::Deposit(amount.into(), account_id.clone()));
+    }
 
+    #[private]
+    pub fn proceed_deposit(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+        amount: U128,
+    ) -> PromiseOrValue<U128> {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return PromiseOrValue::Value(amount.into()); // return full amount TODO: test
+        }
         self.internal_deposit(amount.into(), account_id);
-
-        PromiseOrValue::Value(U128::from(0))
+        PromiseOrValue::Value(U128::from(0)) // no refund
     }
 
     /// Deposits the attached amount into the inner account of the predecessor
     /// and stakes it.
-    #[payable]
     pub fn deposit_and_stake(&mut self, amount: U128, account_id: AccountId) -> PromiseOrValue<U128> {
         // TODO: only callable by this contract
 
@@ -100,18 +98,31 @@ impl StakingContract {
         let amount = self.internal_deposit(amount.into(), account_id.clone());
         self.internal_stake(amount, account_id);
 
-        PromiseOrValue::Value(U128::from(0))
+        PromiseOrValue::Value(U128::from(0)) // no refund
     }
 
     /// Withdraws the entire unstaked balance from the predecessor account.
     /// It's only allowed if the `unstake` action was not performed in the four
     /// most recent epochs.
     pub fn withdraw_all(&mut self) {
-        self.internal_ping();
+        self.internal_ping(PingAction::WithdrawAll(env::predecessor_account_id()));
+    }
 
-        let account_id = env::predecessor_account_id();
+    /// Proceeds with `withdraw_all` call after ping (epoch and balance are
+    /// successfully fetched)
+    #[private]
+    pub fn proceed_withdraw_all(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
+
         let account = self.internal_get_account(&account_id);
-        self.internal_withdraw(account.unstaked);
+        self.internal_withdraw(account.unstaked, account_id);
     }
 
     /// Withdraws the non staked balance for given account.
@@ -119,31 +130,74 @@ impl StakingContract {
     /// most recent epochs.
     #[payable]
     pub fn withdraw(&mut self, amount: U128) {
-        self.internal_ping();
+        self.internal_ping(PingAction::Withdraw(env::predecessor_account_id(), amount));
+    }
+
+    /// Proceeds with `withdraw` call after ping (epoch and balance are
+    /// successfully fetched)
+    #[private]
+    pub fn proceed_withdraw(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+        amount: U128,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
 
         let amount: Balance = amount.into();
-        self.internal_withdraw(amount);
+        self.internal_withdraw(amount, account_id);
     }
 
     /// Stakes all available unstaked balance from the inner account of the
     /// predecessor.
     pub fn stake_all(&mut self) {
         // Stake action always restakes
-        self.internal_ping();
+        self.internal_ping(PingAction::StakeAll(env::predecessor_account_id()));
+    }
 
-        let account_id = env::predecessor_account_id();
+    /// Proceeds with `stake_all` call after ping (epoch and balance are
+    /// successfully fetched)
+    #[private]
+    pub fn proceed_stake_all(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
+
         let account = self.internal_get_account(&account_id);
-        self.internal_stake(account.unstaked, env::signer_account_id());
+        self.internal_stake(account.unstaked, account_id);
     }
 
     /// Stakes the given amount from the inner account of the predecessor.
     /// The inner account should have enough unstaked balance.
     pub fn stake(&mut self, amount: U128) {
         // Stake action always restakes
-        self.internal_ping();
+        self.internal_ping(PingAction::Stake(env::predecessor_account_id(), amount));
+    }
+
+    /// Proceeds with `stake` call after ping (epoch and balance are
+    /// successfully fetched)
+    #[private]
+    pub fn proceed_stake(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+        amount: U128,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
 
         let amount: Balance = amount.into();
-        self.internal_stake(amount, env::signer_account_id());
+        self.internal_stake(amount, account_id);
     }
 
     /// Unstakes all staked balance from the inner account of the predecessor.
@@ -151,9 +205,22 @@ impl StakingContract {
     /// epochs.
     pub fn unstake_all(&mut self) {
         // Unstake action always restakes
-        self.internal_ping();
+        self.internal_ping(PingAction::UnstakeAll(env::predecessor_account_id()));
+    }
 
-        let account_id = env::predecessor_account_id();
+    /// Proceeds with `unstake_all` call after ping (epoch and balance are
+    /// successfully fetched)
+    #[private]
+    pub fn proceed_unstake_all(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
+
         let account = self.internal_get_account(&account_id);
         let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
         self.inner_unstake(amount);
@@ -165,7 +232,22 @@ impl StakingContract {
     /// epochs.
     pub fn unstake(&mut self, amount: U128) {
         // Unstake action always restakes
-        self.internal_ping();
+        self.internal_ping(PingAction::Unstake(env::predecessor_account_id(), amount));
+    }
+
+    /// Proceeds with `stake` call after ping (epoch and balance are
+    /// successfully fetched)
+    #[private]
+    pub fn proceed_unstake(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        account_id: AccountId,
+        amount: U128,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
 
         let amount: Balance = amount.into();
         self.inner_unstake(amount);
@@ -255,31 +337,6 @@ impl StakingContract {
             .collect()
     }
 
-    /************ */
-    /* Callbacks */
-    /************ */
-
-    pub fn on_stake_action(&mut self) {
-        assert_eq!(
-            env::current_account_id(),
-            env::predecessor_account_id(),
-            "Can be called only as a callback"
-        );
-
-        assert_eq!(
-            env::promise_results_count(),
-            1,
-            "Contract expected a result on the callback"
-        );
-        let stake_action_succeeded = matches!(env::promise_result(0), PromiseResult::Successful(_));
-
-        // If the stake action failed and the current locked amount is positive, then
-        // the contract has to unstake.
-        if !stake_action_succeeded && env::account_locked_balance() > 0 {
-            Promise::new(env::current_account_id()).stake(0, self.stake_public_key.clone());
-        }
-    }
-
     /****************** */
     /* Owner's methods */
     /****************** */
@@ -288,8 +345,6 @@ impl StakingContract {
     /// Updates current public key to the new given public key.
     pub fn update_staking_key(&mut self, stake_public_key: PublicKey) {
         self.assert_owner();
-        // When updating the staking key, the contract has to restake.
-        self.internal_ping();
         self.stake_public_key = stake_public_key;
     }
 
@@ -299,7 +354,19 @@ impl StakingContract {
         self.assert_owner();
         reward_fee_fraction.assert_valid();
 
-        self.internal_ping();
+        self.internal_ping(PingAction::UpdateRewardFeeFraction(reward_fee_fraction));
+    }
+
+    pub fn proceed_update_reward_fee_fraction(
+        &mut self,
+        #[callback_result] call_result: Result<(), PromiseError>,
+        reward_fee_fraction: RewardFeeFraction,
+    ) {
+        if call_result.is_err() {
+            env::log_str("ping failed");
+            return;
+        }
+
         self.reward_fee_fraction = reward_fee_fraction;
     }
 
@@ -321,10 +388,7 @@ impl StakingContract {
     pub fn pause_staking(&mut self) {
         self.assert_owner();
         assert!(!self.paused, "The staking is already paused");
-
-        self.internal_ping();
         self.paused = true;
-        Promise::new(env::current_account_id()).stake(0, self.stake_public_key.clone());
     }
 
     /// Owner's method.
@@ -332,8 +396,6 @@ impl StakingContract {
     pub fn resume_staking(&mut self) {
         self.assert_owner();
         assert!(self.paused, "The staking is not paused");
-
-        self.internal_ping();
         self.paused = false;
     }
 }

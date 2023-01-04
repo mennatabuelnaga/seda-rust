@@ -15,6 +15,9 @@ pub fn owner() -> String {
 pub fn token() -> String {
     "token".to_string()
 }
+pub fn mainchain() -> String {
+    "mainchain".to_string()
+}
 
 pub fn ntoy(near_amount: Balance) -> Balance {
     near_amount * 10u128.pow(24)

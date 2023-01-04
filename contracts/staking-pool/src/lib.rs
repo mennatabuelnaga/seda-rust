@@ -22,9 +22,6 @@ mod staking_test;
 /// The amount of gas given to complete `vote` call.
 const _VOTE_GAS: u64 = 100_000_000_000_000;
 
-/// The amount of gas given to complete internal `on_stake_action` call.
-const _ON_STAKE_ACTION_GAS: u64 = 20_000_000_000_000;
-
 /// The amount of yocto NEAR the contract dedicates to guarantee that the
 /// "share" price never decreases. It's used during rounding errors for share ->
 /// amount conversions.
@@ -114,6 +111,7 @@ pub struct StakingContract {
     /// can pause and resume staking. The contract is not paused by default.
     pub paused:               bool,
     pub seda_token:           AccountId,
+    pub mainchain_contract:   AccountId,
 }
 
 impl Default for StakingContract {
@@ -138,6 +136,7 @@ impl StakingContract {
         stake_public_key: PublicKey,
         reward_fee_fraction: RewardFeeFraction,
         seda_token: AccountId,
+        mainchain_contract: AccountId,
     ) -> Self {
         assert!(!env::state_exists(), "Already initialized");
         reward_fee_fraction.assert_valid();
@@ -167,6 +166,7 @@ impl StakingContract {
             accounts: UnorderedMap::new(b"u".to_vec()),
             paused: false,
             seda_token,
+            mainchain_contract
         };
         this
     }
