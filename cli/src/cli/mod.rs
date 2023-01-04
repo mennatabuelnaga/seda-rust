@@ -243,7 +243,7 @@ impl CliOptions {
 
     pub fn handle() -> Result<()> {
         let options = CliOptions::parse();
-        dotenv::dotenv().ok();
+
         if let Command::Run { rpc_server_address } = options.command {
             {
                 let mut config = CONFIG.blocking_write();
@@ -251,16 +251,11 @@ impl CliOptions {
                     config.node.rpc_server_address = rpc_server_address;
                 }
             }
+            seda_node::run();
 
-            return seda_logger::init(|| {
-                seda_node::run();
-
-                Ok::<_, CliError>(())
-            });
+            return Ok(());
         }
-        seda_logger::init(|| match options.chain {
-            Chain::Another => unimplemented!(),
-            Chain::Near => Self::rest_of_options::<near_backend::NearCliBackend>(options.command),
-        })
+
+        Self::rest_of_options::<near_backend::NearCliBackend>(options.command)
     }
 }
