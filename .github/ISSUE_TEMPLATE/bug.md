@@ -9,7 +9,7 @@ labels: bug
 
 <!--
     What's the bug in **seda-rust** that you found?
-    How serious is this bug and what is affected?
+    How serious is this bug, and what is affected? What module(s), such as `seda-node`, is concerned?
 -->
 
 (Write your description here)
