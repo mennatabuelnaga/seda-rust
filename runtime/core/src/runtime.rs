@@ -96,7 +96,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let stdout_pipe = Pipe::new();
                         let stderr_pipe = Pipe::new();
 
-                        let mut wasi_env = WasiState::new(&call_action.function_name)
+                        let mut wasi_env = WasiState::new(call_action.function_name.clone())
                             .args(call_action.args.clone())
                             .stdout(Box::new(stdout_pipe))
                             .stderr(Box::new(stderr_pipe))
@@ -138,6 +138,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         // otherwise the output would get lost
                         if let Err(err) = runtime_result {
                             info!("WASM Error output: {:?}", &output);
+                            promise_queue_trace.push(promise_queue_mut.clone());
                             return Err(RuntimeError::ExecutionError(err));
                         }
 
@@ -241,7 +242,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                 &mut output,
                 &mut promise_queue_trace,
             )
-            .await?;
+            .await;
 
         // There is always 1 queue with 1 promise in the trace (due this func addinging
         // the entrypoint)
@@ -261,7 +262,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
         Ok(VmResult {
             output,
-            exit_code,
+            exit_code: exit_code.unwrap_or(0),
             result: result_data,
         })
     }

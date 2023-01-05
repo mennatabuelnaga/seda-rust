@@ -1,3 +1,5 @@
+use std::env;
+
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, chain_view, db_set, http_fetch, log, Promise},
@@ -9,6 +11,7 @@ mod commands;
 use commands::{get_node, get_nodes, register_node, unregister_node, update_node, UpdateNode};
 
 #[derive(Debug, Parser)]
+#[clap(bin_name = "seda")]
 #[command(name = "seda")]
 #[command(author = "https://github.com/SedaProtocol")]
 #[command(version = "0.1.0")]
@@ -20,6 +23,7 @@ struct Options {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Run,
     Hello,
     HttpFetch {
         url: String,
@@ -58,7 +62,8 @@ enum Commands {
 }
 
 fn main() {
-    let options = Options::parse();
+    let args: Vec<String> = env::args().collect();
+    let options = Options::parse_from(args);
     log!(seda_runtime_sdk::Level::Debug, "options: {options:?}");
     println!("Hello Wasm CLI!");
 
@@ -118,6 +123,10 @@ fn main() {
             // cargo run -- -c near cli unregister-node 1
             Commands::UnregisterNode { node_id } => {
                 unregister_node(node_id);
+            }
+            Commands::Run => {
+                // This command is only handled by the actual node, not by the WASM
+                unreachable!();
             }
         }
     }
