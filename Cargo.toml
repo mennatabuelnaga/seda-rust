@@ -54,6 +54,7 @@ near-jsonrpc-primitives = "0.15"
 near-primitives = "0.15"
 near-sdk = { version = "4.0", default-features = false }
 parking_lot = "0.12"
+parse-display = "0.7.0"
 reqwest = "0.11"
 rusqlite = { version = "0.28", features = ["bundled"] }
 seda-chain-adapters = { path = "./adapters/chain" }
@@ -77,4 +78,3 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }
-parse-display = "0.7.0"

@@ -1,11 +1,11 @@
-use borsh::{BorshDeserialize, BorshSerialize};
 use seda_runtime_sdk::{
     wasm::{call_self, chain_view, Promise},
     Chain,
     PromiseStatus,
 };
-use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, json};
+
+use crate::commands::Node;
 
 pub fn get_nodes(limit: u64, offset: u64) {
     // TODO: Get the node config
@@ -37,11 +37,4 @@ pub fn get_nodes_step_1() {
     };
 
     println!("node list: {:#?}", nodes);
-}
-
-#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Eq, PartialEq, Debug, Clone)]
-pub struct Node {
-    pub owner:          String,
-    pub pending_owner:  Option<String>,
-    pub socket_address: String, // ip address and port
 }

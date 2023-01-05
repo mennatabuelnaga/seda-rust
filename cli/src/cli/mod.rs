@@ -1,6 +1,5 @@
 use clap::{arg, command, Parser, Subcommand};
 use seda_config::CONFIG;
-use seda_runtime_sdk::Chain;
 
 use crate::Result;
 
@@ -13,8 +12,6 @@ use cli_commands::call_cli;
 #[command(version = "0.1.0")]
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
-    #[arg(short, long)]
-    chain:   Chain,
     #[command(subcommand)]
     command: Command,
 }
@@ -48,7 +45,7 @@ impl CliOptions {
     pub fn handle() -> Result<()> {
         let options = CliOptions::parse();
 
-        // cargo run -- -c near run
+        // cargo run run
         if let Command::Run { rpc_server_address } = options.command {
             {
                 let mut config = CONFIG.blocking_write();

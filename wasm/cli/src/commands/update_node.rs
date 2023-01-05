@@ -19,15 +19,10 @@ pub fn update_node(node_id: u64, command: UpdateNode) {
     .into_bytes();
 
     println!("Sending params");
-    chain_call(
-        Chain::Near,
-        contract_id,
-        "update_node".to_string(),
-        params,
-        "0".to_string(),
-    )
-    .start()
-    .then(call_self("update_node_step_1", vec![]));
+    let deposit = "0".to_string();
+    chain_call(Chain::Near, contract_id, "update_node".to_string(), params, deposit)
+        .start()
+        .then(call_self("update_node_step_1", vec![]));
 }
 
 #[no_mangle]

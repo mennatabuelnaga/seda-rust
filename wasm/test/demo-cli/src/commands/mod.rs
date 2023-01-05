@@ -12,3 +12,6 @@ pub use update_node::{update_node, UpdateNode};
 
 mod unregister_node;
 pub use unregister_node::unregister_node;
+
+mod shared_structs;
+pub use shared_structs::Node;

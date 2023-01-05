@@ -654,7 +654,6 @@ dependencies = [
  "seda-runtime-sdk",
  "serde",
  "serde_json",
- "thiserror",
 ]
 
 [[package]]
@@ -1012,7 +1011,6 @@ dependencies = [
  "seda-runtime-sdk",
  "serde",
  "serde_json",
- "thiserror",
 ]
 
 [[package]]

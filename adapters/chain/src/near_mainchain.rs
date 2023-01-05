@@ -136,8 +136,8 @@ impl MainChainAdapterTrait for NearMainChain {
 
         let response = client.call(request).await?;
 
-        if let QueryResponseKind::CallResult(ref result) = response.kind {
-            Ok(result.result.clone())
+        if let QueryResponseKind::CallResult(result) = response.kind {
+            Ok(result.result)
         } else {
             Err(MainChainAdapterError::CallViewMethod)
         }
