@@ -18,10 +18,13 @@ mod tests {
             .attached_deposit(1_400_000_000_000_000_000_000) // required for post_data_request()
             .build()
     }
+    fn new_contract() -> MainchainContract {
+        MainchainContract::new("token_near".to_string().try_into().unwrap())
+    }
 
     #[test]
     fn create_block() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // check current block
         testing_env!(get_context("bob_near".to_string()));
@@ -43,7 +46,7 @@ mod tests {
 
     #[test]
     fn create_multiple_blocks() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // post data request for first block
         testing_env!(get_context_with_deposit("bob_near".to_string()));

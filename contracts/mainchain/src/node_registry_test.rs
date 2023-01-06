@@ -30,10 +30,13 @@ mod tests {
             .attached_deposit(780_000_000_000_000_000_000) // required for register_node()
             .build()
     }
+    fn new_contract() -> MainchainContract {
+        MainchainContract::new("token_near".to_string().try_into().unwrap())
+    }
 
     #[test]
     fn register_and_get_node() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -55,7 +58,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Insufficient storage, need 780000000000000000000")]
     fn register_not_enough_storage() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context("bob_near".to_string()));
@@ -64,7 +67,7 @@ mod tests {
 
     #[test]
     fn unregister_node() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
         contract.register_node("0.0.0.0:8080".to_string());
@@ -94,7 +97,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Only bob_near can call this method")]
     fn unregister_node_wrong_owner() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -115,7 +118,7 @@ mod tests {
 
     #[test]
     fn set_node_socket_address() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -135,7 +138,7 @@ mod tests {
 
     #[test]
     fn new_owner() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -167,7 +170,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Node does not have a pending owner")]
     fn wrong_owner_simple() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -182,7 +185,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Only alice_near can call this method")]
     fn wrong_owner() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -207,7 +210,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Invalid socket address")]
     fn register_invalid_characters() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register node
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -216,7 +219,7 @@ mod tests {
 
     #[test]
     fn get_nodes() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // register three nodes
         testing_env!(get_context_with_deposit("bob_near".to_string()));

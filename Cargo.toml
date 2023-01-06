@@ -11,7 +11,6 @@ members = [
 	"config",
 	"contracts/mainchain",
 	"contracts/seda-token",
-	"contracts/staking-pool",
 	"contracts/tests",
 	"logger",
 	"node",

@@ -1,14 +1,6 @@
 use near_sdk::json_types::U128;
 use near_units::parse_near;
-use staking_pool::staking::RewardFeeFraction;
 use workspaces::{Account, AccountId, Contract, DevNetwork, Worker};
-
-pub fn zero_fee() -> RewardFeeFraction {
-    RewardFeeFraction {
-        numerator:   0,
-        denominator: 1,
-    }
-}
 
 pub async fn register_user(contract: &Contract, account_id: &AccountId) {
     let res = contract
@@ -53,29 +45,24 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
     // alice storage deposits into token contract
     register_user(&token_contract, alice.id()).await;
 
-    // deploy and initialize staking pool contract
-    let staking_pool_contract = worker
+    // deploy and initialize mainchain contract
+    let mainchain_contract = worker
         .dev_deploy(include_bytes!(
-            "../../target/wasm32-unknown-unknown/release/staking_pool.wasm"
+            "../../target/wasm32-unknown-unknown/release/seda_mainchain.wasm"
         ))
         .await
         .unwrap();
-    let res = staking_pool_contract
+    let res = mainchain_contract
         .call("new")
-        .args_json((
-            "alice",
-            "KuTCtARNzxZQ3YvXDeLjx83FDqxv2SdQTSbiq876zR7",
-            zero_fee(),
-            token_contract.id(),
-        ))
+        .args_json((token_contract.id(),))
         .max_gas()
         .transact()
         .await
         .unwrap();
     assert!(res.is_success());
 
-    // staking pool contract storage deposits into token contract
-    register_user(&token_contract, staking_pool_contract.id()).await;
+    // mainchain contract storage deposits into token contract
+    register_user(&token_contract, mainchain_contract.id()).await;
 
-    return (token_contract, alice, staking_pool_contract);
+    return (token_contract, alice, mainchain_contract);
 }

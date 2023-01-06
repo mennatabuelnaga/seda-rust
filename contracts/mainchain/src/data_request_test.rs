@@ -18,10 +18,13 @@ mod tests {
             .attached_deposit(1_400_000_000_000_000_000_000) // required for post_data_request()
             .build()
     }
+    fn new_contract() -> MainchainContract {
+        MainchainContract::new("token_near".to_string().try_into().unwrap())
+    }
 
     #[test]
     fn post_data_request() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // post data request
         testing_env!(get_context_with_deposit("bob_near".to_string()));
@@ -37,7 +40,7 @@ mod tests {
     #[should_panic(expected = "Insufficient storage, need 670000000000000000000")]
     #[test]
     fn post_data_request_no_deposit() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         // post data request
         testing_env!(get_context("bob_near".to_string()));
@@ -46,7 +49,7 @@ mod tests {
 
     #[test]
     fn merkle_gas_tests() {
-        let mut contract = MainchainContract::new();
+        let mut contract = new_contract();
 
         for i in 0..300 {
             testing_env!(get_context_with_deposit("bob_near".to_string()));

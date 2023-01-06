@@ -4,14 +4,14 @@ use crate::MainchainContract;
 
 #[macro_export]
 macro_rules! manage_storage_deposit {
-    // storage is assumed to increase
+    // storage increases
     ($self:ident,"require", $expression:expr) => {
         let initial_storage_usage = env::storage_usage();
         $expression;
         $self.require_storage_deposit(initial_storage_usage);
     };
 
-    // storage is assumed to decrease
+    // storage decreases
     ($self:ident,"refund", $expression:expr) => {
         let initial_storage_usage = env::storage_usage();
         $expression;
@@ -36,8 +36,7 @@ impl MainchainContract {
         let storage_cost = env::storage_byte_cost() * u128::from(env::storage_usage() - initial_storage_usage);
         assert!(
             storage_cost <= env::attached_deposit(),
-            "Insufficient storage, need {}",
-            storage_cost
+            "Insufficient storage, need {storage_cost}",
         );
     }
 
