@@ -29,7 +29,7 @@ async fn test_deposit_withdraw() {
         .json::<U128>()
         .unwrap();
 
-    // alice deposits into pool
+    // alice deposits into pool (without staking)
     let res = alice
         .call(token.id(), "ft_transfer_call")
         .args_json((mainchain.id(), transfer_amount, Option::<String>::None, "deposit"))
@@ -55,26 +55,27 @@ async fn test_deposit_withdraw() {
     );
 
     // alice withdraws
-    // let res = alice
-    //     .call(mainchain.id(), "withdraw")
-    //     .args_json((transfer_amount,))
-    //     .max_gas()
-    //     .deposit(ONE_YOCTO)
-    //     .transact()
-    //     .await
-    //     .unwrap();
-    // assert!(res.is_success());
+    // TODO: why failing?
+    let res = alice
+        .call(mainchain.id(), "withdraw")
+        .args_json((transfer_amount,))
+        .max_gas()
+        .deposit(ONE_YOCTO)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
 
-    // // check if alice's balance is now `alice_initial_balance` again
-    // let alice_balance_after_withdraw = alice
-    //     .call(token.id(), "ft_balance_of")
-    //     .args_json((alice.id(),))
-    //     .view()
-    //     .await
-    //     .unwrap()
-    //     .json::<U128>()
-    //     .unwrap();
-    // assert_eq!(alice_balance_after_withdraw, alice_initial_balance);
+    // check if alice's balance is now `alice_initial_balance` again
+    let alice_balance_after_withdraw = alice
+        .call(token.id(), "ft_balance_of")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<U128>()
+        .unwrap();
+    assert_eq!(alice_balance_after_withdraw, alice_initial_balance);
 }
 
 // #[tokio::test]
