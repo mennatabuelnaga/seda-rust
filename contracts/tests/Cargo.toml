@@ -9,8 +9,6 @@ crate-type = ["cdylib"]
 [dependencies]
 near-sdk = { workspace = true }
 near-contract-standards = { workspace = true }
-
-[dev-dependencies]
 schemars = "0.8"
 workspaces = "0.7.0"
 tokio = { workspace = true }

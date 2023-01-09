@@ -60,7 +60,7 @@ async fn test_deposit_withdraw() {
         .call(mainchain.id(), "withdraw")
         .args_json((transfer_amount,))
         .max_gas()
-        .deposit(ONE_YOCTO)
+        .deposit(0)
         .transact()
         .await
         .unwrap();
