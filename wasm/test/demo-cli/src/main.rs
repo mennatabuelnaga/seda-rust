@@ -62,7 +62,7 @@ fn main() {
 
     if let Some(command) = options.command {
         match command {
-            // cargo run -- -c near cli http-fetch "https://www.breakingbadapi.com/api/characters/1"
+            // cargo run cli http-fetch "https://www.breakingbadapi.com/api/characters/1"
             Commands::HttpFetch { url } => {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
             }
@@ -70,7 +70,7 @@ fn main() {
                 println!("Hello World from inside wasm");
             }
             // TODO how to remove double near specification here?
-            // cargo run -- -c near cli view near mc.mennat0.testnet get_nodes "{\"offset\":\"0\",\"limit\":\"2\"}"
+            // cargo run cli view near mc.mennat0.testnet get_nodes "{\"offset\":\"0\",\"limit\":\"2\"}"
             Commands::View {
                 chain,
                 contract_id,
@@ -81,7 +81,7 @@ fn main() {
                     .start()
                     .then(call_self("chain_view_test_success", vec![]));
             }
-            // cargo run -- -c near cli call near mc.mennat0.testnet register_node
+            // cargo run cli call near mc.mennat0.testnet register_node
             // "{\"socket_address\":\"127.0.0.1:8080\"}" "870000000000000000000"
             Commands::Call {
                 chain,
@@ -94,26 +94,26 @@ fn main() {
                     .start()
                     .then(call_self("chain_call_test_success", vec![]));
             }
-            // cargo run -- -c near cli get-nodes 0 2
+            // cargo run cli get-nodes 0 2
             Commands::GetNodes { offset, limit } => {
                 get_nodes(limit, offset);
             }
-            // cargo run -- -c near cli get-node 1
+            // cargo run cli get-node 1
             Commands::GetNode { node_id } => {
                 get_node(node_id);
             }
-            // cargo run -- -c near cli register-node 127.0.0.1:8080 870000000000000000000
+            // cargo run cli register-node 127.0.0.1:8080 870000000000000000000
             Commands::RegisterNode {
                 socket_address,
                 deposit,
             } => {
                 register_node(socket_address, deposit);
             }
-            // cargo run -- -c near cli update-node 16 "SetSocketAddress(127.0.0.1:7070)"
+            // cargo run cli update-node 16 "SetSocketAddress(127.0.0.1:7070)"
             Commands::UpdateNode { node_id, command } => {
                 update_node(node_id, command);
             }
-            // cargo run -- -c near cli unregister-node 1
+            // cargo run cli unregister-node 1
             Commands::UnregisterNode { node_id } => {
                 unregister_node(node_id);
             }
