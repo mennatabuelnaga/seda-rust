@@ -35,10 +35,10 @@ impl FungibleTokenReceiver for MainchainContract {
                 .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
                 .deposit(amount.0, account_id)
                 .into(),
-            // "deposit-and-stake" => Self::ext(env::current_account_id())
-            //     .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
-            //     .deposit_and_stake(amount, account_id)
-            //     .into(),
+            "deposit-and-stake" => Self::ext(env::current_account_id())
+                .with_static_gas(prepaid_gas - GAS_FOR_FT_ON_TRANSFER)
+                .deposit_and_stake(amount.0, account_id)
+                .into(),
             _ => {
                 panic!("Unexpected message");
             }

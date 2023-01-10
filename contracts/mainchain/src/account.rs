@@ -1,5 +1,6 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
+    env,
     AccountId,
     Balance,
 };
@@ -30,11 +31,11 @@ pub struct Account {
 
 /// Contract internal methods
 impl MainchainContract {
-    pub fn get_account(&self, account_id: &AccountId) -> Account {
+    pub fn internal_get_account(&self, account_id: &AccountId) -> Account {
         self.accounts.get(account_id).unwrap_or_default()
     }
 
-    pub fn save_account(&mut self, account_id: &AccountId, account: &Account) {
+    pub fn internal_save_account(&mut self, account_id: &AccountId, account: &Account) {
         if account.unstaked > 0 || account.stake_shares > 0 {
             self.accounts.insert(account_id, account);
         } else {
