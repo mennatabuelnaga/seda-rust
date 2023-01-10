@@ -4,8 +4,7 @@ use near_sdk::{
     Balance,
 };
 
-use crate::MainchainContract;
-
+use crate::{MainchainContract, U256};
 /// A type to distinguish between a balance and "stake" shares for better
 /// readability.
 pub type NumStakeShares = Balance;
@@ -41,5 +40,54 @@ impl MainchainContract {
         } else {
             self.accounts.remove(account_id);
         }
+    }
+
+    // /// Returns the number of "stake" shares rounded down corresponding to the
+    // given staked balance /// amount.
+    // ///
+    // /// price = total_staked / total_shares
+    // /// Price is fixed
+    // /// (total_staked + amount) / (total_shares + num_shares) = total_staked /
+    // total_shares /// (total_staked + amount) * total_shares = total_staked *
+    // (total_shares + num_shares) /// amount * total_shares = total_staked *
+    // num_shares /// num_shares = amount * total_shares / total_staked
+    pub(crate) fn num_shares_from_staked_amount_rounded_down(&self, amount: Balance) -> NumStakeShares {
+        assert!(self.total_staked_balance > 0, "The total staked balance can't be 0");
+        (U256::from(self.total_stake_shares) * U256::from(amount) / U256::from(self.total_staked_balance)).as_u128()
+    }
+
+    /// Returns the number of "stake" shares rounded up corresponding to the
+    /// given staked balance amount.
+    ///
+    /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
+    pub(crate) fn num_shares_from_staked_amount_rounded_up(&self, amount: Balance) -> NumStakeShares {
+        assert!(self.total_staked_balance > 0, "The total staked balance can't be 0");
+        ((U256::from(self.total_stake_shares) * U256::from(amount) + U256::from(self.total_staked_balance - 1))
+            / U256::from(self.total_staked_balance))
+        .as_u128()
+    }
+
+    // /// Returns the staked amount rounded down corresponding to the given number
+    // of "stake" shares.
+    pub(crate) fn staked_amount_from_num_shares_rounded_down(&self, num_shares: NumStakeShares) -> Balance {
+        assert!(
+            self.total_stake_shares > 0,
+            "The total number of stake shares can't be 0"
+        );
+        (U256::from(self.total_staked_balance) * U256::from(num_shares) / U256::from(self.total_stake_shares)).as_u128()
+    }
+
+    /// Returns the staked amount rounded up corresponding to the given number
+    /// of "stake" shares.
+    ///
+    /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
+    pub(crate) fn staked_amount_from_num_shares_rounded_up(&self, num_shares: NumStakeShares) -> Balance {
+        assert!(
+            self.total_stake_shares > 0,
+            "The total number of stake shares can't be 0"
+        );
+        ((U256::from(self.total_staked_balance) * U256::from(num_shares) + U256::from(self.total_stake_shares - 1))
+            / U256::from(self.total_stake_shares))
+        .as_u128()
     }
 }
