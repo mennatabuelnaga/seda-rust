@@ -42,9 +42,11 @@ impl MainchainContract {
     /// Deposits the attached amount into the inner account of the predecessor
     /// and stakes it.
     #[private] // require caller to be this contract
-    pub fn deposit_and_stake(&mut self, amount: u128, account_id: AccountId) {
-        self.internal_deposit(amount, account_id);
+    pub fn deposit_and_stake(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
+        let refund = self.internal_deposit(amount, account_id);
+        let amount: Balance = amount.into();
         self.internal_stake(amount);
+        refund
     }
 
     /// Withdraws the non staked balance for given account.
