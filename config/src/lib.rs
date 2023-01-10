@@ -20,6 +20,7 @@ pub const FULL_CONFIG_PATH: &str = "/etc/seda-rust/config.toml";
 #[cfg(target_family = "windows")]
 pub const FULL_CONFIG_PATH: &str = "C:\\ProgramData\\seda-rust\\config.toml";
 
+#[cfg(not(target_family = "wasm"))]
 fn config_path() -> PathBuf {
     let config_path = std::env::var("SEDA_CONFIG_PATH").unwrap_or_default();
     if !config_path.trim().is_empty() {
@@ -29,28 +30,26 @@ fn config_path() -> PathBuf {
     }
 }
 
-// The logger crate is not used here since
-// the logger crate depends on this crate.
-// Therefore logging isn't loaded until we
-// read some settings from the config file.
-fn create_and_load_or_load_config() -> Arc<RwLock<AppConfig>> {
-    let path = CONFIG_PATH.to_path_buf();
+#[cfg(not(target_family = "wasm"))]
+pub fn create_and_load_or_load_config() {
+    let path = config_path();
     if !path.exists() {
         if let Err(err) = AppConfig::create_template_from_path(&path) {
             eprintln!("{err}");
             std::process::exit(1);
         }
     }
-    match AppConfig::read_from_path(path) {
-        Ok(config) => Arc::new(RwLock::new(config)),
+    let mut config = CONFIG.blocking_write();
+    *config = match AppConfig::read_from_path(path) {
+        Ok(config) => config,
         Err(err) => {
             eprintln!("{err}");
             std::process::exit(1);
         }
-    }
+    };
 }
 
+#[cfg(not(target_family = "wasm"))]
 lazy_static::lazy_static! {
-    pub static ref CONFIG_PATH: PathBuf = config_path();
-    pub static ref CONFIG: Arc<RwLock<AppConfig>> = create_and_load_or_load_config();
+    pub static ref CONFIG: Arc<RwLock<AppConfig>> = Arc::new(RwLock::new(Default::default()));
 }
