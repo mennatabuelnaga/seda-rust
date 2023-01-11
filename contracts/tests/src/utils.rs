@@ -64,5 +64,5 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
     // mainchain contract storage deposits into token contract
     register_user(&token_contract, mainchain_contract.id()).await;
 
-    return (token_contract, alice, mainchain_contract);
+    (token_contract, alice, mainchain_contract)
 }
