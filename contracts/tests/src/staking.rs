@@ -229,7 +229,6 @@ async fn test_stake_unstake() {
     assert_eq!(unstaked_balance, U128(0));
     assert_eq!(staked_balance, transfer_amount);
 
-
     // alice unstakes entire staked balance
     let res = alice
         .call(mainchain.id(), "unstake")
@@ -261,8 +260,6 @@ async fn test_stake_unstake() {
     assert_eq!(staked_balance, U128(0));
 }
 
-
-// TODO: Failing: Smart contract panicked: panicked at 'Not enough unstaked balance to stake', contracts/mainchain/src/account.rs:88:9
 #[tokio::test]
 async fn test_deposit_stake_unstake() {
     let initial_balance = U128::from(parse_near!("10000 N"));
@@ -284,15 +281,18 @@ async fn test_deposit_stake_unstake() {
     // alice deposits and stakes into pool
     let res = alice
         .call(token.id(), "ft_transfer_call")
-        .args_json((mainchain.id(), transfer_amount, Option::<String>::None, "deposit-and-stake"))
+        .args_json((
+            mainchain.id(),
+            transfer_amount,
+            Option::<String>::None,
+            "deposit-and-stake",
+        ))
         .max_gas()
         .deposit(ONE_YOCTO)
         .transact()
         .await
         .unwrap();
-    println!("++++++++++++++++++++{:?}", res);
     assert!(res.is_success());
-
 
     // check unstaked and staked balances
     let unstaked_balance = mainchain

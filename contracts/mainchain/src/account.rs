@@ -43,6 +43,160 @@ impl MainchainContract {
         }
     }
 
+    pub(crate) fn internal_deposit(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
+        let mut account = self.internal_get_account(&account_id);
+        account.unstaked += amount;
+        self.internal_save_account(&account_id, &account);
+        self.last_total_balance += amount;
+
+        env::log_str(
+            format!(
+                "@{} deposited {}. New unstaked balance is {}",
+                account_id, amount, account.unstaked
+            )
+            .as_str(),
+        );
+
+        PromiseOrValue::Value(U128::from(0)) // no refund
+    }
+
+    pub(crate) fn internal_stake(&mut self, amount: Balance) {
+        assert!(amount > 0, "Staking amount should be positive");
+        let account_id = env::signer_account_id();
+        let mut account = self.internal_get_account(&account_id);
+        // Calculate the number of "stake" shares that the account will receive for
+        // staking the given amount.
+        let num_shares = self.num_shares_from_staked_amount_rounded_down(amount);
+        assert!(
+            num_shares > 0,
+            "The calculated number of \"stake\" shares received for staking should be positive"
+        );
+        // The amount of tokens the account will be charged from the unstaked balance.
+        // Rounded down to avoid overcharging the account to guarantee that the account
+        // can always unstake at least the same amount as staked.
+        let charge_amount = self.staked_amount_from_num_shares_rounded_down(num_shares);
+        assert!(
+            charge_amount > 0,
+            "Invariant violation. Calculated staked amount must be positive, because \"stake\" share price should be at least 1"
+        );
+
+        assert!(
+            account.unstaked >= charge_amount,
+            "Not enough unstaked balance to stake"
+        );
+        account.unstaked -= charge_amount;
+        account.stake_shares += num_shares;
+        self.internal_save_account(&account_id, &account);
+
+        // The staked amount that will be added to the total to guarantee the "stake"
+        // share price never decreases. The difference between `stake_amount`
+        // and `charge_amount` is paid from the allocated
+        // STAKE_SHARE_PRICE_GUARANTEE_FUND.
+        let stake_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
+
+        self.total_staked_balance += stake_amount;
+        self.total_stake_shares += num_shares;
+
+        env::log_str(
+            format!(
+                "@{} staking {}. Received {} new staking shares. Total {} unstaked balance and {} staking shares",
+                account_id, charge_amount, num_shares, account.unstaked, account.stake_shares
+            )
+            .as_str(),
+        );
+        env::log_str(
+            format!(
+                "Contract total staked balance is {}. Total number of shares {}",
+                self.total_staked_balance, self.total_stake_shares
+            )
+            .as_str(),
+        );
+    }
+
+    pub(crate) fn internal_unstake(&mut self, amount: Balance) {
+        assert!(amount > 0, "Unstaking amount should be positive");
+
+        let account_id = env::predecessor_account_id();
+        let mut account = self.internal_get_account(&account_id);
+
+        assert!(
+            self.total_staked_balance > 0,
+            "The contract doesn't have staked balance"
+        );
+        // Calculate the number of shares required to unstake the given amount.
+        // NOTE: The number of shares the account will pay is rounded up.
+        let num_shares = self.num_shares_from_staked_amount_rounded_up(amount);
+        assert!(
+            num_shares > 0,
+            "Invariant violation. The calculated number of \"stake\" shares for unstaking should be positive"
+        );
+        assert!(
+            account.stake_shares >= num_shares,
+            "Not enough staked balance to unstake"
+        );
+
+        // Calculating the amount of tokens the account will receive by unstaking the
+        // corresponding number of "stake" shares, rounding up.
+        let receive_amount = self.staked_amount_from_num_shares_rounded_up(num_shares);
+        assert!(
+            receive_amount > 0,
+            "Invariant violation. Calculated staked amount must be positive, because \"stake\" share price should be at least 1"
+        );
+
+        account.stake_shares -= num_shares;
+        account.unstaked += receive_amount;
+        account.unstaked_available_epoch_height = env::epoch_height() + NUM_EPOCHS_TO_UNLOCK;
+        self.internal_save_account(&account_id, &account);
+
+        // The amount tokens that will be unstaked from the total to guarantee the
+        // "stake" share price never decreases. The difference between
+        // `receive_amount` and `unstake_amount` is paid from the allocated
+        // STAKE_SHARE_PRICE_GUARANTEE_FUND.
+        let unstake_amount = self.staked_amount_from_num_shares_rounded_down(num_shares);
+
+        self.total_staked_balance -= unstake_amount;
+        self.total_stake_shares -= num_shares;
+
+        env::log_str(
+            format!(
+                "@{} unstaking {}. Spent {} staking shares. Total {} unstaked balance and {} staking shares",
+                account_id, receive_amount, num_shares, account.unstaked, account.stake_shares
+            )
+            .as_str(),
+        );
+        env::log_str(
+            format!(
+                "Contract total staked balance is {}. Total number of shares {}",
+                self.total_staked_balance, self.total_stake_shares
+            )
+            .as_str(),
+        );
+    }
+
+    pub fn internal_withdraw(&mut self, amount: Balance) {
+        let amount: Balance = amount.into();
+        assert!(amount > 0, "Withdrawal amount should be positive");
+
+        let account_id = env::predecessor_account_id();
+        let account = self.internal_get_account(&account_id);
+        assert!(account.unstaked >= amount, "Not enough unstaked balance to withdraw");
+        assert!(
+            account.unstaked_available_epoch_height <= env::epoch_height(),
+            "The unstaked balance is not yet available due to unstaking delay"
+        );
+
+        // transfer the tokens, then validate/update state in `withdraw_callback()`
+        ft::ext(self.seda_token.clone())
+            .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
+            .with_attached_deposit(1)
+            .ft_transfer(account_id.clone(), amount.into(), None)
+            .then(
+                Self::ext(env::current_account_id())
+                    .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
+                    .withdraw_callback(account_id, amount.into()),
+            );
+    }
+
     // /// Returns the number of "stake" shares rounded down corresponding to the
     // given staked balance /// amount.
     // ///
