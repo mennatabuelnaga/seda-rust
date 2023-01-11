@@ -31,25 +31,21 @@ fn config_path() -> PathBuf {
 }
 
 #[cfg(not(target_family = "wasm"))]
-pub fn create_and_load_or_load_config() {
+pub fn create_and_load_or_load_config() -> (AppConfig, PartialLoggerConfig) {
     let path = config_path();
     if !path.exists() {
-        if let Err(err) = AppConfig::create_template_from_path(&path) {
+        if let Err(err) = PartialAppConfig::create_template_from_path(&path) {
             eprintln!("{err}");
             std::process::exit(1);
         }
     }
-    let mut config = CONFIG.blocking_write();
-    *config = match AppConfig::read_from_path(path) {
-        Ok(config) => config,
+
+    match PartialAppConfig::read_from_path(path) {
+        Ok(config) => config.into(),
         Err(err) => {
+            // TODO we should eventually have better error codes.
             eprintln!("{err}");
             std::process::exit(1);
         }
-    };
-}
-
-#[cfg(not(target_family = "wasm"))]
-lazy_static::lazy_static! {
-    pub static ref CONFIG: Arc<RwLock<AppConfig>> = Arc::new(RwLock::new(Default::default()));
+    }
 }

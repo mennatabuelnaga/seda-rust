@@ -8,7 +8,7 @@ mod rpc;
 mod runtime_job;
 
 use actix::prelude::*;
-use seda_config::CONFIG;
+use seda_config::{Config, NodeConfig, CONFIG};
 use seda_p2p_adapters::libp2p::P2PServer;
 use seda_runtime_adapters::RuntimeAdapter;
 use tracing::info;
@@ -21,7 +21,7 @@ pub mod test {
     mod event_queue_test;
 }
 
-pub fn run() {
+pub fn run(config: NodeConfig) {
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
@@ -34,10 +34,12 @@ pub fn run() {
         // P2P initialization
         // TODO: most probably this process should be moved somewhere else
         actix::spawn(async move {
-            let mut p2p_server =
-                P2PServer::start_from_config(&config.node.p2p_server_address, &config.node.p2p_known_peers)
-                    .await
-                    .expect("P2P swarm cannot be started");
+            let mut p2p_server = P2PServer::start_from_config(
+                todo!("&config.node.p2p_server_address"),
+                todo!("&config.node.p2p_known_peers"),
+            )
+            .await
+            .expect("P2P swarm cannot be started");
             p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
             p2p_server.loop_stream().await.expect("P2P listen failed");
         });

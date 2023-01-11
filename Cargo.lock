@@ -3933,6 +3933,7 @@ dependencies = [
 name = "seda-config"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "lazy_static",
  "serde",
  "thiserror",

@@ -3,7 +3,6 @@ use std::{collections::HashMap, sync::Arc};
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
 use seda_chain_adapters::{chain, AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
-use seda_config::CONFIG;
 use seda_runtime_sdk::Chain;
 
 use crate::{HostAdapter, Result};
@@ -22,13 +21,16 @@ pub struct RuntimeTestAdapter {
 #[async_trait::async_trait]
 impl HostAdapter for RuntimeTestAdapter {
     async fn new() -> Result<Self> {
-        let config = CONFIG.read().await;
+        // let config = CONFIG.read().await;
         // Safe to unwrap here, it's already been checked.
-        let config = config.as_ref();
-        Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another_chain)?)),
-            near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near_chain)?)),
-        })
+        // let config = config.as_ref();
+        // Ok(Self {
+        //     another_client:
+        // Client::Another(Arc::new(AnotherMainChain::new_client(&config.another_chain)?
+        // )),     near_client:
+        // Client::Near(Arc::new(NearMainChain::new_client(&config.near_chain)?)),
+        // })
+        todo!()
     }
 
     fn select_client_from_chain(&self, chain: Chain) -> Client {
@@ -67,29 +69,30 @@ impl HostAdapter for RuntimeTestAdapter {
         args: Vec<u8>,
         deposit: u128,
     ) -> Result<Vec<u8>> {
-        let config = CONFIG.read().await;
-        let node_config = &config.node;
-        let signer_acc_str = &node_config.signer_account_id;
-        let signer_sk_str = &node_config.secret_key;
-        let gas = &node_config.gas;
-        let server_url = match chain {
-            Chain::Another => &config.another_chain.chain_rpc_url,
-            Chain::Near => &config.near_chain.chain_rpc_url,
-        };
+        // let config = CONFIG.read().await;
+        // let node_config = &config.node;
+        // let signer_acc_str = &node_config.signer_account_id;
+        // let signer_sk_str = &node_config.secret_key;
+        // let gas = &node_config.gas;
+        // let server_url = match chain {
+        //     Chain::Another => &config.another_chain.chain_rpc_url,
+        //     Chain::Near => &config.near_chain.chain_rpc_url,
+        // };
 
-        let signed_txn = chain::construct_signed_tx(
-            chain,
-            signer_acc_str,
-            signer_sk_str,
-            contract_id,
-            method_name,
-            args,
-            gas.parse::<u64>()?,
-            deposit,
-            server_url,
-        )
-        .await?;
-        let client = self.select_client_from_chain(chain);
-        Ok(chain::send_tx(chain, client, &signed_txn).await?)
+        // let signed_txn = chain::construct_signed_tx(
+        //     chain,
+        //     signer_acc_str,
+        //     signer_sk_str,
+        //     contract_id,
+        //     method_name,
+        //     args,
+        //     gas.parse::<u64>()?,
+        //     deposit,
+        //     server_url,
+        // )
+        // .await?;
+        // let client = self.select_client_from_chain(chain);
+        // Ok(chain::send_tx(chain, client, &signed_txn).await?)
+        todo!()
     }
 }

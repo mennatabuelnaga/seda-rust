@@ -1,13 +1,13 @@
 use clap::{arg, command, Parser, Subcommand};
-use seda_config::CONFIG;
+use seda_config::{AppConfig, Config, PartialNodeConfig, CONFIG};
 use seda_runtime_sdk::Chain;
 
 use crate::Result;
 
-mod cli_commands;
-use cli_commands::*;
+// mod cli_commands;
+// use cli_commands::*;
 
-mod near_backend;
+// mod near_backend;
 
 #[derive(Parser)]
 #[command(name = "seda")]
@@ -23,10 +23,7 @@ pub struct CliOptions {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    Run {
-        #[arg(short, long)]
-        rpc_server_address: Option<String>,
-    },
+    Run(PartialNodeConfig),
     Cli {
         args: Vec<String>,
     },
@@ -109,153 +106,150 @@ enum Command {
 impl CliOptions {
     // This is temporary until we move the execution of these to
     // the runtime.
-    #[tokio::main]
-    async fn rest_of_options<T: CliCommands>(command: Command) -> Result<()> {
-        match command {
-            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
-            // "870000000000000000000"
-            Command::RegisterNode {
-                socket_address,
-                seda_server_url,
-                signer_account_id,
-                secret_key,
-                contract_account_id,
-            } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(seda_server_url) = seda_server_url {
-                        config.seda_server_url = seda_server_url;
-                    }
+    // #[tokio::main]
+    // async fn rest_of_options<T: CliCommands>(command: Command) -> Result<()> {
+    //     match command {
+    //         // cargo run cli call mc.mennat0.testnet register_node
+    // "{\"socket_address\":\"127.0.0.1:8080\"}"         //
+    // "870000000000000000000"         Command::RegisterNode {
+    //             socket_address,
+    //             seda_server_url,
+    //             signer_account_id,
+    //             secret_key,
+    //             contract_account_id,
+    //         } => {
+    //             {
+    //                 let mut config = CONFIG.blocking_write();
+    //                 if let Some(seda_server_url) = seda_server_url {
+    //                     config.seda_server_url = seda_server_url;
+    //                 }
 
-                    if let Some(signer_account_id) = signer_account_id {
-                        config.node.signer_account_id = signer_account_id;
-                    }
-                    if let Some(secret_key) = secret_key {
-                        config.node.secret_key = secret_key;
-                    }
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
-                T::register_node(socket_address).await?
-            }
-            // cargo run --bin seda get-nodes --limit 2
-            Command::GetNodes {
-                limit,
-                offset,
-                contract_account_id,
-            } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
-                T::get_nodes(limit, offset).await?
-            }
-            // cargo run --bin seda get-node-socket-address --node-id 9
-            Command::GetNodeSocketAddress {
-                node_id,
-                contract_account_id,
-            } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
-                T::get_node_socket_address(node_id).await?
-            }
-            // cargo run --bin seda remove-node --node-id 9
-            Command::RemoveNode {
-                node_id,
-                seda_server_url,
-                signer_account_id,
-                secret_key,
-                contract_account_id,
-            } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(seda_server_url) = seda_server_url {
-                        config.seda_server_url = seda_server_url;
-                    }
+    //                 if let Some(signer_account_id) = signer_account_id {
+    //                     config.node.signer_account_id = signer_account_id;
+    //                 }
+    //                 if let Some(secret_key) = secret_key {
+    //                     config.node.secret_key = secret_key;
+    //                 }
+    //                 if let Some(contract_account_id) = contract_account_id {
+    //                     config.node.contract_account_id = contract_account_id;
+    //                 }
+    //             }
+    //             T::register_node(socket_address).await?
+    //         }
+    //         // cargo run --bin seda get-nodes --limit 2
+    //         Command::GetNodes {
+    //             limit,
+    //             offset,
+    //             contract_account_id,
+    //         } => {
+    //             {
+    //                 let mut config = CONFIG.blocking_write();
+    //                 if let Some(contract_account_id) = contract_account_id {
+    //                     config.node.contract_account_id = contract_account_id;
+    //                 }
+    //             }
+    //             T::get_nodes(limit, offset).await?
+    //         }
+    //         // cargo run --bin seda get-node-socket-address --node-id 9
+    //         Command::GetNodeSocketAddress {
+    //             node_id,
+    //             contract_account_id,
+    //         } => {
+    //             {
+    //                 let mut config = CONFIG.blocking_write();
+    //                 if let Some(contract_account_id) = contract_account_id {
+    //                     config.node.contract_account_id = contract_account_id;
+    //                 }
+    //             }
+    //             T::get_node_socket_address(node_id).await?
+    //         }
+    //         // cargo run --bin seda remove-node --node-id 9
+    //         Command::RemoveNode {
+    //             node_id,
+    //             seda_server_url,
+    //             signer_account_id,
+    //             secret_key,
+    //             contract_account_id,
+    //         } => {
+    //             {
+    //                 let mut config = CONFIG.blocking_write();
+    //                 if let Some(seda_server_url) = seda_server_url {
+    //                     config.seda_server_url = seda_server_url;
+    //                 }
 
-                    if let Some(signer_account_id) = signer_account_id {
-                        config.node.signer_account_id = signer_account_id;
-                    }
-                    if let Some(secret_key) = secret_key {
-                        config.node.secret_key = secret_key;
-                    }
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
-                T::remove_node(node_id).await?
-            }
-            // cargo run --bin seda set-node-socket-address --node-id 9
-            Command::SetNodeSocketAddress {
-                node_id,
-                socket_address,
-                seda_server_url,
-                signer_account_id,
-                secret_key,
-                contract_account_id,
-            } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(seda_server_url) = seda_server_url {
-                        config.seda_server_url = seda_server_url;
-                    }
+    //                 if let Some(signer_account_id) = signer_account_id {
+    //                     config.node.signer_account_id = signer_account_id;
+    //                 }
+    //                 if let Some(secret_key) = secret_key {
+    //                     config.node.secret_key = secret_key;
+    //                 }
+    //                 if let Some(contract_account_id) = contract_account_id {
+    //                     config.node.contract_account_id = contract_account_id;
+    //                 }
+    //             }
+    //             T::remove_node(node_id).await?
+    //         }
+    //         // cargo run --bin seda set-node-socket-address --node-id 9
+    //         Command::SetNodeSocketAddress {
+    //             node_id,
+    //             socket_address,
+    //             seda_server_url,
+    //             signer_account_id,
+    //             secret_key,
+    //             contract_account_id,
+    //         } => {
+    //             {
+    //                 let mut config = CONFIG.blocking_write();
+    //                 if let Some(seda_server_url) = seda_server_url {
+    //                     config.seda_server_url = seda_server_url;
+    //                 }
 
-                    if let Some(signer_account_id) = signer_account_id {
-                        config.node.signer_account_id = signer_account_id;
-                    }
-                    if let Some(secret_key) = secret_key {
-                        config.node.secret_key = secret_key;
-                    }
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
-                T::set_node_socket_address(node_id, socket_address).await?
-            }
-            // cargo run --bin seda get-node-owner --node-id 9
-            Command::GetNodeOwner {
-                node_id,
-                contract_account_id,
-            } => {
-                {
-                    let mut config = CONFIG.blocking_write();
-                    if let Some(contract_account_id) = contract_account_id {
-                        config.node.contract_account_id = contract_account_id;
-                    }
-                }
-                T::get_node_owner(node_id).await?
-            }
-            Command::Cli { args } => T::call_cli(&args).await?,
+    //                 if let Some(signer_account_id) = signer_account_id {
+    //                     config.node.signer_account_id = signer_account_id;
+    //                 }
+    //                 if let Some(secret_key) = secret_key {
+    //                     config.node.secret_key = secret_key;
+    //                 }
+    //                 if let Some(contract_account_id) = contract_account_id {
+    //                     config.node.contract_account_id = contract_account_id;
+    //                 }
+    //             }
+    //             T::set_node_socket_address(node_id, socket_address).await?
+    //         }
+    //         // cargo run --bin seda get-node-owner --node-id 9
+    //         Command::GetNodeOwner {
+    //             node_id,
+    //             contract_account_id,
+    //         } => {
+    //             {
+    //                 let mut config = CONFIG.blocking_write();
+    //                 if let Some(contract_account_id) = contract_account_id {
+    //                     config.node.contract_account_id = contract_account_id;
+    //                 }
+    //             }
+    //             T::get_node_owner(node_id).await?
+    //         }
+    //         Command::Cli { args } => T::call_cli(&args).await?,
 
-            // The commands `run` and `generate-config` are already handled.
-            _ => unreachable!(),
-        }
+    //         // The commands `run` and `generate-config` are already handled.
+    //         _ => unreachable!(),
+    //     }
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
-    pub fn handle() -> Result<()> {
+    pub fn handle(config: AppConfig) -> Result<()> {
         let options = CliOptions::parse();
 
-        if let Command::Run { rpc_server_address } = options.command {
-            {
-                let mut config = CONFIG.blocking_write();
-                if let Some(rpc_server_address) = rpc_server_address {
-                    config.node.rpc_server_address = rpc_server_address;
-                }
-            }
-            seda_node::run();
+        if let Command::Run(node_options) = options.command {
+            let node_config = config.node.to_config(node_options)?;
+            seda_node::run(node_config);
 
             return Ok(());
         }
 
-        Self::rest_of_options::<near_backend::NearCliBackend>(options.command)
+        unimplemented!()
+        // Self::rest_of_options::<near_backend::NearCliBackend>(options.
+        // command)
     }
 }

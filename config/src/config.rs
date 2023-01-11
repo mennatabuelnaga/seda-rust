@@ -5,51 +5,46 @@ use serde::{Deserialize, Serialize};
 use crate::{
     env_overwrite,
     errors::{Result, TomlError},
-    AnotherConfig,
     Config,
-    LoggerConfig,
-    NearConfig,
-    NodeConfig,
+    PartialAnotherConfig,
+    PartialLoggerConfig,
+    PartialNearConfig,
+    PartialNodeConfig,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AppConfig {
+pub struct PartialAppConfig {
     pub seda_server_url: String,
-
-    pub another_chain: AnotherConfig,
-    pub near_chain:    NearConfig,
-    pub node:          NodeConfig,
-    pub logging:       LoggerConfig,
+    pub another_chain:   PartialAnotherConfig,
+    pub near_chain:      PartialNearConfig,
+    pub node:            PartialNodeConfig,
+    pub logging:         PartialLoggerConfig,
 }
 
-impl AsRef<AppConfig> for AppConfig {
-    fn as_ref(&self) -> &Self {
-        self
-    }
-}
-
-impl Default for AppConfig {
+impl Default for PartialAppConfig {
     fn default() -> Self {
+        // TODO we can just remove the ws here and add it later
+        // also means we can remove rpc url from node config.
         let mut this = Self {
             seda_server_url: "ws://127.0.0.1:12345".to_string(),
-            node:            Default::default(),
-            another_chain:   AnotherConfig::default(),
-            near_chain:      NearConfig::default(),
-            logging:         Default::default(),
+            another_chain:   PartialAnotherConfig::default(),
+            near_chain:      PartialNearConfig::default(),
+            node:            PartialNodeConfig::default(),
+            logging:         PartialLoggerConfig::default(),
         };
         this.overwrite_from_env();
         this
     }
 }
 
-impl Config for AppConfig {
+impl Config for PartialAppConfig {
     fn template() -> Self {
         Self {
-            seda_server_url: "ws://127.0.0.1:12345".to_string(),
-            node:            NodeConfig::template(),
-            another_chain:   AnotherConfig::template(),
-            near_chain:      NearConfig::template(),
-            logging:         LoggerConfig::template(),
+            seda_server_url: "127.0.0.1:12345".to_string(),
+            another_chain:   PartialAnotherConfig::template(),
+            near_chain:      PartialNearConfig::template(),
+            node:            PartialNodeConfig::template(),
+            logging:         PartialLoggerConfig::template(),
         }
     }
 
@@ -62,7 +57,7 @@ impl Config for AppConfig {
     }
 }
 
-impl AppConfig {
+impl PartialAppConfig {
     /// For reading from a toml file.
     pub fn from_read<R: std::io::Read>(buf: &mut R) -> Result<Self> {
         let mut content = String::new();
@@ -95,5 +90,33 @@ impl AppConfig {
         }
         let mut file = std::fs::OpenOptions::new().create(true).write(true).open(path)?;
         Self::write_template(&mut file)
+    }
+}
+
+#[derive(Debug)]
+pub struct AppConfig {
+    pub seda_server_url: String,
+    pub another_chain:   PartialAnotherConfig,
+    pub near_chain:      PartialNearConfig,
+    pub node:            PartialNodeConfig,
+}
+
+impl AsRef<AppConfig> for AppConfig {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
+impl From<PartialAppConfig> for (AppConfig, PartialLoggerConfig) {
+    fn from(value: PartialAppConfig) -> Self {
+        (
+            AppConfig {
+                seda_server_url: value.seda_server_url,
+                another_chain:   value.another_chain,
+                near_chain:      value.near_chain,
+                node:            value.node,
+            },
+            value.logging,
+        )
     }
 }

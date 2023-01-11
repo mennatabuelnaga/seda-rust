@@ -1,7 +1,7 @@
 //! Defines a MainChainConfig type based on features when compiling.
 
 mod near;
-pub use near::NearConfig;
+pub use near::*;
 
 mod another_config;
-pub use another_config::AnotherConfig;
+pub use another_config::*;

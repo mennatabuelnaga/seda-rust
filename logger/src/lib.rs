@@ -1,13 +1,10 @@
-use std::io;
+use std::{io, path::PathBuf};
 
-use seda_config::CONFIG;
+use seda_config::LoggerConfig;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{fmt, prelude::__tracing_subscriber_SubscriberExt, EnvFilter};
 
-pub fn init() -> Vec<WorkerGuard> {
-    let config = CONFIG.blocking_read();
-    let config = &config.logging;
-
+pub fn init(config: &LoggerConfig) -> Vec<WorkerGuard> {
     // Grabs from RUST_LOG env var and if not defaults to
     // TRACE for debug, and info for non debug.
     let level_filter = EnvFilter::try_from_default_env().unwrap_or_default();
