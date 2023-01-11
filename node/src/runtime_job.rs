@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
+use seda_config::ChainConfigs;
 use seda_runtime::{Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use tracing::info;
@@ -20,13 +21,15 @@ pub struct RuntimeJob {
 }
 
 pub struct RuntimeWorker<HA: HostAdapter> {
-    pub runtime: Option<Runtime<HA>>,
+    pub runtime:       Option<Runtime<HA>>,
+    pub chain_configs: ChainConfigs,
 }
 
 impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
     type Context = SyncContext<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
+        // dbg!("started RuntimeWorker");
         // TODO: Replace the binary condinationally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         #[cfg(debug_assertions)]
@@ -34,7 +37,8 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
         #[cfg(not(debug_assertions))]
         path_prefix.push("../target/wasm32-wasi/release/cli.wasm");
 
-        let mut runtime = futures::executor::block_on(async move { Runtime::new().await.expect("TODO") });
+        let chain_configs = self.chain_configs.clone();
+        let mut runtime = futures::executor::block_on(async move { Runtime::new(chain_configs).await.expect("TODO") });
 
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();
 
@@ -46,6 +50,7 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
     type Result = Result<RuntimeJobResult>;
 
     fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
+        dbg!("handle RuntimeWorker");
         let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
 
         let args: Vec<String> = match msg.event.data {

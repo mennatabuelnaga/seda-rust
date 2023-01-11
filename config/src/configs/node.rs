@@ -135,6 +135,6 @@ pub struct NodeConfig {
 impl NodeConfig {
     pub const DEPOSIT: u128 = 87 * 10_u128.pow(19);
     pub const GAS: u64 = 300_000_000_000_000;
-    pub const JOB_MANAGER_INTERVAL_MS: u64 = 300_000_000_000_000;
-    pub const RUNTIME_WORKER_THREADS: usize = 300_000_000_000_000;
+    pub const JOB_MANAGER_INTERVAL_MS: u64 = 10;
+    pub const RUNTIME_WORKER_THREADS: usize = 2;
 }

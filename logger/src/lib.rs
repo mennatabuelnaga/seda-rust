@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf};
+use std::io;
 
 use seda_config::LoggerConfig;
 use tracing_appender::non_blocking::WorkerGuard;

@@ -8,8 +8,13 @@ pub struct PartialAnotherConfig {
 }
 
 impl PartialAnotherConfig {
-    fn to_config(self, cli_options: Self) -> Result<AnotherConfig> {
-        todo!()
+    pub fn to_config(self) -> AnotherConfig {
+        // Fine cause it's just for testing.
+        AnotherConfig {
+            chain_rpc_url: self
+                .chain_rpc_url
+                .unwrap_or_else(|| "https://rpc.testnet.near.org".to_string()),
+        }
     }
 }
 
@@ -25,7 +30,7 @@ impl Config for PartialAnotherConfig {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AnotherConfig {
     pub chain_rpc_url: String,
 }

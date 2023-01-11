@@ -12,5 +12,5 @@ pub use node::*;
 
 pub trait Config: std::fmt::Debug + Default + serde::Serialize + serde::de::DeserializeOwned {
     fn template() -> Self;
-    fn overwrite_from_env(&mut self);
+    fn overwrite_from_env(&mut self) {}
 }

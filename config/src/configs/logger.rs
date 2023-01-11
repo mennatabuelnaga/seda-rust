@@ -10,7 +10,7 @@ pub struct PartialLoggerConfig {
 }
 
 impl PartialLoggerConfig {
-    pub fn to_config(self) -> LoggerConfig {
+    pub fn to_config(self, log_file_path: Option<&PathBuf>) -> LoggerConfig {
         LoggerConfig {
             log_file_path: self
                 .log_file_path

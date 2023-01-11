@@ -1,5 +1,7 @@
+use std::path::PathBuf;
+
 use clap::{arg, command, Parser, Subcommand};
-use seda_config::{AppConfig, Config, PartialNodeConfig, CONFIG};
+use seda_config::{AppConfig, PartialChainConfigs, PartialNodeConfig};
 use seda_runtime_sdk::Chain;
 
 use crate::Result;
@@ -16,14 +18,21 @@ use crate::Result;
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
     #[arg(short, long)]
-    chain:   Chain,
+    chain:             Chain,
+    #[arg(long)]
+    pub log_file_path: Option<PathBuf>,
     #[command(subcommand)]
-    command: Command,
+    command:           Command,
 }
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    Run(PartialNodeConfig),
+    Run {
+        #[command(flatten)]
+        node_config:   PartialNodeConfig,
+        #[command(flatten)]
+        chains_config: PartialChainConfigs,
+    },
     Cli {
         args: Vec<String>,
     },
@@ -238,12 +247,15 @@ impl CliOptions {
     //     Ok(())
     // }
 
-    pub fn handle(config: AppConfig) -> Result<()> {
-        let options = CliOptions::parse();
-
-        if let Command::Run(node_options) = options.command {
-            let node_config = config.node.to_config(node_options)?;
-            seda_node::run(node_config);
+    pub fn handle(self, config: AppConfig) -> Result<()> {
+        if let Command::Run {
+            node_config,
+            chains_config,
+        } = self.command
+        {
+            let node_config = config.node.to_config(node_config)?;
+            let chains_config = config.chains.to_config(chains_config)?;
+            seda_node::run(node_config, chains_config);
 
             return Ok(());
         }

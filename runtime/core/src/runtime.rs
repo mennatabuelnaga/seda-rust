@@ -1,6 +1,7 @@
 use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
+use seda_config::ChainConfigs;
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
@@ -26,7 +27,7 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-    async fn new() -> Result<Self>
+    async fn new(config: ChainConfigs) -> Result<Self>
     where
         Self: Sized;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
@@ -49,10 +50,10 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
-    async fn new() -> Result<Self> {
+    async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
             wasm_module:  None,
-            host_adapter: HA::new().await?,
+            host_adapter: HA::new(config).await?,
         })
     }
 

@@ -3,6 +3,7 @@ use std::sync::Arc;
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
 use seda_chain_adapters::{AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
+use seda_config::ChainConfigs;
 use seda_runtime_sdk::Chain;
 
 use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch, Result};
@@ -13,17 +14,11 @@ pub struct RuntimeAdapter {
 
 #[async_trait::async_trait]
 impl HostAdapter for RuntimeAdapter {
-    async fn new() -> Result<Self> {
-        // let config = CONFIG.read().await;
-        // Safe to unwrap here, it's already been checked.
-        // let config = config.as_ref();
-        // Ok(Self {
-        // another_client:
-        // Client::Another(Arc::new(AnotherMainChain::new_client(&config.another_chain)?
-        // )), near_client:
-        // Client::Near(Arc::new(NearMainChain::new_client(&config.near_chain)?)),
-        // })
-        todo!()
+    async fn new(config: ChainConfigs) -> Result<Self> {
+        Ok(Self {
+            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another)?)),
+            near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near)?)),
+        })
     }
 
     fn select_client_from_chain(&self, chain: Chain) -> Client {

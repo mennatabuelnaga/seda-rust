@@ -4003,6 +4003,7 @@ dependencies = [
  "async-trait",
  "parking_lot 0.12.1",
  "reqwest",
+ "seda-config",
  "seda-runtime-adapters",
  "seda-runtime-sdk",
  "serde",

@@ -1,11 +1,12 @@
 use seda_chain_adapters::Client;
+use seda_config::ChainConfigs;
 use seda_runtime_sdk::Chain;
 
 use crate::Result;
 
 #[async_trait::async_trait]
 pub trait HostAdapter: Send + Sync + Unpin + 'static {
-    async fn new() -> Result<Self>
+    async fn new(config: ChainConfigs) -> Result<Self>
     where
         Self: Sized;
 

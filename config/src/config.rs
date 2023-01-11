@@ -7,6 +7,7 @@ use crate::{
     errors::{Result, TomlError},
     Config,
     PartialAnotherConfig,
+    PartialChainConfigs,
     PartialLoggerConfig,
     PartialNearConfig,
     PartialNodeConfig,
@@ -15,20 +16,16 @@ use crate::{
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PartialAppConfig {
     pub seda_server_url: String,
-    pub another_chain:   PartialAnotherConfig,
-    pub near_chain:      PartialNearConfig,
+    pub chains:          PartialChainConfigs,
     pub node:            PartialNodeConfig,
     pub logging:         PartialLoggerConfig,
 }
 
 impl Default for PartialAppConfig {
     fn default() -> Self {
-        // TODO we can just remove the ws here and add it later
-        // also means we can remove rpc url from node config.
         let mut this = Self {
-            seda_server_url: "ws://127.0.0.1:12345".to_string(),
-            another_chain:   PartialAnotherConfig::default(),
-            near_chain:      PartialNearConfig::default(),
+            seda_server_url: "127.0.0.1:12345".to_string(),
+            chains:          PartialChainConfigs::default(),
             node:            PartialNodeConfig::default(),
             logging:         PartialLoggerConfig::default(),
         };
@@ -41,8 +38,7 @@ impl Config for PartialAppConfig {
     fn template() -> Self {
         Self {
             seda_server_url: "127.0.0.1:12345".to_string(),
-            another_chain:   PartialAnotherConfig::template(),
-            near_chain:      PartialNearConfig::template(),
+            chains:          PartialChainConfigs::template(),
             node:            PartialNodeConfig::template(),
             logging:         PartialLoggerConfig::template(),
         }
@@ -50,8 +46,7 @@ impl Config for PartialAppConfig {
 
     fn overwrite_from_env(&mut self) {
         env_overwrite!(self.seda_server_url, "SEDA_SERVER_URL");
-        self.another_chain.overwrite_from_env();
-        self.near_chain.overwrite_from_env();
+        self.chains.overwrite_from_env();
         self.node.overwrite_from_env();
         self.logging.overwrite_from_env();
     }
@@ -96,8 +91,7 @@ impl PartialAppConfig {
 #[derive(Debug)]
 pub struct AppConfig {
     pub seda_server_url: String,
-    pub another_chain:   PartialAnotherConfig,
-    pub near_chain:      PartialNearConfig,
+    pub chains:          PartialChainConfigs,
     pub node:            PartialNodeConfig,
 }
 
@@ -112,8 +106,7 @@ impl From<PartialAppConfig> for (AppConfig, PartialLoggerConfig) {
         (
             AppConfig {
                 seda_server_url: value.seda_server_url,
-                another_chain:   value.another_chain,
-                near_chain:      value.near_chain,
+                chains:          value.chains,
                 node:            value.node,
             },
             value.logging,
