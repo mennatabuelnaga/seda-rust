@@ -113,9 +113,9 @@ impl RewardFeeFraction {
 impl MainchainContract {
     #[init]
     pub fn new(seda_token: AccountId) -> Self {
-        let account_balance = env::account_balance(); // TODO: fetch ft_balance_of this contract on initialization
+        let account_balance = STAKE_SHARE_PRICE_GUARANTEE_FUND; // TODO: fetch ft_balance_of this contract on initialization
         assert!(!env::state_exists(), "Already initialized");
-        let total_staked_balance = account_balance - STAKE_SHARE_PRICE_GUARANTEE_FUND;
+        let total_staked_balance = account_balance;
         assert_eq!(
             env::account_locked_balance(),
             0,
