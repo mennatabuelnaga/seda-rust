@@ -1,7 +1,7 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-use crate::{env_overwrite, merge_config_cli, Config, Result};
+use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 
 /// The configuration for the seda engine.
 #[derive(Debug, Default, Serialize, Deserialize, Parser)]
@@ -36,18 +36,33 @@ impl PartialNodeConfig {
             .parse()
             .unwrap())?;
         let gas = merge_config_cli!(self, cli_options, gas, Ok(NodeConfig::GAS))?;
-        let secret_key = merge_config_cli!(self, cli_options, secret_key, panic!("todo"))?;
-        // TODO this should be derived from the secret key?
-        let public_key = merge_config_cli!(self, cli_options, public_key, panic!("todo"))?;
-        let signer_account_id = merge_config_cli!(self, cli_options, signer_account_id, panic!("todo"))?;
-        let contract_account_id = merge_config_cli!(self, cli_options, contract_account_id, panic!("todo"))?;
+        let secret_key = merge_config_cli!(self, cli_options, secret_key, Err(ConfigError::from("node.secret_key")))?;
+        // TODO this should be derived from the secret key
+        let public_key = merge_config_cli!(self, cli_options, public_key, Err(ConfigError::from("node.public_key")))?;
+        let signer_account_id = merge_config_cli!(
+            self,
+            cli_options,
+            signer_account_id,
+            Err(ConfigError::from("node.signer_account_id"))
+        )?;
+        let contract_account_id = merge_config_cli!(
+            self,
+            cli_options,
+            contract_account_id,
+            Err(ConfigError::from("node.contract_account_id"))
+        )?;
         let job_manager_interval_ms = merge_config_cli!(
             self,
             cli_options,
             job_manager_interval_ms,
             Ok(NodeConfig::JOB_MANAGER_INTERVAL_MS)
         )?;
-        let rpc_server_address = merge_config_cli!(self, cli_options, rpc_server_address, panic!("todo"))?;
+        let rpc_server_address = merge_config_cli!(
+            self,
+            cli_options,
+            rpc_server_address,
+            Err(ConfigError::from("node.rpc_server_address"))
+        )?;
         let runtime_worker_threads = merge_config_cli!(
             self,
             cli_options,
