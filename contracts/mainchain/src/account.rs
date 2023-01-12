@@ -1,6 +1,5 @@
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    env,
     json_types::U128,
     serde::{Deserialize, Serialize},
     AccountId,

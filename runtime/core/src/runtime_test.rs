@@ -216,8 +216,8 @@ async fn test_cli_demo_view_near_chain() {
     let memory_adapter = memory_adapter();
     runtime.init(wasm_binary).unwrap();
     let contract_id = "mc.mennat0.testnet".to_string();
-    let method_name = "get_node_socket_address".to_string();
-    let args = json!({"node_id": "12".to_string()}).to_string();
+    let method_name = "get_node".to_string();
+    let args = json!({"node_id": 1}).to_string();
 
     let runtime_execution_result = runtime
         .start_runtime(
@@ -234,6 +234,8 @@ async fn test_cli_demo_view_near_chain() {
 
     let db_result = runtime.host_adapter.db_get("chain_view_result").await.unwrap();
     assert!(db_result.is_some());
-
-    assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
+    assert_eq!(
+        db_result.unwrap(),
+        "{\"owner\":\"mennat0.testnet\",\"pending_owner\":null,\"socket_address\":\"127.0.0.1:8080\"}"
+    );
 }

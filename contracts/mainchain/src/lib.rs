@@ -22,7 +22,7 @@ use near_sdk::{
 use uint::construct_uint;
 
 use crate::{
-    account::{Account, NumStakeShares},
+    account::Account,
     block::{Block, BlockHeight, BlockId},
     node_registry::Node,
     staking::NumStakeShares,
@@ -91,7 +91,6 @@ impl Default for MainchainContract {
 #[serde(crate = "near_sdk::serde")]
 pub struct RewardFeeFraction {
     pub numerator:   u32,
-    pub numerator:   u32,
     pub denominator: u32,
 }
 
@@ -114,7 +113,7 @@ impl RewardFeeFraction {
 impl MainchainContract {
     #[init]
     pub fn new(seda_token: AccountId) -> Self {
-        let account_balance = 0; // TODO: fetch ft_balance_of this contract on initialization
+        let account_balance = env::account_balance(); // TODO: fetch ft_balance_of this contract on initialization
         assert!(!env::state_exists(), "Already initialized");
         let total_staked_balance = account_balance - STAKE_SHARE_PRICE_GUARANTEE_FUND;
         assert_eq!(

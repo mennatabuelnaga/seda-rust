@@ -14,6 +14,7 @@ SEDA_BIN_PATH := $(MKFILE_DIR)target/debug/$(SEDA_BIN)
 WASM_MODULES := $(notdir $(filter-out $(MKFILE_DIR)wasm/test,$(wildcard $(MKFILE_DIR)wasm/*)))
 WASM_TEST_MODULES := $(notdir $(wildcard $(MKFILE_DIR)wasm/test/*))
 
+
 # Builds only the seda binary.
 build:
 	cargo build
@@ -70,3 +71,5 @@ test-build: wasm
 wasm:
 	$(foreach module, $(WASM_MODULES), cargo build -p $(module) --target wasm32-wasi;)
 	$(foreach module, $(WASM_TEST_MODULES), cargo build -p $(module) --target wasm32-wasi;)
+	cargo build -p seda-mainchain --target wasm32-unknown-unknown --release;
+	cargo build -p seda-token --target wasm32-unknown-unknown --release;

@@ -3,10 +3,8 @@ resolver = "2"
 default-members = ["cli"]
 members = [
 	"adapters/chain",
-	# "adapters/http",
 	"adapters/p2p",
 	"adapters/runtime",
-	# "adapters/storage",
 	"cli",
 	"config",
 	"contracts/mainchain",
@@ -80,5 +78,6 @@ toml = "0.5"
 tracing = { version = "0.1", features = ["log-always"] }
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false }
+uint = { version = "0.8", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }
