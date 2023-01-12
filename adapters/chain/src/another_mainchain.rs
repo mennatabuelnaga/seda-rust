@@ -3,7 +3,7 @@ use std::sync::Arc;
 use seda_config::AnotherConfig;
 
 use super::errors::Result;
-use crate::{MainChainAdapterTrait, TransactionParams};
+use crate::MainChainAdapterTrait;
 
 #[derive(Debug)]
 pub struct AnotherMainChain;
@@ -30,10 +30,6 @@ impl MainChainAdapterTrait for AnotherMainChain {
         unimplemented!()
     }
 
-    async fn sign_tx(_client: Arc<Self::Client>, _tx_params: TransactionParams) -> Result<Vec<u8>> {
-        unimplemented!()
-    }
-
     async fn send_tx(_client: Arc<Self::Client>, _signed_tx: &[u8]) -> Result<Vec<u8>> {
         unimplemented!()
     }
@@ -43,7 +39,7 @@ impl MainChainAdapterTrait for AnotherMainChain {
         _contract_id: &str,
         _method_name: &str,
         _args: Vec<u8>,
-    ) -> Result<String> {
+    ) -> Result<Vec<u8>> {
         unimplemented!()
     }
 }

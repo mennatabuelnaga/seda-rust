@@ -5,7 +5,7 @@ use seda_runtime_sdk::Chain;
 use crate::{Host, Result};
 
 #[derive(Message)]
-#[rtype(result = "Result<String>")]
+#[rtype(result = "Result<Vec<u8>>")]
 pub struct ChainView {
     pub chain:       Chain,
     pub contract_id: String,
@@ -15,7 +15,7 @@ pub struct ChainView {
 }
 
 impl Handler<ChainView> for Host {
-    type Result = ResponseActFuture<Self, Result<String>>;
+    type Result = ResponseActFuture<Self, Result<Vec<u8>>>;
 
     fn handle(&mut self, msg: ChainView, _ctx: &mut Self::Context) -> Self::Result {
         let fut = async move {

@@ -29,5 +29,5 @@ pub trait HostAdapter: Send {
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
-    ) -> Result<String, RuntimeError>;
+    ) -> Result<Vec<u8>, RuntimeError>;
 }

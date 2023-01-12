@@ -2,7 +2,6 @@ use std::{fmt::Debug, sync::Arc};
 
 use jsonrpsee_types::Params;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::{MainChainAdapterError, Result};
 
@@ -53,58 +52,11 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
         deposit: u128,
         server_url: &str,
     ) -> Result<Vec<u8>>;
-    /// Default trait function that calls sign and send specific
-    /// implementations.
-    async fn sign_and_send_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Vec<u8>> {
-        let signed_tx = Self::sign_tx(client.clone(), tx_params).await?;
-        Self::send_tx(client, &signed_tx).await
-    }
-
-    /// To sign a transaction for the adapter specific implementation.
-    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Vec<u8>>;
 
     /// To send a transaction for the adapter specific implementation.
     async fn send_tx(client: Arc<Self::Client>, signed_tx: &[u8]) -> Result<Vec<u8>>;
     /// To view for the adapter specific implementation.
-    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
-    /// Default trait function to get the node owner.
-    async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
-        let method_name = "get_node_owner";
-        let params = params
-            .one::<NodeIds>()
-            .map_err(|e| MainChainAdapterError::BadParams(format!("{method_name}: {e}")))?;
-
-        let args = json!({"node_id": params.node_id.to_string()}).to_string().into_bytes();
-
-        Self::view(client, &params.contract_id.to_string(), method_name, args).await
-    }
-
-    /// Default trait function to get the node socket address.
-    async fn get_node_socket_address(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
-        let method_name = "get_node_socket_address";
-        let params = params
-            .one::<NodeIds>()
-            .map_err(|_| MainChainAdapterError::BadParams(method_name.to_string()))?;
-
-        let args = json!({"node_id": params.node_id.to_string()}).to_string().into_bytes();
-
-        Self::view(client, &params.contract_id.to_string(), method_name, args).await
-    }
-
-    /// Default trait function to get the nodes.
-    async fn get_nodes(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
-        let method_name = "get_nodes";
-
-        let params = params
-            .one::<NodeDetails>()
-            .map_err(|_| MainChainAdapterError::BadParams(method_name.to_string()))?;
-
-        let args = json!({"limit": params.limit.to_string(), "offset": params.offset.to_string()})
-            .to_string()
-            .into_bytes();
-
-        Self::view(client, &params.contract_id.to_string(), method_name, args).await
-    }
+    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>>;
 
     /// Default trait function to register the node.
     async fn register_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {

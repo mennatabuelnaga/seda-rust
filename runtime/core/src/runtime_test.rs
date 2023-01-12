@@ -217,7 +217,7 @@ async fn test_cli_demo_view_near_chain() {
     runtime.init(wasm_binary).unwrap();
     let contract_id = "mc.mennat0.testnet".to_string();
     let method_name = "get_node".to_string();
-    let args = json!({"node_id": 1}).to_string();
+    let args = json!({"node_id": "1".to_string()}).to_string();
 
     let runtime_execution_result = runtime
         .start_runtime(
