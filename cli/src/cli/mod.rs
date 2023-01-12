@@ -181,7 +181,7 @@ impl CliOptions {
         {
             let node_config = config.node.to_config(node_config)?;
             let chains_config = config.chains.to_config(chains_config)?;
-            seda_node::run(node_config, chains_config);
+            seda_node::run(&config.seda_server_url, node_config, chains_config);
 
             return Ok(());
         }

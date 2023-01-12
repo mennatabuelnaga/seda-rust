@@ -21,12 +21,12 @@ pub mod test {
     mod event_queue_test;
 }
 
-pub fn run(config: NodeConfig, chain_configs: ChainConfigs) {
+pub fn run(seda_server_address: &str, config: NodeConfig, chain_configs: ChainConfigs) {
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
         // TODO: add number of workers as config with default value
-        let app = App::<RuntimeAdapter>::new(config.runtime_worker_threads, &config.rpc_server_address, chain_configs)
+        let app = App::<RuntimeAdapter>::new(config.runtime_worker_threads, seda_server_address, chain_configs)
             .await
             .start();
 

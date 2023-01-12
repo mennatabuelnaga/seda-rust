@@ -21,8 +21,6 @@ pub struct PartialNodeConfig {
     #[arg(long)]
     pub job_manager_interval_ms: Option<u64>,
     #[arg(long)]
-    pub rpc_server_address:      Option<String>,
-    #[arg(long)]
     pub runtime_worker_threads:  Option<u8>,
     #[arg(long)]
     pub p2p_server_address:      Option<String>,
@@ -57,12 +55,6 @@ impl PartialNodeConfig {
             job_manager_interval_ms,
             Ok(NodeConfig::JOB_MANAGER_INTERVAL_MS)
         )?;
-        let rpc_server_address = merge_config_cli!(
-            self,
-            cli_options,
-            rpc_server_address,
-            Err(ConfigError::from("node.rpc_server_address"))
-        )?;
         let runtime_worker_threads = merge_config_cli!(
             self,
             cli_options,
@@ -86,7 +78,6 @@ impl PartialNodeConfig {
             contract_account_id,
             public_key,
             job_manager_interval_ms,
-            rpc_server_address,
             runtime_worker_threads,
             p2p_server_address,
             p2p_known_peers,
@@ -104,7 +95,6 @@ impl Config for PartialNodeConfig {
             contract_account_id:     None,
             public_key:              None,
             job_manager_interval_ms: None,
-            rpc_server_address:      Some("127.0.0.1:12345".to_string()),
             runtime_worker_threads:  None,
             p2p_server_address:      Some("/ip4/0.0.0.0/tcp/0".to_string()),
             p2p_known_peers:         None,
@@ -145,7 +135,6 @@ pub struct NodeConfig {
     pub contract_account_id:     String,
     pub public_key:              String,
     pub job_manager_interval_ms: u64,
-    pub rpc_server_address:      String,
     pub runtime_worker_threads:  usize,
     pub p2p_server_address:      String,
     pub p2p_known_peers:         Vec<String>,
