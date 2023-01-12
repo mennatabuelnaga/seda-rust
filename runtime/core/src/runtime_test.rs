@@ -1,6 +1,7 @@
 use std::{env, fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
+use seda_config::ChainConfigsInner;
 use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
 use serde_json::json;
 
@@ -26,7 +27,9 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
 
     runtime.init(wasm_binary).unwrap();
 
@@ -52,7 +55,9 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 #[should_panic(expected = "Unexpected EOF")]
 async fn test_bad_wasm_file() {
     set_env_vars();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
     runtime.init(vec![203]).unwrap();
 
     let runtime_execution_result = runtime
@@ -76,7 +81,9 @@ async fn test_bad_wasm_file() {
 async fn test_non_existing_function() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -101,7 +108,9 @@ async fn test_promise_queue_http_fetch() {
     let fetch_url = "https://www.breakingbadapi.com/api/characters/1".to_string();
 
     let wasm_binary = read_wasm_target("promise-wasm-bin");
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -133,7 +142,9 @@ async fn test_promise_queue_http_fetch() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_memory_adapter() {
     set_env_vars();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
     let memory_adapter = memory_adapter();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     runtime.init(wasm_binary).unwrap();
@@ -174,7 +185,9 @@ async fn test_memory_adapter() {
 async fn test_cli_demo_view_another_chain() {
     set_env_vars();
     let wasm_binary = read_wasm_target("demo-cli");
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
 
     let memory_adapter = memory_adapter();
     runtime.init(wasm_binary).unwrap();
@@ -212,7 +225,9 @@ async fn test_cli_demo_view_near_chain() {
     set_env_vars();
     let wasm_binary = read_wasm_target("demo-cli");
 
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new().await.unwrap();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(ChainConfigsInner::test_config())
+        .await
+        .unwrap();
     let memory_adapter = memory_adapter();
     runtime.init(wasm_binary).unwrap();
     let contract_id = "mc.mennat0.testnet".to_string();

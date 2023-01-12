@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 
 [dependencies]
-clap = { workspace = true }
+clap = { workspace = true, features = ["derive", "std"] }
 lazy_static = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }

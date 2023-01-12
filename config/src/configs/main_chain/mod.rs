@@ -49,4 +49,14 @@ pub struct ChainConfigsInner {
     pub near:    NearConfig,
 }
 
+impl ChainConfigsInner {
+    // TODO cfg this
+    pub fn test_config() -> Arc<Self> {
+        Arc::new(Self {
+            another: AnotherConfig::test_config(),
+            near:    NearConfig::test_config(),
+        })
+    }
+}
+
 pub type ChainConfigs = Arc<ChainConfigsInner>;

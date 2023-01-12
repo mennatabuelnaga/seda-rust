@@ -30,3 +30,12 @@ impl Config for PartialAnotherConfig {
 pub struct AnotherConfig {
     pub chain_rpc_url: String,
 }
+
+impl AnotherConfig {
+    // TODO cfg this
+    pub fn test_config() -> Self {
+        Self {
+            chain_rpc_url: "https://rpc.testnet.near.org".to_string(),
+        }
+    }
+}

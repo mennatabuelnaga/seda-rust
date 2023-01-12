@@ -66,7 +66,7 @@ impl PartialNodeConfig {
             self,
             cli_options,
             p2p_server_address,
-            Ok("/ip4/0.0.0.0/tcp/0".to_string())
+            Ok(NodeConfig::P2P_SERVER_ADDRESS.to_string())
         )?;
         let p2p_known_peers = merge_config_cli!(self, cli_options, p2p_known_peers, Ok(Vec::new()))?;
 
@@ -141,8 +141,27 @@ pub struct NodeConfig {
 }
 
 impl NodeConfig {
+    // TODO cfg this
+    pub fn test_config() -> Self {
+        Self {
+            deposit:                 Self::DEPOSIT,
+            gas:                     Self::GAS,
+            secret_key:              String::new(),
+            signer_account_id:       String::new(),
+            contract_account_id:     String::new(),
+            public_key:              String::new(),
+            job_manager_interval_ms: Self::JOB_MANAGER_INTERVAL_MS,
+            runtime_worker_threads:  Self::RUNTIME_WORKER_THREADS,
+            p2p_server_address:      Self::P2P_SERVER_ADDRESS.to_string(),
+            p2p_known_peers:         Vec::new(),
+        }
+    }
+}
+
+impl NodeConfig {
     pub const DEPOSIT: u128 = 87 * 10_u128.pow(19);
     pub const GAS: u64 = 300_000_000_000_000;
     pub const JOB_MANAGER_INTERVAL_MS: u64 = 10;
+    pub const P2P_SERVER_ADDRESS: &str = "/ip4/0.0.0.0/tcp/0";
     pub const RUNTIME_WORKER_THREADS: usize = 2;
 }
