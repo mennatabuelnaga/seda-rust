@@ -3,11 +3,12 @@ use std::sync::Arc;
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
 use seda_chain_adapters::{AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
-use seda_config::ChainConfigs;
+use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 
 use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch, Result};
 pub struct RuntimeAdapter {
+    pub chains_config:  ChainConfigs,
     pub another_client: Client,
     pub near_client:    Client,
 }
@@ -18,6 +19,7 @@ impl HostAdapter for RuntimeAdapter {
         Ok(Self {
             another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another)?)),
             near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near)?)),
+            chains_config:  config,
         })
     }
 
@@ -64,6 +66,7 @@ impl HostAdapter for RuntimeAdapter {
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
+        node_config: NodeConfig,
     ) -> Result<Vec<u8>> {
         let host_actor = Host::from_registry();
         let client = self.select_client_from_chain(chain);
@@ -73,8 +76,10 @@ impl HostAdapter for RuntimeAdapter {
                 contract_id: contract_id.to_string(),
                 method_name: method_name.to_string(),
                 args,
-                deposit,
                 client,
+                deposit,
+                node_config,
+                chains_config: self.chains_config.clone(),
             })
             .await??;
 

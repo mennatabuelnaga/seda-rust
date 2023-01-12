@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
@@ -30,10 +32,10 @@ pub struct PartialNodeConfig {
 
 impl PartialNodeConfig {
     pub fn to_config(self, cli_options: Self) -> Result<NodeConfig> {
-        let deposit = merge_config_cli!(self, cli_options, deposit, Ok(NodeConfig::DEPOSIT), |f: String| f
+        let deposit = merge_config_cli!(self, cli_options, deposit, Ok(NodeConfigInner::DEPOSIT), |f: String| f
             .parse()
             .unwrap())?;
-        let gas = merge_config_cli!(self, cli_options, gas, Ok(NodeConfig::GAS))?;
+        let gas = merge_config_cli!(self, cli_options, gas, Ok(NodeConfigInner::GAS))?;
         let secret_key = merge_config_cli!(self, cli_options, secret_key, Err(ConfigError::from("node.secret_key")))?;
         // TODO this should be derived from the secret key
         let public_key = merge_config_cli!(self, cli_options, public_key, Err(ConfigError::from("node.public_key")))?;
@@ -53,24 +55,24 @@ impl PartialNodeConfig {
             self,
             cli_options,
             job_manager_interval_ms,
-            Ok(NodeConfig::JOB_MANAGER_INTERVAL_MS)
+            Ok(NodeConfigInner::JOB_MANAGER_INTERVAL_MS)
         )?;
         let runtime_worker_threads = merge_config_cli!(
             self,
             cli_options,
             runtime_worker_threads,
-            Ok(NodeConfig::RUNTIME_WORKER_THREADS),
+            Ok(NodeConfigInner::RUNTIME_WORKER_THREADS),
             |f| f as usize
         )?;
         let p2p_server_address = merge_config_cli!(
             self,
             cli_options,
             p2p_server_address,
-            Ok(NodeConfig::P2P_SERVER_ADDRESS.to_string())
+            Ok(NodeConfigInner::P2P_SERVER_ADDRESS.to_string())
         )?;
         let p2p_known_peers = merge_config_cli!(self, cli_options, p2p_known_peers, Ok(Vec::new()))?;
 
-        Ok(NodeConfig {
+        Ok(Arc::new(NodeConfigInner {
             deposit,
             gas,
             secret_key,
@@ -81,7 +83,7 @@ impl PartialNodeConfig {
             runtime_worker_threads,
             p2p_server_address,
             p2p_known_peers,
-        })
+        }))
     }
 }
 
@@ -126,8 +128,8 @@ impl Config for PartialNodeConfig {
 //     }
 // }
 
-#[derive(Debug)]
-pub struct NodeConfig {
+#[derive(Debug, Clone)]
+pub struct NodeConfigInner {
     pub deposit:                 u128,
     pub gas:                     u64,
     pub secret_key:              String,
@@ -140,10 +142,10 @@ pub struct NodeConfig {
     pub p2p_known_peers:         Vec<String>,
 }
 
-impl NodeConfig {
+impl NodeConfigInner {
     // TODO cfg this
-    pub fn test_config() -> Self {
-        Self {
+    pub fn test_config() -> NodeConfig {
+        Arc::new(Self {
             deposit:                 Self::DEPOSIT,
             gas:                     Self::GAS,
             secret_key:              String::new(),
@@ -154,14 +156,16 @@ impl NodeConfig {
             runtime_worker_threads:  Self::RUNTIME_WORKER_THREADS,
             p2p_server_address:      Self::P2P_SERVER_ADDRESS.to_string(),
             p2p_known_peers:         Vec::new(),
-        }
+        })
     }
 }
 
-impl NodeConfig {
+impl NodeConfigInner {
     pub const DEPOSIT: u128 = 87 * 10_u128.pow(19);
     pub const GAS: u64 = 300_000_000_000_000;
     pub const JOB_MANAGER_INTERVAL_MS: u64 = 10;
     pub const P2P_SERVER_ADDRESS: &str = "/ip4/0.0.0.0/tcp/0";
     pub const RUNTIME_WORKER_THREADS: usize = 2;
 }
+
+pub type NodeConfig = Arc<NodeConfigInner>;

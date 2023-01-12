@@ -1,5 +1,5 @@
 use seda_chain_adapters::Client;
-use seda_config::ChainConfigs;
+use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 
 use crate::Result;
@@ -23,6 +23,7 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
         method_name: &str,
         args: Vec<u8>,
         deposit: u128,
+        node_config: NodeConfig,
     ) -> Result<Vec<u8>>;
 
     async fn chain_view(&self, chain: Chain, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;

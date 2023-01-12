@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
-use seda_config::ChainConfigs;
+use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::{Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use tracing::info;
@@ -22,6 +22,7 @@ pub struct RuntimeJob {
 
 pub struct RuntimeWorker<HA: HostAdapter> {
     pub runtime:       Option<Runtime<HA>>,
+    pub node_config:   NodeConfig,
     pub chain_configs: ChainConfigs,
 }
 
@@ -37,8 +38,10 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
         #[cfg(not(debug_assertions))]
         path_prefix.push("../target/wasm32-wasi/release/cli.wasm");
 
+        let node_config = self.node_config.clone();
         let chain_configs = self.chain_configs.clone();
-        let mut runtime = futures::executor::block_on(async move { Runtime::new(chain_configs).await.expect("TODO") });
+        let mut runtime =
+            futures::executor::block_on(async move { Runtime::new(node_config, chain_configs).await.expect("TODO") });
 
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();
 

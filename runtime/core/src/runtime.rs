@@ -1,7 +1,7 @@
 use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
-use seda_config::ChainConfigs;
+use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,7 @@ use crate::RuntimeError;
 pub struct Runtime<HA: HostAdapter> {
     wasm_module:      Option<Module>,
     pub host_adapter: HA,
+    pub node_config:  NodeConfig,
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
@@ -27,7 +28,7 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-    async fn new(config: ChainConfigs) -> Result<Self>
+    async fn new(node_config: NodeConfig, chains_config: ChainConfigs) -> Result<Self>
     where
         Self: Sized;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
@@ -50,10 +51,11 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
-    async fn new(config: ChainConfigs) -> Result<Self> {
+    async fn new(node_config: NodeConfig, chains_config: ChainConfigs) -> Result<Self> {
         Ok(Self {
-            wasm_module:  None,
-            host_adapter: HA::new(config).await?,
+            wasm_module: None,
+            host_adapter: HA::new(chains_config).await?,
+            node_config,
         })
     }
 
@@ -195,6 +197,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                                 &chain_call_action.method_name,
                                 chain_call_action.args.clone(),
                                 chain_call_action.deposit.parse::<u128>()?,
+                                self.node_config.clone(),
                             )
                             .await?;
 

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use actix::prelude::*;
 use parking_lot::RwLock;
-use seda_config::ChainConfigs;
+use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_adapters::HostAdapter;
 use tracing::info;
 
@@ -24,16 +24,13 @@ pub struct App<HA: HostAdapter> {
 }
 
 impl<HA: HostAdapter> App<HA> {
-    pub async fn new(worker_threads: usize, rpc_server_address: &str, chain_configs: ChainConfigs) -> Self {
-        dbg!("new app");
-        let runtime_worker = SyncArbiter::start(worker_threads, move || RuntimeWorker {
+    pub async fn new(node_config: NodeConfig, rpc_server_address: &str, chain_configs: ChainConfigs) -> Self {
+        let runtime_worker = SyncArbiter::start(node_config.runtime_worker_threads, move || RuntimeWorker {
             runtime:       None,
+            node_config:   node_config.clone(),
             chain_configs: chain_configs.clone(),
         });
-        dbg!("rtw");
 
-        dbg!(rpc_server_address);
-        // let rpc_server_address = &config.node.rpc_server_address;
         let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
