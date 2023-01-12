@@ -13,19 +13,21 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PartialAppConfig {
-    pub seda_server_url: String,
-    pub chains:          PartialChainConfigs,
-    pub node:            PartialNodeConfig,
-    pub logging:         PartialLoggerConfig,
+    pub seda_server_address: String,
+    pub seda_server_port:    u64,
+    pub chains:              PartialChainConfigs,
+    pub node:                PartialNodeConfig,
+    pub logging:             PartialLoggerConfig,
 }
 
 impl Default for PartialAppConfig {
     fn default() -> Self {
         let mut this = Self {
-            seda_server_url: "127.0.0.1:12345".to_string(),
-            chains:          PartialChainConfigs::default(),
-            node:            PartialNodeConfig::default(),
-            logging:         PartialLoggerConfig::default(),
+            seda_server_address: "127.0.0.1".to_string(),
+            seda_server_port:    12345,
+            chains:              PartialChainConfigs::default(),
+            node:                PartialNodeConfig::default(),
+            logging:             PartialLoggerConfig::default(),
         };
         this.overwrite_from_env();
         this
@@ -35,15 +37,19 @@ impl Default for PartialAppConfig {
 impl Config for PartialAppConfig {
     fn template() -> Self {
         Self {
-            seda_server_url: "127.0.0.1:12345".to_string(),
-            chains:          PartialChainConfigs::template(),
-            node:            PartialNodeConfig::template(),
-            logging:         PartialLoggerConfig::template(),
+            seda_server_address: "127.0.0.1".to_string(),
+            seda_server_port:    12345,
+            chains:              PartialChainConfigs::template(),
+            node:                PartialNodeConfig::template(),
+            logging:             PartialLoggerConfig::template(),
         }
     }
 
     fn overwrite_from_env(&mut self) {
-        env_overwrite!(self.seda_server_url, "SEDA_SERVER_URL");
+        env_overwrite!(self.seda_server_address, "SEDA_SERVER_ADDRESS");
+        env_overwrite!(self.seda_server_port, "SEDA_SERVER_PORT", |p: String| p
+            .parse()
+            .expect("Invalid port number specified."));
         self.chains.overwrite_from_env();
         self.node.overwrite_from_env();
         self.logging.overwrite_from_env();
@@ -103,7 +109,7 @@ impl From<PartialAppConfig> for (AppConfig, PartialLoggerConfig) {
     fn from(value: PartialAppConfig) -> Self {
         (
             AppConfig {
-                seda_server_url: value.seda_server_url,
+                seda_server_url: format!("{}:{}", value.seda_server_address, value.seda_server_port),
                 chains:          value.chains,
                 node:            value.node,
             },
