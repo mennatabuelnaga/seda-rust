@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{env_overwrite, Config, Result};
+use crate::Config;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct PartialAnotherConfig {
@@ -23,10 +23,6 @@ impl Config for PartialAnotherConfig {
         Self {
             chain_rpc_url: Some("https://rpc.testnet.near.org".to_string()),
         }
-    }
-
-    fn overwrite_from_env(&mut self) {
-        // env_overwrite!(self.chain_rpc_url, "SEDA_CHAIN_RPC_URL");
     }
 }
 

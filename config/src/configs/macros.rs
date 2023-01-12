@@ -20,7 +20,7 @@ macro_rules! merge_config_cli {
 					(None, Some(field))
 					| (Some(field), None)
 					// CLI option overrides
-					| (Some(_), Some(field)) => $parse(field),
+					| (Some(_), Some(field)) => Ok::<_, $crate::ConfigError>($parse(field)),
 			}
 	};
 
@@ -30,7 +30,7 @@ macro_rules! merge_config_cli {
 				(None, Some(field))
 				| (Some(field), None)
 				// CLI option overrides
-				| (Some(_), Some(field)) => field,
+				| (Some(_), Some(field)) => Ok::<_, $crate::ConfigError>(field),
 		}
 };
 }

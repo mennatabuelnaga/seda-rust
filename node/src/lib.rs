@@ -29,7 +29,6 @@ pub fn run(config: NodeConfig, chain_configs: ChainConfigs) {
         let app = App::<RuntimeAdapter>::new(config.runtime_worker_threads, &config.rpc_server_address, chain_configs)
             .await
             .start();
-        dbg!("made app");
 
         // TODO: Use config for P2P Server
 

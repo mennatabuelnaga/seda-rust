@@ -1,7 +1,7 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-use crate::{env_overwrite, merge_config_cli, Config, Result};
+use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Parser)]
 pub struct PartialNearConfig {
@@ -11,7 +11,12 @@ pub struct PartialNearConfig {
 
 impl PartialNearConfig {
     pub fn to_config(self, cli_options: Self) -> Result<NearConfig> {
-        let chain_rpc_url = merge_config_cli!(self, cli_options, chain_rpc_url, panic!("todo"));
+        let chain_rpc_url = merge_config_cli!(
+            self,
+            cli_options,
+            chain_rpc_url,
+            Err(ConfigError::from("near.chain_rpc_url"))
+        )?;
         Ok(NearConfig { chain_rpc_url })
     }
 }

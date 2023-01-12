@@ -5,13 +5,9 @@ mod configs;
 pub use configs::*;
 
 mod errors;
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::path::{Path, PathBuf};
 
 pub use errors::*;
-use tokio::sync::RwLock;
 
 // Standard config location for unix apps.
 #[cfg(target_family = "unix")]

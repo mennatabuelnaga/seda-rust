@@ -1,6 +1,8 @@
 //! Defines a MainChainConfig type based on features when compiling.
 
 mod near;
+use std::sync::Arc;
+
 use clap::Parser;
 pub use near::*;
 
@@ -20,10 +22,10 @@ pub struct PartialChainConfigs {
 
 impl PartialChainConfigs {
     pub fn to_config(self, cli_options: PartialChainConfigs) -> Result<ChainConfigs> {
-        Ok(ChainConfigs {
+        Ok(Arc::new(ChainConfigsInner {
             another: self.another.to_config(),
             near:    self.near.to_config(cli_options.near)?,
-        })
+        }))
     }
 }
 
@@ -42,7 +44,9 @@ impl Config for PartialChainConfigs {
 }
 
 #[derive(Debug, Clone)]
-pub struct ChainConfigs {
+pub struct ChainConfigsInner {
     pub another: AnotherConfig,
     pub near:    NearConfig,
 }
+
+pub type ChainConfigs = Arc<ChainConfigsInner>;

@@ -1,7 +1,5 @@
-use std::path::PathBuf;
-
 use clap::{arg, command, Parser, Subcommand};
-use seda_config::{AppConfig, PartialChainConfigs, PartialNodeConfig};
+use seda_config::{AppConfig, PartialChainConfigs, PartialLoggerConfig, PartialNodeConfig};
 use seda_runtime_sdk::Chain;
 
 use crate::Result;
@@ -18,11 +16,11 @@ use crate::Result;
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
     #[arg(short, long)]
-    chain:             Chain,
-    #[arg(long)]
-    pub log_file_path: Option<PathBuf>,
+    chain:           Chain,
+    #[command(flatten)]
+    pub log_options: PartialLoggerConfig,
     #[command(subcommand)]
-    command:           Command,
+    command:         Command,
 }
 
 #[derive(Debug, Subcommand)]

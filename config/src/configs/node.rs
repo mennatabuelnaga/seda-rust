@@ -32,32 +32,36 @@ pub struct PartialNodeConfig {
 
 impl PartialNodeConfig {
     pub fn to_config(self, cli_options: Self) -> Result<NodeConfig> {
-        let deposit = merge_config_cli!(self, cli_options, deposit, NodeConfig::DEPOSIT, |f: String| f
+        let deposit = merge_config_cli!(self, cli_options, deposit, Ok(NodeConfig::DEPOSIT), |f: String| f
             .parse()
-            .unwrap());
-        let gas = merge_config_cli!(self, cli_options, gas, NodeConfig::GAS);
-        let secret_key = merge_config_cli!(self, cli_options, secret_key, panic!("todo"));
+            .unwrap())?;
+        let gas = merge_config_cli!(self, cli_options, gas, Ok(NodeConfig::GAS))?;
+        let secret_key = merge_config_cli!(self, cli_options, secret_key, panic!("todo"))?;
         // TODO this should be derived from the secret key?
-        let public_key = merge_config_cli!(self, cli_options, public_key, panic!("todo"));
-        let signer_account_id = merge_config_cli!(self, cli_options, signer_account_id, panic!("todo"));
-        let contract_account_id = merge_config_cli!(self, cli_options, contract_account_id, panic!("todo"));
+        let public_key = merge_config_cli!(self, cli_options, public_key, panic!("todo"))?;
+        let signer_account_id = merge_config_cli!(self, cli_options, signer_account_id, panic!("todo"))?;
+        let contract_account_id = merge_config_cli!(self, cli_options, contract_account_id, panic!("todo"))?;
         let job_manager_interval_ms = merge_config_cli!(
             self,
             cli_options,
             job_manager_interval_ms,
-            NodeConfig::JOB_MANAGER_INTERVAL_MS
-        );
-        let rpc_server_address = merge_config_cli!(self, cli_options, rpc_server_address, panic!("todo"));
+            Ok(NodeConfig::JOB_MANAGER_INTERVAL_MS)
+        )?;
+        let rpc_server_address = merge_config_cli!(self, cli_options, rpc_server_address, panic!("todo"))?;
         let runtime_worker_threads = merge_config_cli!(
             self,
             cli_options,
             runtime_worker_threads,
-            NodeConfig::RUNTIME_WORKER_THREADS,
+            Ok(NodeConfig::RUNTIME_WORKER_THREADS),
             |f| f as usize
-        );
-        let p2p_server_address =
-            merge_config_cli!(self, cli_options, p2p_server_address, "/ip4/0.0.0.0/tcp/0".to_string());
-        let p2p_known_peers = merge_config_cli!(self, cli_options, p2p_known_peers, Vec::new());
+        )?;
+        let p2p_server_address = merge_config_cli!(
+            self,
+            cli_options,
+            p2p_server_address,
+            Ok("/ip4/0.0.0.0/tcp/0".to_string())
+        )?;
+        let p2p_known_peers = merge_config_cli!(self, cli_options, p2p_known_peers, Ok(Vec::new()))?;
 
         Ok(NodeConfig {
             deposit,

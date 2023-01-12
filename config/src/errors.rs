@@ -14,6 +14,22 @@ pub enum ConfigError {
     ConfigIoError(#[from] std::io::Error),
     #[error(transparent)]
     InvalidTomlConfig(#[from] TomlError),
+    #[error("The field `{0}` must be provided.")]
+    MustProvideField(String),
+    #[error("Failed to get current directory for logging file path: `{0}.")]
+    FailedToGetCurrentDir(String),
+}
+
+impl From<String> for ConfigError {
+    fn from(value: String) -> Self {
+        Self::MustProvideField(value)
+    }
+}
+
+impl From<&str> for ConfigError {
+    fn from(value: &str) -> Self {
+        value.to_string().into()
+    }
 }
 
 pub type Result<T, E = ConfigError> = core::result::Result<T, E>;

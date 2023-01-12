@@ -1,21 +1,25 @@
 use std::path::PathBuf;
 
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-use crate::{env_overwrite, Config, Result};
+use crate::{env_overwrite, merge_config_cli, Config, Result};
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, Parser)]
 pub struct PartialLoggerConfig {
+    #[arg(long)]
     pub log_file_path: Option<PathBuf>,
 }
 
 impl PartialLoggerConfig {
-    pub fn to_config(self, log_file_path: Option<&PathBuf>) -> LoggerConfig {
-        LoggerConfig {
-            log_file_path: self
-                .log_file_path
-                .unwrap_or(std::env::current_dir().expect("Failed to get current directory.")),
-        }
+    pub fn to_config(self, cli_options: Self) -> Result<LoggerConfig> {
+        let log_file_path = merge_config_cli!(
+            self,
+            cli_options,
+            log_file_path,
+            std::env::current_dir().map_err(|e| crate::ConfigError::FailedToGetCurrentDir(e.to_string()))
+        )?;
+        Ok(LoggerConfig { log_file_path })
     }
 }
 
