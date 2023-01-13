@@ -17,7 +17,7 @@ near-crypto = { workspace = true }
 near-jsonrpc-client = { workspace = true }
 near-jsonrpc-primitives = { workspace = true }
 near-primitives = { workspace = true }
-seda-chain-adapters = { workspace = true }
+seda-chains = { workspace = true }
 seda-config = { workspace = true }
 seda-logger = { workspace = true }
 seda-node = { workspace = true }

@@ -3886,7 +3886,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "seda-chain-adapters"
+name = "seda-chains"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -3917,7 +3917,7 @@ dependencies = [
  "near-jsonrpc-client",
  "near-jsonrpc-primitives",
  "near-primitives 0.15.0",
- "seda-chain-adapters",
+ "seda-chains",
  "seda-config",
  "seda-logger",
  "seda-node",
@@ -4025,7 +4025,7 @@ dependencies = [
  "lazy_static",
  "reqwest",
  "rusqlite",
- "seda-chain-adapters",
+ "seda-chains",
  "seda-config",
  "seda-runtime-sdk",
  "serde",

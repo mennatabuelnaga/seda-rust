@@ -1,6 +1,6 @@
 use near_crypto::ParseKeyError;
 use near_primitives::account::id::ParseAccountError;
-use seda_chain_adapters::ChainAdapterError;
+use seda_chains::ChainAdapterError;
 use seda_config::ConfigError;
 use thiserror::Error;
 

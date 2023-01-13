@@ -1,7 +1,7 @@
 use std::{array::TryFromSliceError, num::ParseIntError, str::Utf8Error};
 
 use actix::MailboxError;
-use seda_chain_adapters::ChainAdapterError;
+use seda_chains::ChainAdapterError;
 use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum RuntimeAdapterError {

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
-use seda_chain_adapters::{AnotherChain, ChainAdapterTrait, Client, NearChain};
+use seda_chains::{AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 

@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use seda_chain_adapters::{chain, AnotherChain, ChainAdapterTrait, Client, NearChain};
+use seda_chains::{chain, AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 

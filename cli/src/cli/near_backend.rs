@@ -1,5 +1,5 @@
 use jsonrpsee::{core::client::ClientT, rpc_params, ws_client::WsClientBuilder};
-use seda_chain_adapters::{ChainAdapterTrait, NearChain, NodeDetails, NodeIds};
+use seda_chains::{ChainAdapterTrait, NearChain, NodeDetails, NodeIds};
 use seda_config::NodeConfig;
 use serde_json::json;
 use tracing::debug;

@@ -2,7 +2,7 @@
 resolver = "2"
 default-members = ["cli"]
 members = [
-	"adapters/chain",
+	"chains",
 	# "adapters/http",
 	"adapters/p2p",
 	"adapters/runtime",
@@ -56,7 +56,7 @@ near-sdk = { version = "4.0", default-features = false }
 parking_lot = "0.12"
 reqwest = "0.11"
 rusqlite = { version = "0.28", features = ["bundled"] }
-seda-chain-adapters = { path = "./adapters/chain" }
+seda-chains = { path = "./chains" }
 seda-config = { path = "./config" }
 seda-logger = { path = "./logger" }
 seda-node = { path = "./node" }

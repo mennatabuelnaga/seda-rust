@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use seda_chain_adapters::{chain, Client};
+use seda_chains::{chain, Client};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 

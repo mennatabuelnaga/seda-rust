@@ -1,4 +1,4 @@
-use seda_chain_adapters::Client;
+use seda_chains::Client;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 

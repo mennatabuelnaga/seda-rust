@@ -1,4 +1,4 @@
-use seda_chain_adapters::ChainAdapterTrait;
+use seda_chains::ChainAdapterTrait;
 use seda_runtime_sdk::Chain;
 use serde::{Deserialize, Serialize};
 
