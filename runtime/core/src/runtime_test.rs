@@ -226,36 +226,38 @@ async fn test_cli_demo_view_another_chain() {
     assert_eq!(db_result.unwrap(), "view".to_string());
 }
 
-#[tokio::test(flavor = "multi_thread")]
-async fn test_cli_demo_view_near_chain() {
-    set_env_vars();
-    let wasm_binary = read_wasm_target("demo-cli");
+// TODO: test with local deployment or mocked RPC
+// #[tokio::test(flavor = "multi_thread")]
+// async fn test_cli_demo_view_near_chain() {
+//     set_env_vars();
+//     let wasm_binary = read_wasm_target("demo-cli");
 
-    let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
-            .await
-            .unwrap();
-    let memory_adapter = memory_adapter();
-    runtime.init(wasm_binary).unwrap();
-    let contract_id = "mc.mennat0.testnet".to_string();
-    let method_name = "get_node_socket_address".to_string();
-    let args = json!({"node_id": "12".to_string()}).to_string();
+//     let mut runtime =
+//         Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(),
+// ChainConfigsInner::test_config())             .await
+//             .unwrap();
+//     let memory_adapter = memory_adapter();
+//     runtime.init(wasm_binary).unwrap();
+//     let contract_id = "mc.mennat0.testnet".to_string();
+//     let method_name = "get_node_socket_address".to_string();
+//     let args = json!({"node_id": "12".to_string()}).to_string();
 
-    let runtime_execution_result = runtime
-        .start_runtime(
-            VmConfig {
-                args:         vec!["view".to_string(), "near".to_string(), contract_id, method_name, args],
-                program_name: "consensus".to_string(),
-                start_func:   None,
-                debug:        true,
-            },
-            memory_adapter.clone(),
-        )
-        .await;
-    assert!(runtime_execution_result.is_ok());
+//     let runtime_execution_result = runtime
+//         .start_runtime(
+//             VmConfig {
+//                 args:         vec!["view".to_string(), "near".to_string(),
+// contract_id, method_name, args],                 program_name:
+// "consensus".to_string(),                 start_func:   None,
+//                 debug:        true,
+//             },
+//             memory_adapter.clone(),
+//         )
+//         .await;
+//     assert!(runtime_execution_result.is_ok());
 
-    let db_result = runtime.host_adapter.db_get("chain_view_result").await.unwrap();
-    assert!(db_result.is_some());
+//     let db_result =
+// runtime.host_adapter.db_get("chain_view_result").await.unwrap();     assert!
+// (db_result.is_some());
 
-    assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
-}
+//     assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
+// }
