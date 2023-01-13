@@ -98,7 +98,7 @@ impl Config for PartialNodeConfig {
             public_key:              None,
             job_manager_interval_ms: None,
             runtime_worker_threads:  None,
-            p2p_server_address:      Some("/ip4/0.0.0.0/tcp/0".to_string()),
+            p2p_server_address:      Some(NodeConfigInner::P2P_SERVER_ADDRESS.to_string()),
             p2p_known_peers:         None,
         }
     }
@@ -107,26 +107,6 @@ impl Config for PartialNodeConfig {
         env_overwrite!(self.secret_key, "SEDA_SECRET_KEY");
     }
 }
-
-// impl Default for PartialNodeConfig {
-//     fn default() -> Self {
-//         let mut this = Self {
-//             deposit:                 Some((87 *
-// 10_u128.pow(19)).to_string()),             gas:
-// Some(300_000_000_000_000_u64.to_string()),             secret_key:
-// Some("fill me in".to_string()),             signer_account_id:
-// Some("fill me in".to_string()),             contract_account_id:
-// Some("fill me in".to_string()),             public_key:
-// Some("fill me in".to_string()),             job_manager_interval_ms:
-// Some(10),             rpc_server_address:
-// Some("127.0.0.1:12345".to_string()),             runtime_worker_threads:
-// Some(2),             p2p_server_address:
-// Some("/ip4/0.0.0.0/tcp/0".to_string()),             p2p_known_peers:
-// None,         };
-//         this.overwrite_from_env();
-//         this
-//     }
-// }
 
 #[derive(Debug, Clone)]
 pub struct NodeConfigInner {

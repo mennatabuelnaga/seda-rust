@@ -34,7 +34,6 @@ impl<HA: HostAdapter> App<HA> {
         let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
-        dbg!("rpc made");
         App {
             event_queue: Default::default(),
             running_event_ids: Default::default(),

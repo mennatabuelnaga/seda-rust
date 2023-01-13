@@ -30,7 +30,6 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
     type Context = SyncContext<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        // dbg!("started RuntimeWorker");
         // TODO: Replace the binary condinationally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         #[cfg(debug_assertions)]
@@ -53,7 +52,6 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
     type Result = Result<RuntimeJobResult>;
 
     fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
-        dbg!("handle RuntimeWorker");
         let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
 
         let args: Vec<String> = match msg.event.data {
