@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-/// A communication layer between Actix and the runtime
 use actix::prelude::*;
 use seda_chains::{AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
@@ -8,6 +7,8 @@ use seda_runtime::HostAdapter;
 use seda_runtime_sdk::Chain;
 
 use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HttpFetch, NodeError, Result};
+
+/// A communication layer between Actix and the runtime
 pub struct RuntimeAdapter {
     pub chains_config:  ChainConfigs,
     pub another_client: Client,

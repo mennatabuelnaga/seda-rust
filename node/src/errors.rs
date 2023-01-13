@@ -1,5 +1,3 @@
-use actix::MailboxError;
-use seda_p2p::P2PAdapterError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -7,9 +5,9 @@ pub enum NodeError {
     #[error(transparent)]
     RPCError(#[from] jsonrpsee::core::Error),
     #[error(transparent)]
-    MailboxError(#[from] MailboxError),
+    MailboxError(#[from] actix::MailboxError),
     #[error(transparent)]
-    P2PError(#[from] P2PAdapterError),
+    P2PError(#[from] seda_p2p::P2PAdapterError),
     #[error("Reqwest Error: {0}")]
     ReqwestError(#[from] reqwest::Error),
     #[error("Rusqlite Error: {0}")]
