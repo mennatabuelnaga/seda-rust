@@ -1,5 +1,5 @@
 [package]
-name = "seda-p2p-adapters"
+name = "seda-p2p"
 version = "0.1.0"
 edition = "2021"
 
@@ -19,4 +19,4 @@ tracing = { workspace = true }
 
 [dev-dependencies]
 seda-config = { workspace = true }
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

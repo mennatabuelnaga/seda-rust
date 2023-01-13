@@ -3,15 +3,13 @@ resolver = "2"
 default-members = ["cli"]
 members = [
 	"chains",
-	# "adapters/http",
-	"adapters/p2p",
 	"adapters/runtime",
-	# "adapters/storage",
 	"cli",
 	"config",
 	"contracts",
 	"logger",
 	"node",
+	"p2p",
 	"runtime/core",
 	"runtime/macros",
 	"wasm/cli",
@@ -60,7 +58,7 @@ seda-chains = { path = "./chains" }
 seda-config = { path = "./config" }
 seda-logger = { path = "./logger" }
 seda-node = { path = "./node" }
-seda-p2p-adapters = { path = "./adapters/p2p" }
+seda-p2p = { path = "./p2p" }
 seda-runtime = { path = "./runtime/core" }
 seda-runtime-adapters = { path = "./adapters/runtime" }
 seda-runtime-sdk = { path = "./runtime/sdk" }

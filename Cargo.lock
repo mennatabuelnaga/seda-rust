@@ -3972,7 +3972,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "reqwest",
  "seda-config",
- "seda-p2p-adapters",
+ "seda-p2p",
  "seda-runtime",
  "seda-runtime-adapters",
  "serde",
@@ -3983,7 +3983,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "seda-p2p-adapters"
+name = "seda-p2p"
 version = "0.1.0"
 dependencies = [
  "async-std",

@@ -11,7 +11,7 @@ jsonrpsee = { workspace = true, features = ["macros", "server"] }
 parking_lot = { workspace = true }
 reqwest = { workspace = true }
 seda-config = { workspace = true }
-seda-p2p-adapters = { workspace = true }
+seda-p2p = { workspace = true }
 seda-runtime = { workspace = true }
 seda-runtime-adapters = { workspace = true }
 serde = { workspace = true }

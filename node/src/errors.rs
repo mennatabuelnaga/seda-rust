@@ -1,5 +1,5 @@
 use actix::MailboxError;
-use seda_p2p_adapters::P2PAdapterError;
+use seda_p2p::P2PAdapterError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

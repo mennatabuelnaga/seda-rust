@@ -9,7 +9,7 @@ mod runtime_job;
 
 use actix::prelude::*;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_p2p_adapters::libp2p::P2PServer;
+use seda_p2p::libp2p::P2PServer;
 use seda_runtime_adapters::RuntimeAdapter;
 use tracing::info;
 

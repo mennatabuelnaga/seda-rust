@@ -11,14 +11,14 @@ pub fn init(config: &LoggerConfig) -> Vec<WorkerGuard> {
     #[cfg(debug_assertions)]
     let level_filter = level_filter
         .add_directive("seda_chains=trace".parse().unwrap())
-        .add_directive("seda_p2p_adapters=trace".parse().unwrap())
+        .add_directive("seda_p2p=trace".parse().unwrap())
         .add_directive("seda_cli=trace".parse().unwrap())
         .add_directive("seda_node=trace".parse().unwrap())
         .add_directive("seda_runtime=trace".parse().unwrap());
     #[cfg(not(debug_assertions))]
     let level_filter = level_filter
         .add_directive("seda_chains=info".parse().unwrap())
-        .add_directive("seda_p2p_adapters=info".parse().unwrap())
+        .add_directive("seda_p2p=info".parse().unwrap())
         .add_directive("seda_cli=info".parse().unwrap())
         .add_directive("seda_node=info".parse().unwrap())
         .add_directive("seda_runtime=info".parse().unwrap());
