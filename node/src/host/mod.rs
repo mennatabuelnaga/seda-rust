@@ -19,7 +19,7 @@ pub use chain_call::ChainCall;
 mod chain_view;
 pub use chain_view::ChainView;
 
-use crate::RuntimeAdapterError;
+use crate::NodeError;
 
 pub struct Host {
     db_conn: Connection,
@@ -42,7 +42,7 @@ impl Default for Host {
                         )
                         .expect("couldn't create db table");
 
-                    Ok::<_, RuntimeAdapterError>(())
+                    Ok::<_, NodeError>(())
                 })
                 .await
                 .expect("Couldn't execute db call");
@@ -59,3 +59,6 @@ impl Actor for Host {
 impl actix::Supervised for Host {}
 
 impl SystemService for Host {}
+
+mod runtime_host;
+pub use runtime_host::*;

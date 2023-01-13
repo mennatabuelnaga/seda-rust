@@ -7,10 +7,11 @@ mod event_queue_handler;
 mod rpc;
 mod runtime_job;
 
+mod host;
 use actix::prelude::*;
+pub(crate) use host::*;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_p2p::libp2p::P2PServer;
-use seda_runtime_adapters::RuntimeAdapter;
 use tracing::info;
 
 use crate::app::Shutdown;

@@ -2,7 +2,6 @@ use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_runtime_adapters::{HostAdapter, InMemory};
 use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -10,7 +9,7 @@ use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
-use crate::RuntimeError;
+use crate::{HostAdapter, InMemory, RuntimeError};
 
 #[derive(Clone)]
 pub struct Runtime<HA: HostAdapter> {
@@ -54,7 +53,9 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
     async fn new(node_config: NodeConfig, chains_config: ChainConfigs) -> Result<Self> {
         Ok(Self {
             wasm_module: None,
-            host_adapter: HA::new(chains_config).await?,
+            host_adapter: HA::new(chains_config)
+                .await
+                .map_err(|e| RuntimeError::NodeError(e.to_string()))?,
             node_config,
         })
     }
@@ -153,13 +154,18 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     PromiseAction::DatabaseSet(db_action) => {
                         self.host_adapter
                             .db_set(&db_action.key, &String::from_utf8(db_action.value.clone())?)
-                            .await?;
+                            .await
+                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        let result = self.host_adapter.db_get(&db_action.key).await?;
+                        let result = self
+                            .host_adapter
+                            .db_get(&db_action.key)
+                            .await
+                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 
                         match result {
                             Some(r) => {
@@ -171,7 +177,11 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     }
 
                     PromiseAction::Http(http_action) => {
-                        let resp = self.host_adapter.http_fetch(&http_action.url).await?;
+                        let resp = self
+                            .host_adapter
+                            .http_fetch(&http_action.url)
+                            .await
+                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
@@ -184,7 +194,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                                 &chain_view_action.method_name,
                                 chain_view_action.args.clone(),
                             )
-                            .await?;
+                            .await
+                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
                     }
@@ -199,7 +210,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                                 chain_call_action.deposit.parse::<u128>()?,
                                 self.node_config.clone(),
                             )
-                            .await?;
+                            .await
+                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
                     }

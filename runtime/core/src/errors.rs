@@ -1,6 +1,5 @@
 use std::num::ParseIntError;
 
-use seda_runtime_adapters::RuntimeAdapterError;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
@@ -33,13 +32,25 @@ pub enum RuntimeError {
     IoError(#[from] std::io::Error),
 
     #[error(transparent)]
-    RuntimeAdapterError(#[from] RuntimeAdapterError),
-
-    #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
 
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
+
+    #[error("{0:?}")]
+    StringBytesConversion(#[from] std::str::Utf8Error),
+    #[error("{0}")]
+    NumBytesConversion(#[from] std::array::TryFromSliceError),
+
+    #[error("Node Error: {0}")]
+    NodeError(String),
+
+    #[cfg(test)]
+    #[error("Reqwest Error: {0}")]
+    ReqwestError(#[from] reqwest::Error),
+    #[cfg(test)]
+    #[error("Chain Adapter Error: {0}")]
+    ChainAdapterError(#[from] seda_chains::ChainAdapterError),
 }
 
 impl From<InstantiationError> for RuntimeError {

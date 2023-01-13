@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use actix::{AsyncContext, Handler, Message};
-use seda_runtime_adapters::HostAdapter;
+use seda_runtime::HostAdapter;
 
 use crate::{app::App, runtime_job::RuntimeJob};
 

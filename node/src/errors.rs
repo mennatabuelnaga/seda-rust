@@ -10,6 +10,12 @@ pub enum NodeError {
     MailboxError(#[from] MailboxError),
     #[error(transparent)]
     P2PError(#[from] P2PAdapterError),
+    #[error("Reqwest Error: {0}")]
+    ReqwestError(#[from] reqwest::Error),
+    #[error("Rusqlite Error: {0}")]
+    RuqliteError(#[from] rusqlite::Error),
+    #[error("Chain Adapter Error: {0}")]
+    ChainAdapterError(#[from] seda_chains::ChainAdapterError),
 }
 
 pub type Result<T, E = NodeError> = core::result::Result<T, E>;

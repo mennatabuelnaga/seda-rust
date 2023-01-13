@@ -3,7 +3,7 @@ use std::sync::Arc;
 use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_runtime_adapters::HostAdapter;
+use seda_runtime::HostAdapter;
 use tracing::info;
 
 use crate::{

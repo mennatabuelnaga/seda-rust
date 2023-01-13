@@ -3,7 +3,6 @@ resolver = "2"
 default-members = ["cli"]
 members = [
 	"chains",
-	"adapters/runtime",
 	"cli",
 	"config",
 	"contracts",
@@ -60,7 +59,6 @@ seda-logger = { path = "./logger" }
 seda-node = { path = "./node" }
 seda-p2p = { path = "./p2p" }
 seda-runtime = { path = "./runtime/core" }
-seda-runtime-adapters = { path = "./adapters/runtime" }
 seda-runtime-sdk = { path = "./runtime/sdk" }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false }

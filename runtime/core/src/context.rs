@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use seda_runtime_adapters::InMemory;
 use wasmer::{HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
 
 use super::PromiseQueue;
+use crate::InMemory;
 
 #[derive(Clone)]
 pub struct VmContext {

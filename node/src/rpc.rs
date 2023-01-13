@@ -4,7 +4,7 @@ use jsonrpsee::{
     proc_macros::rpc,
     server::{ServerBuilder, ServerHandle},
 };
-use seda_runtime_adapters::HostAdapter;
+use seda_runtime::HostAdapter;
 use tracing::debug;
 
 use crate::{

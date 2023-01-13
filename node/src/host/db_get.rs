@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{Host, Result, RuntimeAdapterError};
+use crate::{Host, NodeError, Result};
 
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<Option<String>>")]
@@ -25,7 +25,7 @@ impl Handler<DatabaseGet> for Host {
                         retrieved = row.get(0)?;
                         Ok(())
                     })?;
-                    Ok::<_, RuntimeAdapterError>(retrieved)
+                    Ok::<_, NodeError>(retrieved)
                 })
                 .await?;
 

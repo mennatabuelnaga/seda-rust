@@ -1,6 +1,7 @@
 use std::{collections::HashMap, ops::Deref};
 
-use super::{Bytes, FromBytes, MemoryAdapter, Result, ToBytes};
+use super::{Bytes, FromBytes, MemoryAdapter, ToBytes};
+use crate::Result;
 
 #[derive(Default)]
 pub struct InMemory {

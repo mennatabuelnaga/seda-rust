@@ -2,7 +2,7 @@ use actix::prelude::*;
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
 
-use crate::{Host, Result, RuntimeAdapterError};
+use crate::{Host, NodeError, Result};
 
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "Result<()>")]
@@ -25,7 +25,7 @@ impl Handler<DatabaseSet> for Host {
                         params![msg.key, msg.value],
                     )?;
 
-                    Ok::<_, RuntimeAdapterError>(())
+                    Ok::<_, NodeError>(())
                 })
                 .await?;
 

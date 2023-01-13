@@ -1,5 +1,5 @@
 use actix::{Handler, Message, System};
-use seda_runtime_adapters::HostAdapter;
+use seda_runtime::HostAdapter;
 use tracing::error;
 
 use super::App;

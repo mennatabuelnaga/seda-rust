@@ -9,6 +9,9 @@ pub use context::*;
 mod errors;
 pub use errors::*;
 
+mod host_adapter;
+pub use host_adapter::*;
+
 pub(crate) mod imports;
 
 mod promise;
@@ -17,8 +20,14 @@ pub(crate) use promise::*;
 mod runtime;
 pub use runtime::*;
 
+mod storage;
+pub use storage::*;
+
 #[cfg(test)]
 #[path = ""]
-pub mod test {
+mod test {
+    mod test_host;
+    pub(crate) use test_host::*;
+
     mod runtime_test;
 }

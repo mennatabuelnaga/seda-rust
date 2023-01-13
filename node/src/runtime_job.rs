@@ -3,8 +3,7 @@ use std::{fs, path::PathBuf, sync::Arc};
 use actix::{prelude::*, Handler, Message};
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_runtime::{Result, RunnableRuntime, Runtime, VmConfig, VmResult};
-use seda_runtime_adapters::{HostAdapter, InMemory};
+use seda_runtime::{HostAdapter, InMemory, Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use tracing::info;
 
 use crate::event_queue::{Event, EventData};

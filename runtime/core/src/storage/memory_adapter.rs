@@ -1,4 +1,5 @@
-use super::{Bytes, FromBytes, Result, ToBytes};
+use super::{Bytes, FromBytes, ToBytes};
+use crate::Result;
 
 pub trait MemoryAdapter {
     fn get<V>(&self, key: &str) -> Result<Option<V>>

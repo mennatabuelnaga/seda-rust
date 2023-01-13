@@ -4,9 +4,10 @@ use std::sync::Arc;
 use actix::prelude::*;
 use seda_chains::{AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
+use seda_runtime::HostAdapter;
 use seda_runtime_sdk::Chain;
 
-use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HostAdapter, HttpFetch, Result};
+use crate::{ChainCall, ChainView, DatabaseGet, DatabaseSet, Host, HttpFetch, NodeError, Result};
 pub struct RuntimeAdapter {
     pub chains_config:  ChainConfigs,
     pub another_client: Client,
@@ -15,6 +16,8 @@ pub struct RuntimeAdapter {
 
 #[async_trait::async_trait]
 impl HostAdapter for RuntimeAdapter {
+    type Error = NodeError;
+
     async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
             another_client: Client::Another(Arc::new(AnotherChain::new_client(&config.another)?)),

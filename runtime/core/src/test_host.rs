@@ -6,7 +6,7 @@ use seda_chains::{chain, AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 
-use crate::{HostAdapter, Result};
+use crate::{HostAdapter, Result, RuntimeError};
 
 lazy_static! {
     #[derive(Clone, Default)]
@@ -22,6 +22,8 @@ pub struct RuntimeTestAdapter {
 
 #[async_trait::async_trait]
 impl HostAdapter for RuntimeTestAdapter {
+    type Error = RuntimeError;
+
     async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
             another_client: Client::Another(Arc::new(AnotherChain::new_client(&config.another)?)),

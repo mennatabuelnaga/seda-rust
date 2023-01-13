@@ -1,5 +1,5 @@
 use actix::{Handler, Message};
-use seda_runtime_adapters::HostAdapter;
+use seda_runtime::HostAdapter;
 use serde::{Deserialize, Serialize};
 
 use crate::{app::App, event_queue::Event};

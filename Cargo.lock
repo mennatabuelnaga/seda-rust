@@ -3971,14 +3971,17 @@ dependencies = [
  "jsonrpsee",
  "parking_lot 0.12.1",
  "reqwest",
+ "rusqlite",
+ "seda-chains",
  "seda-config",
  "seda-p2p",
  "seda-runtime",
- "seda-runtime-adapters",
+ "seda-runtime-sdk",
  "serde",
  "serde_json",
  "thiserror",
  "tokio",
+ "tokio-rusqlite",
  "tracing",
 ]
 
@@ -3999,12 +4002,13 @@ dependencies = [
 name = "seda-runtime"
 version = "0.1.0"
 dependencies = [
- "actix",
  "async-trait",
+ "futures",
+ "lazy_static",
  "parking_lot 0.12.1",
  "reqwest",
+ "seda-chains",
  "seda-config",
- "seda-runtime-adapters",
  "seda-runtime-sdk",
  "serde",
  "serde_json",
@@ -4013,25 +4017,6 @@ dependencies = [
  "tracing",
  "wasmer",
  "wasmer-wasi",
-]
-
-[[package]]
-name = "seda-runtime-adapters"
-version = "0.1.0"
-dependencies = [
- "actix",
- "async-trait",
- "futures",
- "lazy_static",
- "reqwest",
- "rusqlite",
- "seda-chains",
- "seda-config",
- "seda-runtime-sdk",
- "serde",
- "thiserror",
- "tokio",
- "tokio-rusqlite",
 ]
 
 [[package]]

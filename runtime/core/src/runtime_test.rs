@@ -2,10 +2,9 @@ use std::{env, fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_config::{ChainConfigsInner, NodeConfigInner};
-use seda_runtime_adapters::{test_host::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter};
 use serde_json::json;
 
-use crate::{RunnableRuntime, Runtime, VmConfig};
+use crate::{test::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
 
 fn read_wasm_target(file: &str) -> Vec<u8> {
     let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
