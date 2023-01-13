@@ -5,7 +5,7 @@ pub type EventId = String;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum EventData {
     // Tick types
-    MainChainTick,
+    ChainTick,
     CliCall(Vec<String>),
 }
 

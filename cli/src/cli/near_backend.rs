@@ -1,5 +1,5 @@
 use jsonrpsee::{core::client::ClientT, rpc_params, ws_client::WsClientBuilder};
-use seda_chain_adapters::{MainChainAdapterTrait, NearMainChain, NodeDetails, NodeIds};
+use seda_chain_adapters::{ChainAdapterTrait, NearChain, NodeDetails, NodeIds};
 use seda_config::NodeConfig;
 use serde_json::json;
 use tracing::debug;
@@ -28,7 +28,7 @@ impl CliCommands for NearCliBackend {
         let contract_id = &node_config.contract_account_id;
         let gas = node_config.gas;
 
-        let signed_tx = NearMainChain::construct_signed_tx(
+        let signed_tx = NearChain::construct_signed_tx(
             signer_acc_str,
             signer_sk_str,
             contract_id,

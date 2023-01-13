@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use seda_chain_adapters::{chain, AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
+use seda_chain_adapters::{chain, AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 
@@ -24,8 +24,8 @@ pub struct RuntimeTestAdapter {
 impl HostAdapter for RuntimeTestAdapter {
     async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another)?)),
-            near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near)?)),
+            another_client: Client::Another(Arc::new(AnotherChain::new_client(&config.another)?)),
+            near_client:    Client::Near(Arc::new(NearChain::new_client(&config.near)?)),
             chain_configs:  config,
         })
     }

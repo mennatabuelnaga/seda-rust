@@ -25,7 +25,7 @@
 //         app.send(AddEventToQueue {
 //             event: Event {
 //                 id:   "test".to_string(),
-//                 data: EventData::MainChainTick,
+//                 data: EventData::ChainTick,
 //             },
 //         })
 //         .await

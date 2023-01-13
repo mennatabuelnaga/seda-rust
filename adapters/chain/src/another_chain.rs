@@ -3,13 +3,13 @@ use std::sync::Arc;
 use seda_config::AnotherConfig;
 
 use super::errors::Result;
-use crate::{MainChainAdapterTrait, TransactionParams};
+use crate::{ChainAdapterTrait, TransactionParams};
 
 #[derive(Debug)]
-pub struct AnotherMainChain;
+pub struct AnotherChain;
 
 #[async_trait::async_trait]
-impl MainChainAdapterTrait for AnotherMainChain {
+impl ChainAdapterTrait for AnotherChain {
     type Client = ();
     type Config = AnotherConfig;
 

@@ -55,7 +55,7 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
         let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
 
         let args: Vec<String> = match msg.event.data {
-            EventData::MainChainTick => vec![],
+            EventData::ChainTick => vec![],
             EventData::CliCall(args) => args,
         };
 

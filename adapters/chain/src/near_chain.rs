@@ -14,14 +14,14 @@ use serde_json::from_slice;
 use tokio::time;
 use tracing::info;
 
-use super::errors::{MainChainAdapterError, Result};
-use crate::{MainChainAdapterTrait, TransactionParams};
+use super::errors::{ChainAdapterError, Result};
+use crate::{ChainAdapterTrait, TransactionParams};
 
 #[derive(Debug)]
-pub struct NearMainChain;
+pub struct NearChain;
 
 #[async_trait::async_trait]
-impl MainChainAdapterTrait for NearMainChain {
+impl ChainAdapterTrait for NearChain {
     type Client = JsonRpcClient;
     type Config = NearConfig;
 
@@ -58,7 +58,7 @@ impl MainChainAdapterTrait for NearMainChain {
 
         let current_nonce = match access_key_query_response.kind {
             QueryResponseKind::AccessKey(access_key) => access_key.nonce,
-            _ => Err(MainChainAdapterError::FailedToExtractCurrentNonce)?,
+            _ => Err(ChainAdapterError::FailedToExtractCurrentNonce)?,
         };
 
         let transaction = Transaction {
@@ -95,7 +95,7 @@ impl MainChainAdapterTrait for NearMainChain {
 
         let nonce = match access_key_query_response.kind {
             QueryResponseKind::AccessKey(access_key) => access_key.nonce,
-            _ => Err(MainChainAdapterError::FailedToExtractCurrentNonce)?,
+            _ => Err(ChainAdapterError::FailedToExtractCurrentNonce)?,
         };
 
         let transaction = Transaction {
@@ -137,7 +137,7 @@ impl MainChainAdapterTrait for NearMainChain {
             let delta = (received_at - sent_at).as_secs();
 
             if delta > 60 {
-                return Err(MainChainAdapterError::BadTransactionTimestamp);
+                return Err(ChainAdapterError::BadTransactionTimestamp);
             }
 
             match response {
@@ -146,7 +146,7 @@ impl MainChainAdapterTrait for NearMainChain {
                         time::sleep(time::Duration::from_secs(2)).await;
                         continue;
                     }
-                    _ => return Err(MainChainAdapterError::CallChangeMethod(err.to_string())),
+                    _ => return Err(ChainAdapterError::CallChangeMethod(err.to_string())),
                 },
                 Ok(response) => {
                     info!("response gotten after: {}s", delta);
@@ -156,7 +156,7 @@ impl MainChainAdapterTrait for NearMainChain {
                     if let FinalExecutionStatus::SuccessValue(value) = response.status {
                         return Ok(value);
                     } else {
-                        return Err(MainChainAdapterError::FailedTx(format!("{:?}", response.status)));
+                        return Err(ChainAdapterError::FailedTx(format!("{:?}", response.status)));
                     }
                 }
             }
@@ -178,7 +178,7 @@ impl MainChainAdapterTrait for NearMainChain {
         if let QueryResponseKind::CallResult(ref result) = response.kind {
             Ok(from_slice::<String>(&result.result)?)
         } else {
-            Err(MainChainAdapterError::CallViewMethod)
+            Err(ChainAdapterError::CallViewMethod)
         }
     }
 }

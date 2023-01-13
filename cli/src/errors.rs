@@ -1,6 +1,6 @@
 use near_crypto::ParseKeyError;
 use near_primitives::account::id::ParseAccountError;
-use seda_chain_adapters::MainChainAdapterError;
+use seda_chain_adapters::ChainAdapterError;
 use seda_config::ConfigError;
 use thiserror::Error;
 
@@ -15,7 +15,7 @@ pub enum CliError {
     #[error("error parsing string to near AccountId")]
     ParseKey(#[from] ParseKeyError),
     #[error(transparent)]
-    MainChainAdapterError(#[from] MainChainAdapterError),
+    ChainAdapterError(#[from] ChainAdapterError),
     #[error("Config error: {0}")]
     LoadConfigError(#[from] ConfigError),
     #[error("Config error: {0}")]

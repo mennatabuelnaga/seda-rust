@@ -1,4 +1,4 @@
-//! Defines a MainChainConfig type based on features when compiling.
+//! Defines a ChainConfig type based on features when compiling.
 
 mod near;
 use std::sync::Arc;

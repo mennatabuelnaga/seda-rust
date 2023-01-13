@@ -4,7 +4,7 @@ use jsonrpsee_types::Params;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{MainChainAdapterError, Result};
+use crate::{ChainAdapterError, Result};
 
 pub struct TransactionParams {
     pub signer_acc_str: String,
@@ -32,7 +32,7 @@ pub struct NodeDetails {
 
 // TODO once rpc becomes a trait need to replace params type.
 #[async_trait::async_trait]
-pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
+pub trait ChainAdapterTrait: Debug + Send + Sync + 'static {
     /// The Config fields for the adapter specific implementation.
     type Config: Send + Sync;
     /// The Client type for the adapter specific implementation.
@@ -72,7 +72,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
         let method_name = "get_node_owner";
         let params = params
             .one::<NodeIds>()
-            .map_err(|e| MainChainAdapterError::BadParams(format!("{method_name}: {e}")))?;
+            .map_err(|e| ChainAdapterError::BadParams(format!("{method_name}: {e}")))?;
 
         let args = json!({"node_id": params.node_id.to_string()}).to_string().into_bytes();
 
@@ -84,7 +84,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
         let method_name = "get_node_socket_address";
         let params = params
             .one::<NodeIds>()
-            .map_err(|_| MainChainAdapterError::BadParams(method_name.to_string()))?;
+            .map_err(|_| ChainAdapterError::BadParams(method_name.to_string()))?;
 
         let args = json!({"node_id": params.node_id.to_string()}).to_string().into_bytes();
 
@@ -97,7 +97,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
 
         let params = params
             .one::<NodeDetails>()
-            .map_err(|_| MainChainAdapterError::BadParams(method_name.to_string()))?;
+            .map_err(|_| ChainAdapterError::BadParams(method_name.to_string()))?;
 
         let args = json!({"limit": params.limit.to_string(), "offset": params.offset.to_string()})
             .to_string()
@@ -110,7 +110,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
     async fn register_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let signed_tx = params
             .one::<Vec<u8>>()
-            .map_err(|_| MainChainAdapterError::BadParams("register_node".to_string()))?;
+            .map_err(|_| ChainAdapterError::BadParams("register_node".to_string()))?;
 
         Self::send_tx(client, &signed_tx).await
     }
@@ -119,7 +119,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
     async fn remove_node(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let signed_tx = params
             .one::<Vec<u8>>()
-            .map_err(|_| MainChainAdapterError::BadParams("register_node".to_string()))?;
+            .map_err(|_| ChainAdapterError::BadParams("register_node".to_string()))?;
 
         Self::send_tx(client, &signed_tx).await
     }
@@ -128,7 +128,7 @@ pub trait MainChainAdapterTrait: Debug + Send + Sync + 'static {
     async fn set_node_socket_address(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let signed_tx = params
             .one::<Vec<u8>>()
-            .map_err(|_| MainChainAdapterError::BadParams("register_node".to_string()))?;
+            .map_err(|_| ChainAdapterError::BadParams("register_node".to_string()))?;
 
         Self::send_tx(client, &signed_tx).await
     }

@@ -3,7 +3,7 @@ use near_jsonrpc_client::methods::broadcast_tx_async::RpcBroadcastTxAsyncError;
 use near_primitives::account::id::ParseAccountError;
 use thiserror::Error;
 #[derive(Error, Debug)]
-pub enum MainChainAdapterError {
+pub enum ChainAdapterError {
     #[error("error calling contract change method")]
     CallChangeMethod(String),
 
@@ -46,4 +46,4 @@ pub enum MainChainAdapterError {
     StdIoError(#[from] std::io::Error),
 }
 
-pub type Result<T, E = MainChainAdapterError> = core::result::Result<T, E>;
+pub type Result<T, E = ChainAdapterError> = core::result::Result<T, E>;

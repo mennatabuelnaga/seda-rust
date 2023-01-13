@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 /// A communication layer between Actix and the runtime
 use actix::prelude::*;
-use seda_chain_adapters::{AnotherMainChain, Client, MainChainAdapterTrait, NearMainChain};
+use seda_chain_adapters::{AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 
@@ -17,8 +17,8 @@ pub struct RuntimeAdapter {
 impl HostAdapter for RuntimeAdapter {
     async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherMainChain::new_client(&config.another)?)),
-            near_client:    Client::Near(Arc::new(NearMainChain::new_client(&config.near)?)),
+            another_client: Client::Another(Arc::new(AnotherChain::new_client(&config.another)?)),
+            near_client:    Client::Near(Arc::new(NearChain::new_client(&config.near)?)),
             chains_config:  config,
         })
     }

@@ -6,7 +6,7 @@ fn add_item_to_event_queue() {
 
     queue.add(Event {
         id:   "test-id".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     let item = queue.get_next(&[]).unwrap();
@@ -20,12 +20,12 @@ fn get_item_with_skip() {
 
     queue.add(Event {
         id:   "test-id".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     queue.add(Event {
         id:   "test-id-2".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     let item = queue.get_next(&["test-id".to_string()]).unwrap();
@@ -39,12 +39,12 @@ fn get_item_should_empty_queue() {
 
     queue.add(Event {
         id:   "test-id".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     queue.add(Event {
         id:   "test-id-2".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     let item = queue.get_next(&[]).unwrap();
@@ -62,12 +62,12 @@ fn get_item_should_empty_queue_with_skip() {
 
     queue.add(Event {
         id:   "test-id".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     queue.add(Event {
         id:   "test-id-2".to_string(),
-        data: EventData::MainChainTick,
+        data: EventData::ChainTick,
     });
 
     let item = queue.get_next(&["test-id".to_string()]).unwrap();

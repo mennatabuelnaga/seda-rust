@@ -1,4 +1,4 @@
-use seda_chain_adapters::MainChainAdapterTrait;
+use seda_chain_adapters::ChainAdapterTrait;
 use seda_runtime_sdk::Chain;
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +6,7 @@ use super::RuntimeError;
 
 #[async_trait::async_trait]
 pub trait HostAdapter: Send {
-    type MainChainAdapter: MainChainAdapterTrait;
+    type ChainAdapter: ChainAdapterTrait;
     fn new() -> Result<Self>
     where
         Self: Sized;
