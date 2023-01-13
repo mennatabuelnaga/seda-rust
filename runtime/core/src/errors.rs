@@ -42,7 +42,7 @@ pub enum RuntimeError {
     #[error("{0}")]
     NumBytesConversion(#[from] std::array::TryFromSliceError),
 
-		// TODO this is scuffed and not true for test_host.
+    // TODO this is scuffed and not true for test_host.
     #[error("Node Error: {0}")]
     NodeError(String),
 
