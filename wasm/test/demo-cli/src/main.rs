@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{command, Parser, Subcommand};
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, chain_view, db_set, http_fetch, Promise},
     Chain,
@@ -9,6 +9,7 @@ mod commands;
 use commands::{get_node, get_nodes, register_node, unregister_node, update_node, UpdateNode};
 
 #[derive(Parser)]
+#[command(bin_name = "seda")]
 #[command(name = "seda")]
 #[command(author = "https://github.com/SedaProtocol")]
 #[command(version = "0.1.0")]
@@ -58,7 +59,8 @@ enum Commands {
 }
 
 fn main() {
-    let options = Options::parse();
+    let args = vec!["seda", "--help"];
+    let options = Options::parse_from(args);
 
     if let Some(command) = options.command {
         match command {

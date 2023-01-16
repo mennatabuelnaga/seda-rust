@@ -30,7 +30,8 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
         // TODO: Replace the binary condinationally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         #[cfg(debug_assertions)]
-        path_prefix.push("../target/wasm32-wasi/debug/cli.wasm");
+        path_prefix.push("../workspace.wasm");
+        // path_prefix.push("../target/wasm32-wasi/debug/cli.wasm");
         #[cfg(not(debug_assertions))]
         path_prefix.push("../target/wasm32-wasi/release/cli.wasm");
 

@@ -96,7 +96,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let stdout_pipe = Pipe::new();
                         let stderr_pipe = Pipe::new();
 
-                        let mut wasi_env = WasiState::new(call_action.function_name.clone())
+                        let mut wasi_env = WasiState::new("seda-poop")
                             .args(call_action.args.clone())
                             .stdout(Box::new(stdout_pipe))
                             .stderr(Box::new(stderr_pipe))
