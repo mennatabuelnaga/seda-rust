@@ -1,23 +1,16 @@
-seda_server_url = 'ws://127.0.0.1:12345'
-
-[another_chain]
+seda_server_address = '127.0.0.1'
+seda_server_port = 12345
+[chains.another]
 chain_rpc_url = 'https://rpc.testnet.near.org'
 
-[near_chain]
+[chains.near]
 chain_rpc_url = 'https://rpc.testnet.near.org'
 
 [node]
-contract_account_id = 'mc.foo.testnet'
-deposit = '870000000000000000000'
-gas = '300000000000000'
-job_manager_interval_ms = 10
-p2p_server_address = '/ip4/0.0.0.0/tcp/0'
-p2p_known_peers = []
-public_key = 'ed25519:some_public_key'
-rpc_server_address = '127.0.0.1:12345'
-runtime_worker_threads = 2
-secret_key = 'ed25519:some_secret_key'
-signer_account_id = 'foo.testnet'
+contract_account_id = 'fill this in'
+public_key = 'fill this in'
+secret_key = 'fill this in'
+signer_account_id = 'fill this in'
 
 [logging]
-log_file_path = './'
+log_file_path = 'C:\Users\galu\Documents\work\Flux\seda-rust'

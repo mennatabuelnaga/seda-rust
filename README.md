@@ -30,7 +30,7 @@
 [twitter-url]: https://twitter.com/SedaProtocol
 
 Open source Rust implementation of the
-[SEDA Protocol](https://docs.seda.xyz/seda-network/introduction/the-oracle-problem).
+[SEDA Protocol](https://docs.seda.xyz/).
 
 **NOTE** this repo adheres to the [GPLv3 license](LICENSE.md).
 
@@ -69,8 +69,6 @@ You can look at the example configuration [here](example.config.toml).
 
 #### Fields
 
-<!-- TODO needs to specify which are overwritable by CLI once it's merged and config changes. -->
-
 - seda_server_address(?!) - Defines the address for seda to run its RPC server on.
 - seda_server_port(?!) - Defines the port for seda to run its RPC server on.
 - chains - All config fields related to the supported chains.
@@ -94,6 +92,8 @@ You can look at the example configuration [here](example.config.toml).
 ### ENV
 
 Seda configuration uses the following ENV variables if they exist.
+
+**NOTE**: You can use a `.env` file to overwrite the env variables more easily.
 
 | Name                  | Description                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
