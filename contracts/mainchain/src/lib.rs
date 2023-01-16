@@ -1,5 +1,6 @@
 pub mod account;
 pub mod block;
+pub mod consts;
 pub mod data_request;
 pub mod data_request_test;
 pub mod fungible_token;
@@ -8,6 +9,7 @@ pub mod node_registry;
 pub mod node_registry_test;
 pub mod staking;
 pub mod storage;
+
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{LookupMap, UnorderedMap, Vector},
@@ -17,7 +19,6 @@ use near_sdk::{
     AccountId,
     Balance,
     BorshStorageKey,
-    EpochHeight,
     PanicOnDefault,
 };
 use uint::construct_uint;
@@ -25,6 +26,7 @@ use uint::construct_uint;
 use crate::{
     account::Account,
     block::{Block, BlockHeight, BlockId},
+    consts::STAKE_SHARE_PRICE_GUARANTEE_FUND,
     node_registry::Node,
     staking::NumStakeShares,
 };
@@ -43,21 +45,6 @@ construct_uint! {
     /// 256-bit unsigned integer.
     pub struct U256(4);
 }
-
-/// The amount of yocto NEAR the contract dedicates to guarantee that the
-/// "share" price never decreases. It's used during rounding errors for share ->
-/// amount conversions.
-/// The amount of yocto NEAR the contract dedicates to guarantee that the
-/// "share" price never decreases. It's used during rounding errors for share ->
-/// amount conversions.
-const STAKE_SHARE_PRICE_GUARANTEE_FUND: Balance = 1_000_000_000_000;
-
-/// The number of epochs required for the locked balance to become unlocked.
-/// NOTE: The actual number of epochs when the funds are unlocked is 3. But
-/// there is a corner case when the unstaking promise can arrive at the next
-/// epoch, while the inner state is already updated in the previous epoch. It
-/// will not unlock the funds for 4 epochs.
-const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4; // TODO: set our own epoch logic
 
 /// Contract global state
 #[near_bindgen]

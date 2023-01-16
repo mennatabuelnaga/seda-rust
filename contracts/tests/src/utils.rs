@@ -18,7 +18,7 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
     // deploy and initialize token contract
     let token_contract = worker
         .dev_deploy(include_bytes!(
-            "../../target/wasm32-unknown-unknown/release/seda_token.wasm"
+            "../../../target/wasm32-unknown-unknown/release/seda_token.wasm"
         ))
         .await
         .unwrap();
@@ -48,7 +48,7 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
     // deploy and initialize mainchain contract
     let mainchain_contract = worker
         .dev_deploy(include_bytes!(
-            "../../target/wasm32-unknown-unknown/release/seda_mainchain.wasm"
+            "../../../target/wasm32-unknown-unknown/release/seda_mainchain.wasm"
         ))
         .await
         .unwrap();

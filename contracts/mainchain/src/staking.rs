@@ -2,10 +2,10 @@ use near_sdk::{env, json_types::U128, near_bindgen, AccountId, Balance, PromiseE
 
 use crate::{
     account::HumanReadableAccount,
-    fungible_token::{ft, GAS_FOR_FT_ON_TRANSFER},
+    consts::{GAS_FOR_FT_ON_TRANSFER, NUM_EPOCHS_TO_UNLOCK},
+    fungible_token::ft,
     MainchainContract,
     MainchainContractExt,
-    NUM_EPOCHS_TO_UNLOCK,
     U256,
 };
 

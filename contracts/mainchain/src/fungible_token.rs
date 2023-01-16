@@ -1,11 +1,7 @@
 use near_contract_standards::fungible_token::receiver::FungibleTokenReceiver;
-use near_sdk::{env, ext_contract, json_types::U128, log, near_bindgen, require, AccountId, Gas, PromiseOrValue};
+use near_sdk::{env, ext_contract, json_types::U128, log, near_bindgen, require, AccountId, PromiseOrValue};
 
-use crate::{MainchainContract, MainchainContractExt};
-
-const BASE_GAS: u64 = 5_000_000_000_000;
-const PROMISE_CALL: u64 = 5_000_000_000_000;
-pub const GAS_FOR_FT_ON_TRANSFER: Gas = Gas(BASE_GAS + PROMISE_CALL);
+use crate::{consts::GAS_FOR_FT_ON_TRANSFER, MainchainContract, MainchainContractExt};
 
 #[ext_contract(ft)]
 pub trait FungibleToken {
