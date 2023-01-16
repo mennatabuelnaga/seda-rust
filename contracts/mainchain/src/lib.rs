@@ -18,6 +18,7 @@ use near_sdk::{
     Balance,
     BorshStorageKey,
     EpochHeight,
+    PanicOnDefault,
 };
 use uint::construct_uint;
 
@@ -60,7 +61,7 @@ const NUM_EPOCHS_TO_UNLOCK: EpochHeight = 4; // TODO: set our own epoch logic
 
 /// Contract global state
 #[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[derive(PanicOnDefault, BorshDeserialize, BorshSerialize)]
 pub struct MainchainContract {
     seda_token:               AccountId,
     num_nodes:                u64,
@@ -79,12 +80,6 @@ pub struct MainchainContract {
     pub total_staked_balance: Balance,
     /// Persistent map from an account ID to the corresponding account.
     pub accounts:             UnorderedMap<AccountId, Account>,
-}
-
-impl Default for MainchainContract {
-    fn default() -> Self {
-        panic!("Contract should be initialized before usage")
-    }
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
