@@ -88,8 +88,8 @@ impl CliCommands for NearCliBackend {
         Ok(())
     }
 
-    async fn get_nodes(seda_server_url: &str, node_config: &NodeConfig, limit: u64, offset: u64) -> Result<()> {
-        let contract_id = &node_config.contract_account_id;
+    async fn get_nodes(seda_server_url: &str, details: DepositAndContractID, limit: u64, offset: u64) -> Result<()> {
+        let contract_id = &details.contract_account_id;
 
         let response = Self::view_seda_server(
             seda_server_url,

@@ -2,7 +2,7 @@ use jsonrpsee::{
     core::{client::ClientT, params::ArrayParams, rpc_params},
     ws_client::WsClientBuilder,
 };
-use seda_config::NodeConfig;
+use seda_config::{DepositAndContractID, NodeConfig};
 use serde_json::json;
 use tracing::debug;
 
@@ -98,6 +98,7 @@ pub trait CliCommands: Send + Sync {
     }
 
     async fn get_node_socket_address(seda_server_url: &str, node_config: &NodeConfig, node_id: u64) -> Result<()>;
-    async fn get_nodes(seda_server_url: &str, node_config: &NodeConfig, limit: u64, offset: u64) -> Result<()>;
+    async fn get_nodes(seda_server_url: &str, node_config: DepositAndContractID, limit: u64, offset: u64)
+    -> Result<()>;
     async fn get_node_owner(seda_server_url: &str, node_config: &NodeConfig, node_id: u64) -> Result<()>;
 }

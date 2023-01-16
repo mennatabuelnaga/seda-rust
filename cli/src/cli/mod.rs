@@ -1,7 +1,13 @@
 use clap::{arg, command, Parser, Subcommand};
-use seda_config::{AppConfig, PartialChainConfigs, PartialLoggerConfig, PartialNearConfig, PartialNodeConfig};
-use seda_runtime_sdk::Chain;
+use seda_config::{
+    AppConfig,
+    PartialChainConfigs,
+    PartialDepositAndContractID,
+    PartialLoggerConfig,
+    PartialNodeConfig,
+};
 
+// use seda_runtime_sdk::Chain;
 use crate::Result;
 
 mod cli_commands;
@@ -15,12 +21,24 @@ mod near_backend;
 #[command(version = "0.1.0")]
 #[command(about = "For interacting with the SEDA protocol.", long_about = None)]
 pub struct CliOptions {
-    #[arg(short, long)]
-    chain:           Chain,
     #[command(flatten)]
     pub log_options: PartialLoggerConfig,
     #[command(subcommand)]
     command:         Command,
+}
+
+/// Update node commands
+#[derive(Clone, Debug, Subcommand)]
+pub enum UpdateNode {
+    AcceptOwnership,
+    SetPendingOwner {
+        #[arg(short, long)]
+        owner: String,
+    },
+    SetSocketAddress {
+        #[arg(short, long)]
+        address: String,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -31,60 +49,41 @@ enum Command {
         #[command(flatten)]
         chains_config: PartialChainConfigs,
     },
-    Cli {
-        args: Vec<String>,
+    GetNodes {
+        #[arg(short, long)]
+        offset:  u64,
+        #[arg(short, long)]
+        limit:   u64,
+        #[command(flatten)]
+        details: PartialDepositAndContractID,
+    },
+    GetNode {
+        #[arg(short, long)]
+        node_id: u64,
+        #[command(flatten)]
+        details: PartialDepositAndContractID,
     },
     RegisterNode {
         #[arg(short, long)]
         socket_address: String,
+        #[arg(short, long)]
+        deposit:        String,
         #[command(flatten)]
-        node_config:    PartialNodeConfig,
-        #[command(flatten)]
-        near_config:    PartialNearConfig,
+        details:        PartialDepositAndContractID,
     },
-    GetNodes {
+    UpdateNode {
         #[arg(short, long)]
-        limit:       u64,
-        #[arg(short, long, default_value = "0")]
-        offset:      u64,
+        node_id: u64,
+        #[command(subcommand)]
+        command: UpdateNode,
         #[command(flatten)]
-        node_config: PartialNodeConfig,
+        details: PartialDepositAndContractID,
     },
-    GetNodeSocketAddress {
+    UnregisterNode {
         #[arg(short, long)]
-        node_id:     u64,
+        node_id: u64,
         #[command(flatten)]
-        node_config: PartialNodeConfig,
-    },
-    RemoveNode {
-        #[arg(short, long)]
-        node_id:     u64,
-        #[command(flatten)]
-        node_config: PartialNodeConfig,
-        #[command(flatten)]
-        near_config: PartialNearConfig,
-    },
-    SetNodeSocketAddress {
-        #[arg(short, long)]
-        node_id:        u64,
-        #[arg(short, long)]
-        socket_address: String,
-        #[command(flatten)]
-        node_config:    PartialNodeConfig,
-        #[command(flatten)]
-        near_config:    PartialNearConfig,
-    },
-    GetNodeOwner {
-        #[arg(short, long)]
-        node_id:     u64,
-        #[command(flatten)]
-        node_config: PartialNodeConfig,
-    },
-    SignTxn {
-        #[arg(short, long)]
-        signer_account_id: Option<String>,
-        #[command(flatten)]
-        node_config:       PartialNodeConfig,
+        details: PartialDepositAndContractID,
     },
 }
 
@@ -94,79 +93,12 @@ impl CliOptions {
     #[tokio::main]
     async fn rest_of_options<T: CliCommands>(config: AppConfig, command: Command) -> Result<()> {
         match command {
-            // cargo run cli call mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
-            // "870000000000000000000"
-            Command::RegisterNode {
-                socket_address,
-                node_config,
-                near_config,
-            } => {
-                let node_config = config.node.to_config(node_config)?;
-                let near_config = config.chains.near.to_config(near_config)?;
-                T::register_node(
-                    &config.seda_server_url,
-                    &near_config.chain_rpc_url,
-                    &node_config,
-                    &socket_address,
-                )
-                .await?
+            // make run -- get-nodes --limit 2
+            Command::GetNodes { limit, offset, details } => {
+                let details = config.node.to_deposit_and_contract_id(details)?;
+                T::get_nodes(&config.seda_server_url, details, limit, offset).await?
             }
-            // cargo run --bin seda get-nodes --limit 2
-            Command::GetNodes {
-                limit,
-                offset,
-                node_config,
-            } => {
-                let node_config = config.node.to_config(node_config)?;
-                T::get_nodes(&config.seda_server_url, &node_config, limit, offset).await?
-            }
-            // cargo run --bin seda get-node-socket-address --node-id 9
-            Command::GetNodeSocketAddress { node_id, node_config } => {
-                let node_config = config.node.to_config(node_config)?;
-                T::get_node_socket_address(&config.seda_server_url, &node_config, node_id).await?
-            }
-            // cargo run --bin seda remove-node --node-id 9
-            Command::RemoveNode {
-                node_id,
-                node_config,
-                near_config,
-            } => {
-                let node_config = config.node.to_config(node_config)?;
-                let near_config = config.chains.near.to_config(near_config)?;
-                T::remove_node(
-                    &config.seda_server_url,
-                    &near_config.chain_rpc_url,
-                    &node_config,
-                    node_id,
-                )
-                .await?
-            }
-            // cargo run --bin seda set-node-socket-address --node-id 9
-            Command::SetNodeSocketAddress {
-                node_id,
-                socket_address,
-                node_config,
-                near_config,
-            } => {
-                let node_config = config.node.to_config(node_config)?;
-                let near_config = config.chains.near.to_config(near_config)?;
-                T::set_node_socket_address(
-                    &config.seda_server_url,
-                    &near_config.chain_rpc_url,
-                    &node_config,
-                    node_id,
-                    &socket_address,
-                )
-                .await?
-            }
-            // cargo run --bin seda get-node-owner --node-id 9
-            Command::GetNodeOwner { node_id, node_config } => {
-                let node_config = config.node.to_config(node_config)?;
-                T::get_node_owner(&config.seda_server_url, &node_config, node_id).await?
-            }
-            Command::Cli { args } => T::call_cli(&config.seda_server_url, &args).await?,
-
-            // The commands `run` and `generate-config` are already handled.
+            // The run command is already handled.
             _ => unreachable!(),
         }
 

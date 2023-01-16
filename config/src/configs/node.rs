@@ -30,7 +30,39 @@ pub struct PartialNodeConfig {
     pub p2p_known_peers:         Option<Vec<String>>,
 }
 
+#[derive(Debug, Default, Serialize, Deserialize, Parser)]
+pub struct PartialDepositAndContractID {
+    #[arg(short, long)]
+    pub deposit:             Option<String>,
+    #[arg(long)]
+    pub contract_account_id: Option<String>,
+}
+
+/// A smaller configuration purely for other CLI commands
+#[derive(Debug)]
+pub struct DepositAndContractID {
+    pub deposit:             u128,
+    pub contract_account_id: String,
+}
+
 impl PartialNodeConfig {
+    pub fn to_deposit_and_contract_id(self, cli_options: PartialDepositAndContractID) -> Result<DepositAndContractID> {
+        let deposit = merge_config_cli!(self, cli_options, deposit, Ok(NodeConfigInner::DEPOSIT), |f: String| f
+            .parse()
+            .unwrap())?;
+        let contract_account_id = merge_config_cli!(
+            self,
+            cli_options,
+            contract_account_id,
+            Err(ConfigError::from("node.contract_account_id"))
+        )?;
+
+        Ok(DepositAndContractID {
+            deposit,
+            contract_account_id,
+        })
+    }
+
     pub fn to_config(self, cli_options: Self) -> Result<NodeConfig> {
         let deposit = merge_config_cli!(self, cli_options, deposit, Ok(NodeConfigInner::DEPOSIT), |f: String| f
             .parse()
