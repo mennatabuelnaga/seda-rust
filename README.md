@@ -93,7 +93,7 @@ You can look at the example configuration [here](example.config.toml).
 
 Seda configuration uses the following ENV variables if they exist.
 
-**NOTE**: You can use a `.env` file to overwrite the env variables more easily.
+**NOTE**: You can use a `.env` file to overwrite the env variables more easily.~~~
 
 | Name                  | Description                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
