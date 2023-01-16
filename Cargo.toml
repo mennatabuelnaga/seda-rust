@@ -40,6 +40,7 @@ opt-level = "z"
 [workspace.dependencies]
 actix = "0.13"
 async-trait = "0.1"
+base64 = "0.13"
 borsh = { version = "0.9", default-features = false }
 clap = { version = "4.0", default-features = false }
 dotenv = "0.15"
@@ -48,18 +49,17 @@ jsonrpsee-types = "0.16"
 jsonrpsee = { version = "0.16", default-features = false }
 lazy_static = "1.4"
 libp2p = { version = "0.48", default-features = false }
-near-jsonrpc-client = { version = "0.4", default-features = false, features = [
-	"auth",
-	"rustls-tls",
-] }
+near-jsonrpc-client = { version = "0.4", default-features = false }
 near-jsonrpc-primitives = "0.15"
 near-contract-standards = "4.0"
 near-crypto = "0.15"
 near-primitives = "0.15"
 near-sdk = { version = "4.0", default-features = false }
+near-units = "0.2"
 parking_lot = "0.12"
 reqwest = "0.11"
 rusqlite = { version = "0.28", features = ["bundled"] }
+schemars = "0.8"
 seda-chain-adapters = { path = "./adapters/chain" }
 seda-config = { path = "./config" }
 seda-logger = { path = "./logger" }
@@ -81,3 +81,4 @@ tracing-subscriber = { version = "0.3", default-features = false }
 uint = { version = "0.8", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }
+workspaces = "0.7"

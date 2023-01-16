@@ -14,7 +14,10 @@ clap = { workspace = true, features = ["derive", "std", "help"] }
 dotenv = { workspace = true }
 jsonrpsee = { workspace = true, features = ["client"] }
 near-crypto = { workspace = true }
-near-jsonrpc-client = { workspace = true }
+near-jsonrpc-client = { workspace = true, features = [
+	"auth",
+	"rustls-tls",
+] }
 near-jsonrpc-primitives = { workspace = true }
 near-primitives = { workspace = true }
 seda-chain-adapters = { workspace = true }

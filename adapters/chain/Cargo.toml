@@ -7,7 +7,10 @@ edition = "2021"
 async-trait = { workspace = true }
 borsh = { workspace = true }
 jsonrpsee-types = { workspace = true }
-near-jsonrpc-client = { workspace = true }
+near-jsonrpc-client = { workspace = true, features = [
+	"auth",
+	"rustls-tls",
+] }
 near-jsonrpc-primitives = { workspace = true }
 near-primitives = { workspace = true }
 tokio = { workspace = true }

@@ -1,2 +1,3 @@
-bash ./mainchain/build.sh
-bash ./seda-token/build.sh
+#!/usr/bin/env sh
+sh ./mainchain/build.sh
+sh ./seda-token/build.sh
