@@ -5,7 +5,7 @@
 </p>
 
 <h1 align="center">
-   Seda Rust
+   SEDA Rust
 </h1>
 
 [![Build Status][actions-badge]][actions-url]
@@ -91,7 +91,7 @@ You can look at the example configuration [here](example.config.toml).
 
 ### ENV
 
-Seda configuration uses the following ENV variables if they exist.
+SEDA configuration uses the following ENV variables if they exist.
 
 **NOTE**: You can use a `.env` file to overwrite the env variables more easily.~~~
 
