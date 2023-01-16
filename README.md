@@ -9,6 +9,8 @@
 </h1>
 
 [![Build Status][actions-badge]][actions-url]
+[![GitHub Stars][github-stars-badge]](https://github.com/sedaprotocol/seda-rust)
+[![GitHub Contributors][github-contributors-badge]](https://github.com/sedaprotocol/seda-rust/graphs/contributors)
 [![Discord chat][discord-badge]][discord-url]
 [![Twitter][twitter-badge]][twitter-url]
 
@@ -20,9 +22,11 @@
 
 [actions-badge]: https://github.com/sedaprotocol/seda-rust/actions/workflows/push.yml/badge.svg
 [actions-url]: https://github.com/sedaprotocol/seda-rust/actions/workflows/push.yml+branch%3Amain
+[github-stars-badge]: https://img.shields.io/github/stars/sedaprotocol/seda-rust.svg?style=flat-square&label=github%20stars
+[github-contributors-badge]: https://img.shields.io/github/contributors/sedaprotocol/seda-rust.svg?style=flat-square
 [discord-badge]: https://img.shields.io/discord/500028886025895936.svg?logo=discord&style=flat-square
 [discord-url]: https://discord.gg/seda
-[twitter-badge]: https://img.shields.io/badge/Twitter-%231DA1F2.svg?style=for-the-badge&logo=Twitter&logoColor=white
+[twitter-badge]: https://img.shields.io/twitter/url/https/twitter.com/SedaProtocol.svg?style=social&label=Follow%20%40SedaProtocol
 [twitter-url]: https://twitter.com/SedaProtocol
 
 Open source Rust implementation of the
@@ -67,29 +71,25 @@ You can look at the example configuration [here](example.config.toml).
 
 <!-- TODO needs to specify which are overwritable by CLI once it's merged and config changes. -->
 
-- seda_server_url(!) - Defines the URL for seda to run its RPC server on.
-
-<!-- TODO this should be for testing only but for now, it's required, so we should remove this before we go public.
-	- another_chain
-	- chain_rpc_url(!) -->
-
-- near_chain - All config fields related to the near chain.
-  - chain_rpc_url(!) - The near server URL.
+- seda_server_address(?!) - Defines the address for seda to run its RPC server on.
+- seda_server_port(?!) - Defines the port for seda to run its RPC server on.
+- chains - All config fields related to the supported chains.
+  - near - All config fields related to the near chain.
+    - chain_rpc_url(!\*) - The near server URL.
 - node - All config fields related to the seda node.
-  - contract_account_id(!) - Your near contract account id.
-  - deposit(?!) - The deposit amount.
-  - gas(?!) - The gas amount.
-  - job_manager_interval_ms(?) - How often the node runs jobs.
-  - p2p_server_address - The address to run the p2p server on.
-  - p2p_known_peers - The list of known peers for the node.
-  - public_key(!) - Your near public key.
-  - rpc_server_address(!) - The same as the seda_server_url without the `ws://`.
-  - runtime_worker_threads(?) - The number of threads the node can use to spin
+  - contract_account_id(\*) - Your near contract account id.
+  - deposit(?\*) - The deposit amount.
+  - gas(?\*) - The gas amount.
+  - job_manager_interval_ms(?\*) - How often the node runs jobs.
+  - p2p_server_address(?\*) - The address to run the p2p server on.
+  - p2p_known_peers(?\*) - The list of known peers for the node.
+  - public_key(\*) - Your near public key.
+  - runtime_worker_threads(?\*) - The number of threads the node can use to spin
     up jobs.
-  - secret_key(!) - Your near secret key.
-  - signer_account_id(!) - Your near signer account id.
+  - secret_key(!\*) - Your near secret key.
+  - signer_account_id(\*) - Your near signer account id.
 - logging - All config fields related to the seda logger.
-  - log_file_path(!) - The path where the log file will write.
+  - log_file_path(?!\*) - The path where the log file will write.
 
 ### ENV
 
@@ -97,14 +97,10 @@ Seda configuration uses the following ENV variables if they exist.
 
 | Name                  | Description                                                                                                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `CONTRACT_ACCOUNT_ID` | Overwrites the config `node.contract_account_id` field.                                                                            |
-| `DEPOSIT`             | Overwrites the config `node.deposit` field.                                                                                        |
-| `GAS`                 | Overwrites the config `node.gas` field.                                                                                            |
-| `LOG_FILE_PATH`       | Overwrites the config `logging.log_file_path` field.                                                                               |
-| `NEAR_SERVER_URL`     | Overwrites the config `near_chain.chain_rpc_url` field.                                                                            |
-| `PUBLIC_KEY`          | Overwrites the config `node.public_key` field.                                                                                     |
-| `SECRET_KEY`          | Overwrites the config `node.secret_key` field.                                                                                     |
 | `SEDA_CONFIG_PATH`    | Defines an alternative path for the seda configuration file to be.                                                                 |
-| `SEDA_SERVER_URL`     | Overwrites the config `seda_server_url` field.                                                                                     |
-| `SIGNER_ACCOUNT_ID`   | Overwrites the config `node.signer_account_id` field.                                                                              |
+| `SEDA_LOG_FILE_PATH`  | Overwrites the config `logging.log_file_path` field.                                                                               |
+| `SEDA_NEAR_RPC_URL`   | Overwrites the config `near_chain.chain_rpc_url` field.                                                                            |
+| `SEDA_SECRET_KEY`     | Overwrites the config `node.secret_key` field.                                                                                     |
+| `SEDA_SERVER_ADDRESS` | Overwrites the config `seda_server_address` field.                                                                                 |
+| `SEDA_SERVER_PORT`    | Overwrites the config `seda_server_port` field.                                                                                    |
 | `RUST_LOG`            | Controlled via the [tracing_subscriber](https://docs.rs/tracing-subscriber/0.3.16/tracing_subscriber/struct.EnvFilter.html) crate. |

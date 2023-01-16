@@ -4,9 +4,7 @@ This file describes the process for contributing to `seda-rust`.
 
 ## Starting
 
-<!-- TODO put the fork link here once it's enabled. -->
-
-First and foremost, [fork]() the repository. Then please read the
+First and foremost, [fork](https://github.com/sedaprotocol/seda-rust/fork) the repository. Then please read the
 [developing instructions](DEVELOPING.md) for setting up your environment.
 
 ## Commits
@@ -52,7 +50,8 @@ For creating the PR, please follow the instructions below.
    to the `main` branch of `seda-rust`.
 2. Please fill in the PR template that is there.
 3. Then assign it to yourself and anyone else who worked on the issue with you.
-4. Finally, please assign at least two reviewers to your PR:
+4. Make sure all CI tests pass.
+5. Finally, please assign at least two reviewers to your PR:
    - [FranklinWaller](https://github.com/FranklinWaller)
    - [gluax](https://github.com/gluax)
    - [jamesondh](https://github.com/jamesondh)

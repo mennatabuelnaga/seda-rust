@@ -7,8 +7,8 @@ format, and clean the code base. To learn how to contribute please read
 ## Dev-Container
 
 If you are using [VSCode](https://code.visualstudio.com/) and
-[docker](https://www.docker.com/) you can open the project in a dev
-[container](https://containers.dev/) where all deps will be installed already.
+[docker](https://www.docker.com/) you can open the project in a
+[dev-container](https://github.com/Microsoft/vscode-remote-release) where all deps will be installed already.
 Otherwise please see the [dev dependencies](#dev-dependencies).
 
 ## Dev Dependencies
