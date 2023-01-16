@@ -1,17 +1,32 @@
 <p align="center">
   <a href="https://seda.xyz/">
-    <img width="90%" alt="seda-rust" src="link to seda icon">
+    <img width="90%" alt="seda-rust" src="https://www.seda.xyz/images/footer/footer-image.png">
   </a>
 </p>
 
-<h3 align="center">
+<h1 align="center">
    Seda Rust
-</h3>
+</h1>
 
-# seda-rust
+[![Build Status][actions-badge]][actions-url]
+[![Discord chat][discord-badge]][discord-url]
+[![Twitter][twitter-badge]][twitter-url]
 
-Open source Rust implementation of the SEDA Protocol. Designed to run on the
-NEAR chain.
+<!-- once we publish seda:
+[![Crates.io][crates-badge]][crates-url]
+[crates-badge]: https://img.shields.io/crates/v/seda
+[crates-url]: https://crates.io/crates/seda
+ -->
+
+[actions-badge]: https://github.com/sedaprotocol/seda-rust/actions/workflows/push.yml/badge.svg
+[actions-url]: https://github.com/sedaprotocol/seda-rust/actions/workflows/push.yml+branch%3Amain
+[discord-badge]: https://img.shields.io/discord/500028886025895936.svg?logo=discord&style=flat-square
+[discord-url]: https://discord.gg/seda
+[twitter-badge]: https://img.shields.io/badge/Twitter-%231DA1F2.svg?style=for-the-badge&logo=Twitter&logoColor=white
+[twitter-url]: https://twitter.com/SedaProtocol
+
+Open source Rust implementation of the
+[SEDA Protocol](https://docs.seda.xyz/seda-network/introduction/the-oracle-problem).
 
 **NOTE** this repo adheres to the [GPLv3 license](LICENSE.md).
 
