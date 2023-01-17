@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use clap::Parser;
+use clap::Args;
 use serde::{Deserialize, Serialize};
 
 use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 
 /// The configuration for the seda engine.
-#[derive(Debug, Default, Serialize, Deserialize, Parser)]
+#[derive(Debug, Default, Serialize, Deserialize, Args)]
 pub struct PartialNodeConfig {
     #[arg(short, long)]
     pub deposit:                 Option<String>,
@@ -30,7 +30,7 @@ pub struct PartialNodeConfig {
     pub p2p_known_peers:         Option<Vec<String>>,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, Parser)]
+#[derive(Debug, Default, Serialize, Deserialize, Args)]
 pub struct PartialDepositAndContractID {
     #[arg(short, long)]
     pub deposit:             Option<String>,

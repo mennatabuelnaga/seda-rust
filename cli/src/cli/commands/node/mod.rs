@@ -5,7 +5,9 @@ use crate::Result;
 
 mod get_node;
 mod get_nodes;
+mod node_result;
 mod register_node;
+pub use node_result::NodeResult;
 mod run;
 mod unregister_node;
 mod update_node;

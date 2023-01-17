@@ -18,32 +18,35 @@ pub struct ChainCall {
     pub chains_config: ChainConfigs,
 }
 
+impl ChainCall {
+    pub async fn call_bytes(self) -> Result<Vec<u8>> {
+        let server_url = match self.chain {
+            Chain::Another => &self.chains_config.another.chain_rpc_url,
+            Chain::Near => &self.chains_config.near.chain_rpc_url,
+        };
+
+        let signed_txn = chain::construct_signed_tx(
+            self.chain,
+            &self.node_config.signer_account_id,
+            &self.node_config.secret_key,
+            &self.contract_id,
+            &self.method_name,
+            self.args,
+            self.node_config.gas,
+            self.node_config.deposit,
+            server_url,
+        )
+        .await?;
+        let value = chain::send_tx(self.chain, self.client, &signed_txn).await?;
+
+        Ok(value)
+    }
+}
+
 impl<HA: HostAdapter> Handler<ChainCall> for Host<HA> {
     type Result = ResponseActFuture<Self, Result<Vec<u8>>>;
 
     fn handle(&mut self, msg: ChainCall, _ctx: &mut Self::Context) -> Self::Result {
-        let fut = async move {
-            let server_url = match msg.chain {
-                Chain::Another => &msg.chains_config.another.chain_rpc_url,
-                Chain::Near => &msg.chains_config.near.chain_rpc_url,
-            };
-
-            let signed_txn = chain::construct_signed_tx(
-                msg.chain,
-                &msg.node_config.signer_account_id,
-                &msg.node_config.secret_key,
-                &msg.contract_id,
-                &msg.method_name,
-                msg.args,
-                msg.node_config.gas,
-                msg.node_config.deposit,
-                server_url,
-            )
-            .await?;
-            let value = chain::send_tx(msg.chain, msg.client, &signed_txn).await?;
-
-            Ok(value)
-        };
-        Box::pin(fut.into_actor(self))
+        Box::pin(msg.call_bytes().into_actor(self))
     }
 }

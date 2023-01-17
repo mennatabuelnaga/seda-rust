@@ -10,6 +10,7 @@ mod runtime_job;
 mod host;
 use actix::prelude::*;
 pub(crate) use host::*;
+pub use host::{ChainCall, ChainView};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_p2p::libp2p::P2PServer;
 use tracing::info;

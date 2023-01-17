@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::Args;
 use serde::{Deserialize, Serialize};
 
 use crate::{env_overwrite, merge_config_cli, Config, Result};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, Parser)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, Args)]
 pub struct PartialLoggerConfig {
     #[arg(long)]
     pub log_file_path: Option<PathBuf>,

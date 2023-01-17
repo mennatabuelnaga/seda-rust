@@ -2,6 +2,7 @@ use near_crypto::ParseKeyError;
 use near_primitives::account::id::ParseAccountError;
 use seda_chains::ChainAdapterError;
 use seda_config::ConfigError;
+use seda_node::NodeError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -20,6 +21,8 @@ pub enum CliError {
     LoadConfigError(#[from] ConfigError),
     #[error("Config error: {0}")]
     ConfigError(String),
+    #[error(transparent)]
+    NodeError(#[from] NodeError),
 }
 
 impl From<&str> for CliError {

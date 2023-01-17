@@ -15,15 +15,18 @@ pub struct ChainView {
     pub client:      Client,
 }
 
+impl ChainView {
+    pub async fn view(self) -> Result<String> {
+        let value = chain::view(self.chain, self.client, &self.contract_id, &self.method_name, self.args).await?;
+
+        Ok(value)
+    }
+}
+
 impl<HA: HostAdapter> Handler<ChainView> for Host<HA> {
     type Result = ResponseActFuture<Self, Result<String>>;
 
     fn handle(&mut self, msg: ChainView, _ctx: &mut Self::Context) -> Self::Result {
-        let fut = async move {
-            let value = chain::view(msg.chain, msg.client, &msg.contract_id, &msg.method_name, msg.args).await?;
-
-            Ok(value)
-        };
-        Box::pin(fut.into_actor(self))
+        Box::pin(msg.view().into_actor(self))
     }
 }

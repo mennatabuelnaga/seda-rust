@@ -3,7 +3,7 @@
 mod near;
 use std::sync::Arc;
 
-use clap::Parser;
+use clap::{Args, Parser};
 pub use near::*;
 
 mod another_config;
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Config, Result};
 
-#[derive(Debug, Default, Serialize, Deserialize, Parser)]
+#[derive(Debug, Default, Serialize, Deserialize, Args)]
 pub struct PartialChainConfigs {
     #[arg(skip)]
     pub another: PartialAnotherConfig,
