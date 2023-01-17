@@ -1,5 +1,10 @@
 use clap::Args;
+<<<<<<< HEAD
 use seda_config::{AppConfig, PartialChainConfigs};
+=======
+use seda_config::{ChainConfigs, PartialDepositAndContractID};
+use seda_node::ChainView;
+>>>>>>> eaa79c2 (refactor: cli clean up + start calling view and call from cli)
 use seda_runtime_sdk::Chain;
 
 use crate::{cli::commands::view, Result};
