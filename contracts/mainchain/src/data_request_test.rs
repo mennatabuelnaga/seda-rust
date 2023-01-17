@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use near_sdk::{test_utils::VMContextBuilder, testing_env, VMContext};
-
+    use crate::RewardFeeFraction;
     use crate::MainchainContract;
 
     fn get_context(signer_account_id: String) -> VMContext {
@@ -19,7 +19,10 @@ mod tests {
             .build()
     }
     fn new_contract() -> MainchainContract {
-        MainchainContract::new("token_near".to_string().try_into().unwrap())
+        MainchainContract::new("token_near".to_string().try_into().unwrap(), RewardFeeFraction {
+            numerator: 10,
+            denominator: 100,
+        },)
     }
 
     #[test]

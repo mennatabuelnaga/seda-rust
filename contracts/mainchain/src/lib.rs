@@ -19,7 +19,7 @@ use near_sdk::{
     AccountId,
     Balance,
     BorshStorageKey,
-    PanicOnDefault,
+    PanicOnDefault, EpochHeight,
 };
 use uint::construct_uint;
 
@@ -67,6 +67,15 @@ pub struct MainchainContract {
     pub total_staked_balance: Balance,
     /// Persistent map from an account ID to the corresponding account.
     pub accounts:             UnorderedMap<AccountId, Account>,
+    /// The last epoch height when `distribute_rewards` was called.
+    pub last_epoch_height: EpochHeight,
+    /// The fraction of the reward that goes to the owner of the staking pool for running the
+    /// validator node.
+    pub reward_fee_fraction: RewardFeeFraction,
+    /// The account ID of the owner who's running the staking validator node.
+    /// NOTE: This is different from the current account ID which is used as a validator account.
+    /// The owner of the staking pool can change staking public key and adjust reward fees.
+    pub owner_id: AccountId,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
@@ -94,7 +103,7 @@ impl RewardFeeFraction {
 #[near_bindgen]
 impl MainchainContract {
     #[init]
-    pub fn new(seda_token: AccountId) -> Self {
+    pub fn new(seda_token: AccountId, reward_fee_fraction: RewardFeeFraction) -> Self {
         let account_balance = STAKE_SHARE_PRICE_GUARANTEE_FUND; // TODO: fetch ft_balance_of this contract on initialization
         assert!(!env::state_exists(), "Already initialized");
         let total_staked_balance = account_balance;
@@ -119,6 +128,9 @@ impl MainchainContract {
             total_staked_balance,
             total_stake_shares: total_staked_balance,
             accounts: UnorderedMap::new(MainchainStorageKeys::Accounts),
+            last_epoch_height: env::epoch_height(),
+            reward_fee_fraction,
+            owner_id: env::predecessor_account_id(),
         }
     }
 }

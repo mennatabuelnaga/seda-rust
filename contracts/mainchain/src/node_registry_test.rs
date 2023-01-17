@@ -8,6 +8,7 @@ mod tests {
         testing_env,
         VMContext,
     };
+    use crate::RewardFeeFraction;
 
     use crate::{
         node_registry::{Node, UpdateNode},
@@ -31,7 +32,10 @@ mod tests {
             .build()
     }
     fn new_contract() -> MainchainContract {
-        MainchainContract::new("token_near".to_string().try_into().unwrap())
+        MainchainContract::new("token_near".to_string().try_into().unwrap(), RewardFeeFraction {
+            numerator: 10,
+            denominator: 100,
+        },)
     }
 
     #[test]

@@ -171,6 +171,67 @@ impl MainchainContract {
             );
     }
 
+
+    /// Distributes rewards after the new epoch. It's automatically called before every action.
+    /// Returns true if the current epoch height is different from the last epoch height.
+    pub(crate) fn distribute_rewards(&mut self) -> bool {
+        let epoch_height = env::epoch_height();
+        if self.last_epoch_height == epoch_height {
+            return false;
+        }
+        self.last_epoch_height = epoch_height;
+
+        // New total amount (both locked and unlocked balances).
+        // NOTE: We need to subtract `attached_deposit` in case `ping` called from `deposit` call
+        // since the attached deposit gets included in the `account_balance`, and we have not
+        // accounted it yet.
+        let total_balance =
+            env::account_locked_balance() + env::account_balance() - env::attached_deposit();
+
+        assert!(
+            total_balance >= self.last_total_balance,
+            "The new total balance should not be less than the old total balance"
+        );
+        let total_reward = total_balance - self.last_total_balance;
+        if total_reward > 0 {
+            // The validation fee that the contract owner takes.
+            let owners_fee = self.reward_fee_fraction.multiply(total_reward);
+
+            // Distributing the remaining reward to the delegators first.
+            let remaining_reward = total_reward - owners_fee;
+            self.total_staked_balance += remaining_reward;
+
+            // Now buying "stake" shares for the contract owner at the new share price.
+            let num_shares = self.num_shares_from_staked_amount_rounded_down(owners_fee);
+            if num_shares > 0 {
+                // Updating owner's inner account
+                let owner_id = self.owner_id.clone();
+                let mut account = self.internal_get_account(&owner_id);
+                account.stake_shares += num_shares;
+                self.internal_save_account(&owner_id, &account);
+                // Increasing the total amount of "stake" shares.
+                self.total_stake_shares += num_shares;
+            }
+            // Increasing the total staked balance by the owners fee, no matter whether the owner
+            // received any shares or not.
+            self.total_staked_balance += owners_fee;
+
+            env::log_str(
+                format!(
+                    "Epoch {}: Contract received total rewards of {} tokens. New total staked balance is {}. Total number of shares {}",
+                    epoch_height, total_reward, self.total_staked_balance, self.total_stake_shares,
+                )
+                    .as_str(),
+            );
+            if num_shares > 0 {
+                env::log_str(format!("Total rewards fee is {} stake shares.", num_shares).as_str());
+            }
+        }
+
+        self.last_total_balance = total_balance;
+        true
+    }
+
     /// Returns the number of "stake" shares rounded down corresponding to the
     /// given staked balance amount.
     ///
@@ -219,6 +280,15 @@ impl MainchainContract {
             / U256::from(self.total_stake_shares))
         .as_u128()
     }
+
+     /// Asserts that the method was called by the owner.
+     pub(crate) fn assert_owner(&self) {
+        assert_eq!(
+            env::predecessor_account_id(),
+            self.owner_id,
+            "Can only be called by the owner"
+        );
+    }
 }
 
 /// Contract public methods
@@ -226,6 +296,7 @@ impl MainchainContract {
 impl MainchainContract {
     #[private] // require caller to be this contract
     pub fn deposit(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
+        self.distribute_rewards();
         self.internal_deposit(amount, account_id)
     }
 
@@ -233,6 +304,7 @@ impl MainchainContract {
     /// and stakes it.
     #[private] // require caller to be this contract
     pub fn deposit_and_stake(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
+        self.distribute_rewards();
         let refund = self.internal_deposit(amount, account_id);
         let amount: Balance = amount;
         self.internal_stake(amount);
@@ -243,6 +315,7 @@ impl MainchainContract {
     /// It's only allowed if the `unstake` action was not performed in the four
     /// most recent epochs.
     pub fn withdraw(&mut self, amount: U128) {
+        self.distribute_rewards();
         let amount: Balance = amount.into();
         self.internal_withdraw(amount);
     }
@@ -251,17 +324,20 @@ impl MainchainContract {
     /// It's only allowed if the `unstake` action was not performed in the four
     /// most recent epochs.
     pub fn withdraw_all(&mut self) {
+        self.distribute_rewards();
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         self.internal_withdraw(account.unstaked);
     }
 
     pub fn stake(&mut self, amount: U128) {
+        self.distribute_rewards();
         let amount: Balance = amount.into();
         self.internal_stake(amount);
     }
 
     pub fn stake_all(&mut self) {
+        self.distribute_rewards();
         let account_id = env::predecessor_account_id(); // TODO: env::signer_account_id()??
         let account = self.internal_get_account(&account_id);
         let amount: Balance = account.unstaked;
@@ -269,16 +345,36 @@ impl MainchainContract {
     }
 
     pub fn unstake(&mut self, amount: U128) {
+        self.distribute_rewards();
         let amount: Balance = amount.into();
         self.internal_unstake(amount);
     }
 
     pub fn unstake_all(&mut self) {
+        self.distribute_rewards();
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_account(&account_id);
         let amount = self.staked_amount_from_num_shares_rounded_down(account.stake_shares);
         self.internal_unstake(amount);
     }
+
+    pub fn increment_epoch(&mut self){
+        self.last_epoch_height = self.last_epoch_height + 1;
+    }
+
+    /*******************/
+    /* Owner's methods */
+    /*******************/
+
+    /// Owner's method.
+    /// Updates current reward fee fraction to the new given fraction.
+    pub fn update_reward_fee_fraction(&mut self, reward_fee_fraction: crate::RewardFeeFraction) {
+        self.assert_owner();
+        reward_fee_fraction.assert_valid();
+        self.distribute_rewards();
+        self.reward_fee_fraction = reward_fee_fraction;
+    }
+
 
     /*************** */
     /* View methods */
