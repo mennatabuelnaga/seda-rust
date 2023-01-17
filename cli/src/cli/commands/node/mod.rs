@@ -1,82 +1,34 @@
 use clap::Subcommand;
-use seda_config::{AppConfig, PartialChainConfigs, PartialDepositAndContractID, PartialNodeConfig};
+use seda_config::AppConfig;
 
 use crate::Result;
 
-/// Update node commands
-#[derive(Clone, Debug, Subcommand)]
-pub enum UpdateNode {
-    AcceptOwnership,
-    SetPendingOwner {
-        #[arg(short, long)]
-        owner: String,
-    },
-    SetSocketAddress {
-        #[arg(short, long)]
-        address: String,
-    },
-}
+mod get_node;
+mod get_nodes;
+mod register_node;
+mod run;
+mod unregister_node;
+mod update_node;
 
 #[derive(Debug, Subcommand)]
 pub enum Node {
-    Run {
-        #[command(flatten)]
-        node_config:   PartialNodeConfig,
-        #[command(flatten)]
-        chains_config: PartialChainConfigs,
-    },
-    GetNodes {
-        #[arg(short, long)]
-        offset:  u64,
-        #[arg(short, long)]
-        limit:   u64,
-        #[command(flatten)]
-        details: PartialDepositAndContractID,
-    },
-    GetNode {
-        #[arg(short, long)]
-        node_id: u64,
-        #[command(flatten)]
-        details: PartialDepositAndContractID,
-    },
-    RegisterNode {
-        #[arg(short, long)]
-        socket_address: String,
-        #[arg(short, long)]
-        deposit:        String,
-        #[command(flatten)]
-        details:        PartialDepositAndContractID,
-    },
-    UpdateNode {
-        #[arg(short, long)]
-        node_id: u64,
-        #[command(subcommand)]
-        command: UpdateNode,
-        #[command(flatten)]
-        details: PartialDepositAndContractID,
-    },
-    UnregisterNode {
-        #[arg(short, long)]
-        node_id: u64,
-        #[command(flatten)]
-        details: PartialDepositAndContractID,
-    },
+    GetNode(get_node::GetNode),
+    GetNodes(get_nodes::GetNodes),
+    RegisterNode(register_node::RegisterNode),
+    Run(run::Run),
+    UpdateNode(update_node::UpdateNode),
+    UnregisterNode(unregister_node::UnregisterNode),
 }
 
 impl Node {
     pub fn handle(self, config: AppConfig) -> Result<()> {
-        if let Self::Run {
-            node_config,
-            chains_config,
-        } = self
-        {
-            let node_config = config.node.to_config(node_config)?;
-            let chains_config = config.chains.to_config(chains_config)?;
-            seda_node::run(&config.seda_server_url, node_config, chains_config);
-
-            return Ok(());
+        match self {
+            Self::GetNode(get_node) => get_node.handle(),
+            Self::GetNodes(get_nodes) => get_nodes.handle(),
+            Self::RegisterNode(register_node) => register_node.handle(),
+            Self::Run(run) => run.handle(config),
+            Self::UpdateNode(update_node) => update_node.handle(),
+            Self::UnregisterNode(unregister_node) => unregister_node.handle(),
         }
-
-        unimplemented!("")
     }
 }

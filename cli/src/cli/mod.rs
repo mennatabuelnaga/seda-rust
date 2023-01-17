@@ -20,22 +20,17 @@ pub struct CliOptions {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    Node {
-        #[command(subcommand)]
-        node: Node,
-    },
-    SubChain {
-        #[command(subcommand)]
-        sub_chain: SubChain,
-    },
+    #[command(subcommand)]
+    Node(Node),
+    #[command(subcommand)]
+    SubChain(SubChain),
 }
 
 impl Command {
-    #[tokio::main]
-    pub async fn handle(self, config: AppConfig) -> Result<()> {
+    pub fn handle(self, config: AppConfig) -> Result<()> {
         match self {
-            Self::Node { node } => node.handle(config),
-            Self::SubChain { sub_chain } => sub_chain.handle(),
+            Self::Node(node_command) => node_command.handle(config),
+            Self::SubChain(sub_chain_command) => sub_chain_command.handle(),
         }
     }
 }
