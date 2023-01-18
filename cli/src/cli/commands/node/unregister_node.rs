@@ -12,7 +12,6 @@ pub struct UnregisterNode {
 }
 
 impl UnregisterNode {
-    #[tokio::main]
     pub async fn handle(self) -> Result<()> {
         todo!("chain view call");
         return Ok(());

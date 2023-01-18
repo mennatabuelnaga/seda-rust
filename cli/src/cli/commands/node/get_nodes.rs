@@ -14,9 +14,9 @@ pub struct GetNodes {
 }
 
 impl GetNodes {
-    #[tokio::main]
     pub async fn handle(self) -> Result<()> {
         todo!("chain view call");
+        // chain::view::<Vec<NodeResult>>();
         return Ok(());
     }
 }

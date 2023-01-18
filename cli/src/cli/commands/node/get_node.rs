@@ -1,7 +1,7 @@
 use clap::Args;
 use seda_config::PartialDepositAndContractID;
 
-use crate::Result;
+use crate::{cli::commands::call, Result};
 
 #[derive(Debug, Args)]
 pub struct GetNode {
@@ -12,9 +12,9 @@ pub struct GetNode {
 }
 
 impl GetNode {
-    #[tokio::main]
     pub async fn handle(self) -> Result<()> {
-        todo!("chain view call");
+        // call::<NodeResult>(Chain::Near, config.contract_id, method_name, deposit,
+        // args, config, node_config, chains_config)
         return Ok(());
     }
 }

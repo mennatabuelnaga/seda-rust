@@ -1,12 +1,16 @@
 mod node;
-use jsonrpsee::core::DeserializeOwned;
 pub(crate) use node::*;
 
+mod run;
+pub(crate) use run::*;
+
+#[cfg(debug_assertions)]
 mod sub_chain;
 use seda_chains::{chain, Client};
 use seda_config::{AppConfig, PartialChainConfigs, PartialNodeConfig};
 use seda_runtime_sdk::Chain;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
+#[cfg(debug_assertions)]
 pub(crate) use sub_chain::*;
 
 pub(crate) async fn call<T: DeserializeOwned + Serialize>(

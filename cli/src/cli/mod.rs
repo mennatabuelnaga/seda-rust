@@ -20,8 +20,11 @@ pub struct CliOptions {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    Run(Run),
     #[command(subcommand)]
     Node(Node),
+    // TODO cfg debug all this
+    #[cfg(debug_assertions)]
     SubChain {
         #[command(flatten)]
         chains_config:     PartialChainConfigs,
@@ -34,6 +37,8 @@ impl Command {
     pub fn handle(self, config: AppConfig) -> Result<()> {
         match self {
             Self::Node(node_command) => node_command.handle(config),
+            Self::Run(run_command) => run_command.handle(config),
+            #[cfg(debug_assertions)]
             Self::SubChain {
                 chains_config,
                 sub_chain_command,

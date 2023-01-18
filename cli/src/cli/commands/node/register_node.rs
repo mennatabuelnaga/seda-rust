@@ -14,7 +14,6 @@ pub struct RegisterNode {
 }
 
 impl RegisterNode {
-    #[tokio::main]
     pub async fn handle(self) -> Result<()> {
         todo!("chain view call");
         return Ok(());
