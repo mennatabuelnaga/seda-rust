@@ -7,7 +7,7 @@ pub(crate) use run::*;
 #[cfg(debug_assertions)]
 mod sub_chain;
 use seda_chains::{chain, Client};
-use seda_config::{AppConfig, PartialChainConfigs, PartialNodeConfig};
+use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::Chain;
 use serde::{de::DeserializeOwned, Serialize};
 #[cfg(debug_assertions)]
@@ -19,14 +19,10 @@ pub(crate) async fn call<T: DeserializeOwned + Serialize>(
     method_name: &str,
     deposit: u128,
     args: String,
-    config: AppConfig,
-    node_config: PartialNodeConfig,
-    chains_config: PartialChainConfigs,
+    node_config: &NodeConfig,
+    chains_config: &ChainConfigs,
 ) -> crate::Result<()> {
-    let node_config = config.node.to_config(node_config)?;
-    let chains_config = config.chains.to_config(chains_config)?;
-
-    let client = Client::new(&chain, &chains_config)?;
+    let client = Client::new(&chain, chains_config)?;
     let server_url = match chain {
         Chain::Another => &chains_config.another.chain_rpc_url,
         Chain::Near => &chains_config.near.chain_rpc_url,
@@ -56,11 +52,9 @@ pub(crate) async fn view<T: DeserializeOwned + Serialize>(
     contract_id: &str,
     method_name: &str,
     args: String,
-    config: AppConfig,
-    chains_config: PartialChainConfigs,
+    chains_config: &ChainConfigs,
 ) -> crate::Result<()> {
-    let chains_config = config.chains.to_config(chains_config)?;
-    let client = Client::new(&chain, &chains_config)?;
+    let client = Client::new(&chain, chains_config)?;
     let result = chain::view(chain, client, contract_id, method_name, args.into_bytes()).await?;
     let value = serde_json::from_slice::<T>(&result).expect("TODO");
     serde_json::to_writer_pretty(std::io::stdout(), &value).expect("TODO");

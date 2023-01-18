@@ -14,13 +14,13 @@ pub struct View {
 
 impl View {
     pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
+        let chains_config = config.chains.to_config(chains_config)?;
         view::<serde_json::Value>(
             self.chain,
             &self.contract_id,
             &self.method_name,
             self.args,
-            config,
-            chains_config,
+            &chains_config,
         )
         .await
     }

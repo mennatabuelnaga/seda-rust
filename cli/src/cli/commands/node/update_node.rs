@@ -1,10 +1,13 @@
 use clap::{Args, Subcommand};
-use seda_config::PartialDepositAndContractID;
+use seda_config::{ChainConfigs, NodeConfig, PartialDepositAndContractID};
+use seda_runtime_sdk::Chain;
+use serde::Serialize;
+use serde_json::json;
 
-use crate::Result;
+use crate::{cli::commands::call, Result};
 
 /// Update node commands
-#[derive(Clone, Debug, Subcommand)]
+#[derive(Clone, Debug, Subcommand, Serialize)]
 pub enum UpdateNodeCommand {
     AcceptOwnership,
     SetPendingOwner {
@@ -28,8 +31,21 @@ pub struct UpdateNode {
 }
 
 impl UpdateNode {
-    pub async fn handle(self) -> Result<()> {
-        todo!("chain view call");
-        return Ok(());
+    pub async fn handle(self, node_config: &NodeConfig, chains_config: &ChainConfigs) -> Result<()> {
+        let args = json!({
+                    "node_id": self.node_id.to_string(),
+                    "command": self.command
+        })
+        .to_string();
+        call::<String>(
+            Chain::Near,
+            &node_config.contract_account_id,
+            "update_node",
+            node_config.deposit,
+            args,
+            node_config,
+            chains_config,
+        )
+        .await
     }
 }

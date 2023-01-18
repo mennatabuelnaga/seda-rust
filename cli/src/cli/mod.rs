@@ -1,5 +1,5 @@
 use clap::{command, Parser, Subcommand};
-use seda_config::{AppConfig, PartialChainConfigs, PartialLoggerConfig};
+use seda_config::{AppConfig, PartialChainConfigs, PartialLoggerConfig, PartialNodeConfig};
 
 use crate::Result;
 
@@ -21,8 +21,14 @@ pub struct CliOptions {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     Run(Run),
-    #[command(subcommand)]
-    Node(Node),
+    Node {
+        #[command(flatten)]
+        node_config:      PartialNodeConfig,
+        #[command(flatten)]
+        chains_config:    PartialChainConfigs,
+        #[command(subcommand)]
+        sub_node_command: Node,
+    },
     // TODO cfg debug all this
     #[cfg(debug_assertions)]
     SubChain {
@@ -36,7 +42,15 @@ pub enum Command {
 impl Command {
     pub fn handle(self, config: AppConfig) -> Result<()> {
         match self {
-            Self::Node(node_command) => node_command.handle(config),
+            Self::Node {
+                node_config,
+                chains_config,
+                sub_node_command,
+            } => {
+                let node_config = config.node.to_config(node_config)?;
+                let chains_config = config.chains.to_config(chains_config)?;
+                sub_node_command.handle(&node_config, &chains_config)
+            }
             Self::Run(run_command) => run_command.handle(config),
             #[cfg(debug_assertions)]
             Self::SubChain {
