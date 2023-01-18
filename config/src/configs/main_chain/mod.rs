@@ -3,7 +3,7 @@
 mod near;
 use std::sync::Arc;
 
-use clap::{Args, Parser};
+use clap::Args;
 pub use near::*;
 
 mod another_config;

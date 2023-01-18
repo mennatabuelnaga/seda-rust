@@ -37,10 +37,7 @@ impl Command {
             Self::SubChain {
                 chains_config,
                 sub_chain_command,
-            } => {
-                let chains_config = config.chains.to_config(chains_config)?;
-                sub_chain_command.handle(chains_config)
-            }
+            } => sub_chain_command.handle(config, chains_config),
         }
     }
 }

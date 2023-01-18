@@ -19,9 +19,6 @@ pub enum ChainAdapterError {
     #[error("failed to extract current nonce")]
     FailedToExtractCurrentNonce,
 
-    #[error("could not deserialize status to string")]
-    BadDeserialization(#[from] serde_json::Error),
-
     #[error("Bad Parameters for method `{0}`")]
     BadParams(String),
 

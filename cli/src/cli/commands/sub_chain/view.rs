@@ -1,9 +1,8 @@
 use clap::Args;
-use seda_config::{ChainConfigs, PartialDepositAndContractID};
-use seda_node::ChainView;
+use seda_config::{AppConfig, PartialChainConfigs};
 use seda_runtime_sdk::Chain;
 
-use crate::Result;
+use crate::{cli::commands::view, Result};
 
 #[derive(Debug, Args)]
 pub struct View {
@@ -14,15 +13,15 @@ pub struct View {
 }
 
 impl View {
-    pub async fn handle(self, chains_config: ChainConfigs) -> Result<()> {
-        let view = ChainView {
-            chain:       todo!(),
-            contract_id: todo!(),
-            method_name: todo!(),
-            args:        todo!(),
-            client:      todo!(),
-        };
-        let result = view.view().await?;
-        Ok(())
+    pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
+        view::<serde_json::Value>(
+            self.chain,
+            &self.contract_id,
+            &self.method_name,
+            self.args,
+            config,
+            chains_config,
+        )
+        .await
     }
 }

@@ -10,7 +10,6 @@ use near_primitives::{
     views::{FinalExecutionStatus, QueryRequest},
 };
 use seda_config::NearConfig;
-use serde_json::from_slice;
 use tokio::time;
 use tracing::info;
 
@@ -163,7 +162,7 @@ impl ChainAdapterTrait for NearChain {
         }
     }
 
-    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String> {
+    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
             request:         QueryRequest::CallFunction {
@@ -175,8 +174,8 @@ impl ChainAdapterTrait for NearChain {
 
         let response = client.call(request).await?;
 
-        if let QueryResponseKind::CallResult(ref result) = response.kind {
-            Ok(from_slice::<String>(&result.result)?)
+        if let QueryResponseKind::CallResult(result) = response.kind {
+            Ok(result.result)
         } else {
             Err(ChainAdapterError::CallViewMethod)
         }

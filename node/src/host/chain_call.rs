@@ -33,7 +33,7 @@ impl ChainCall {
             &self.method_name,
             self.args,
             self.node_config.gas,
-            self.node_config.deposit,
+            self.deposit,
             server_url,
         )
         .await?;

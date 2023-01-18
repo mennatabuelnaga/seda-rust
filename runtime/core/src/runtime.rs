@@ -197,7 +197,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             .await
                             .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
+                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
                     }
                     PromiseAction::ChainCall(chain_call_action) => {
                         let resp = self

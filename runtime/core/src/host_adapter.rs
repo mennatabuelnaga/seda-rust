@@ -34,7 +34,7 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
-    ) -> Result<String, Self::Error>;
+    ) -> Result<Vec<u8>, Self::Error>;
 
     async fn trigger_event(&self, event: Event) -> Result<(), Self::Error>;
 }

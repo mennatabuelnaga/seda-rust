@@ -66,9 +66,9 @@ pub trait ChainAdapterTrait: Debug + Send + Sync + 'static {
     /// To send a transaction for the adapter specific implementation.
     async fn send_tx(client: Arc<Self::Client>, signed_tx: &[u8]) -> Result<Vec<u8>>;
     /// To view for the adapter specific implementation.
-    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<String>;
+    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>>;
     /// Default trait function to get the node owner.
-    async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
+    async fn get_node_owner(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let method_name = "get_node_owner";
         let params = params
             .one::<NodeIds>()
@@ -80,7 +80,7 @@ pub trait ChainAdapterTrait: Debug + Send + Sync + 'static {
     }
 
     /// Default trait function to get the node socket address.
-    async fn get_node_socket_address(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
+    async fn get_node_socket_address(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let method_name = "get_node_socket_address";
         let params = params
             .one::<NodeIds>()
@@ -92,7 +92,7 @@ pub trait ChainAdapterTrait: Debug + Send + Sync + 'static {
     }
 
     /// Default trait function to get the nodes.
-    async fn get_nodes(client: Arc<Self::Client>, params: Params<'_>) -> Result<String> {
+    async fn get_nodes(client: Arc<Self::Client>, params: Params<'_>) -> Result<Vec<u8>> {
         let method_name = "get_nodes";
 
         let params = params

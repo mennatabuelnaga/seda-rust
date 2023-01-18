@@ -3,6 +3,7 @@
 mod another_chain;
 pub use another_chain::AnotherChain;
 use jsonrpsee_types::Params;
+use seda_config::ChainConfigs;
 use seda_runtime_sdk::Chain;
 
 mod errors;
@@ -23,6 +24,13 @@ pub enum Client {
 }
 
 impl Client {
+    pub fn new(chain: &Chain, chains_config: &ChainConfigs) -> Result<Self> {
+        Ok(match chain {
+            Chain::Another => Self::Another(Arc::new(AnotherChain::new_client(&chains_config.another)?)),
+            Chain::Near => Self::Near(Arc::new(NearChain::new_client(&chains_config.near)?)),
+        })
+    }
+
     fn another(&self) -> Arc<()> {
         if let Self::Another(v) = self {
             v.clone()
@@ -110,28 +118,28 @@ pub mod chain {
         contract_id: &str,
         method_name: &str,
         args: Vec<u8>,
-    ) -> Result<String> {
+    ) -> Result<Vec<u8>> {
         match chain {
             Chain::Another => AnotherChain::view(client.another(), contract_id, method_name, args).await,
             Chain::Near => NearChain::view(client.near(), contract_id, method_name, args).await,
         }
     }
 
-    async fn _get_node_owner(chain: Chain, client: Client, params: Params<'_>) -> Result<String> {
+    async fn _get_node_owner(chain: Chain, client: Client, params: Params<'_>) -> Result<Vec<u8>> {
         match chain {
             Chain::Another => AnotherChain::get_node_owner(client.another(), params).await,
             Chain::Near => NearChain::get_node_owner(client.near(), params).await,
         }
     }
 
-    async fn _get_node_socket_address(chain: Chain, client: Client, params: Params<'_>) -> Result<String> {
+    async fn _get_node_socket_address(chain: Chain, client: Client, params: Params<'_>) -> Result<Vec<u8>> {
         match chain {
             Chain::Another => AnotherChain::get_node_socket_address(client.another(), params).await,
             Chain::Near => NearChain::get_node_socket_address(client.near(), params).await,
         }
     }
 
-    async fn _get_nodes(chain: Chain, client: Client, params: Params<'_>) -> Result<String> {
+    async fn _get_nodes(chain: Chain, client: Client, params: Params<'_>) -> Result<Vec<u8>> {
         match chain {
             Chain::Another => AnotherChain::get_nodes(client.another(), params).await,
             Chain::Near => NearChain::get_nodes(client.near(), params).await,

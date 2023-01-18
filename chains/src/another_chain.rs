@@ -43,7 +43,7 @@ impl ChainAdapterTrait for AnotherChain {
         _contract_id: &str,
         _method_name: &str,
         _args: Vec<u8>,
-    ) -> Result<String> {
+    ) -> Result<Vec<u8>> {
         unimplemented!()
     }
 }

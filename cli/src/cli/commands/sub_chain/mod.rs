@@ -1,6 +1,5 @@
 use clap::Subcommand;
-use seda_config::ChainConfigs;
-use seda_runtime_sdk::Chain;
+use seda_config::{AppConfig, PartialChainConfigs};
 
 use crate::Result;
 
@@ -18,10 +17,10 @@ pub enum SubChain {
 
 impl SubChain {
     #[tokio::main]
-    pub async fn handle(self, chains_config: ChainConfigs) -> Result<()> {
+    pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
         match self {
-            Self::Call(call) => call.handle(chains_config).await,
-            Self::View(view) => view.handle(chains_config).await,
+            Self::Call(call) => call.handle(config, chains_config).await,
+            Self::View(view) => view.handle(config, chains_config).await,
         }
     }
 }
