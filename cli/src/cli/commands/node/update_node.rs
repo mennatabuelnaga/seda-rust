@@ -1,5 +1,5 @@
 use clap::{Args, Subcommand};
-use seda_config::{ChainConfigs, NodeConfig, PartialDepositAndContractID};
+use seda_config::{AppConfig, PartialChainConfigs, PartialNodeConfig};
 use seda_runtime_sdk::Chain;
 use serde::Serialize;
 use serde_json::json;
@@ -23,15 +23,18 @@ pub enum UpdateNodeCommand {
 #[derive(Debug, Args)]
 pub struct UpdateNode {
     #[arg(short, long)]
-    pub node_id: u64,
+    pub node_id:     u64,
     #[command(flatten)]
-    pub details: PartialDepositAndContractID,
+    pub node_config: PartialNodeConfig,
     #[command(subcommand)]
-    pub command: UpdateNodeCommand,
+    pub command:     UpdateNodeCommand,
 }
 
 impl UpdateNode {
-    pub async fn handle(self, node_config: &NodeConfig, chains_config: &ChainConfigs) -> Result<()> {
+    pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
+        let chains_config = config.chains.to_config(chains_config)?;
+
+        let node_config = &config.node.to_config(self.node_config)?;
         let args = json!({
                     "node_id": self.node_id.to_string(),
                     "command": self.command
@@ -44,7 +47,7 @@ impl UpdateNode {
             node_config.deposit,
             args,
             node_config,
-            chains_config,
+            &chains_config,
         )
         .await
     }

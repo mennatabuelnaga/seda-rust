@@ -23,7 +23,6 @@ macro_rules! merge_config_cli {
 					| (Some(_), Some(field)) => Ok::<_, $crate::ConfigError>($parse(field)),
 			}
 	};
-
 	($self:ident, $cli:ident, $field:ident, $default:expr) => {
 		match ($self.$field, $cli.$field) {
 				(None, None) => $default,
@@ -32,5 +31,5 @@ macro_rules! merge_config_cli {
 				// CLI option overrides
 				| (Some(_), Some(field)) => Ok::<_, $crate::ConfigError>(field),
 		}
-};
+	};
 }

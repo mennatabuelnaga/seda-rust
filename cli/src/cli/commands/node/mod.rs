@@ -1,5 +1,5 @@
 use clap::Subcommand;
-use seda_config::{ChainConfigs, NodeConfig};
+use seda_config::{AppConfig, PartialChainConfigs};
 
 use crate::Result;
 
@@ -22,13 +22,13 @@ pub enum Node {
 
 impl Node {
     #[tokio::main]
-    pub async fn handle(self, node_config: &NodeConfig, chains_config: &ChainConfigs) -> Result<()> {
+    pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
         match self {
-            Self::GetNode(get_node) => get_node.handle(node_config, chains_config).await,
-            Self::GetNodes(get_nodes) => get_nodes.handle(node_config, chains_config).await,
-            Self::RegisterNode(register_node) => register_node.handle(node_config, chains_config).await,
-            Self::UpdateNode(update_node) => update_node.handle(node_config, chains_config).await,
-            Self::UnregisterNode(unregister_node) => unregister_node.handle(node_config, chains_config).await,
+            Self::GetNode(get_node) => get_node.handle(config, chains_config).await,
+            Self::GetNodes(get_nodes) => get_nodes.handle(config, chains_config).await,
+            Self::RegisterNode(register_node) => register_node.handle(config, chains_config).await,
+            Self::UpdateNode(update_node) => update_node.handle(config, chains_config).await,
+            Self::UnregisterNode(unregister_node) => unregister_node.handle(config, chains_config).await,
         }
     }
 }

@@ -1,5 +1,5 @@
 use clap::Args;
-use seda_config::{ChainConfigs, NodeConfig, PartialDepositAndContractID};
+use seda_config::{AppConfig, PartialChainConfigs, PartialNodeConfig};
 use seda_runtime_sdk::Chain;
 use serde_json::json;
 
@@ -12,11 +12,14 @@ pub struct RegisterNode {
     #[arg(short, long)]
     pub socket_address: String,
     #[command(flatten)]
-    pub details:        PartialDepositAndContractID,
+    pub node_config:    PartialNodeConfig,
 }
 
 impl RegisterNode {
-    pub async fn handle(self, node_config: &NodeConfig, chains_config: &ChainConfigs) -> Result<()> {
+    pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
+        let chains_config = config.chains.to_config(chains_config)?;
+
+        let node_config = &config.node.to_config(self.node_config)?;
         let args = json!({
                 "socket_address": self.socket_address,
         })
@@ -28,7 +31,7 @@ impl RegisterNode {
             self.deposit,
             args,
             node_config,
-            chains_config,
+            &chains_config,
         )
         .await
     }
