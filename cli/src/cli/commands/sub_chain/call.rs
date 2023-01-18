@@ -6,10 +6,15 @@ use crate::{cli::commands::call, Result};
 
 #[derive(Debug, Args)]
 pub struct Call {
+    /// The sub-chain to call.
     chain:           Chain,
+    /// The contract ID for the sub-chain.
     contract_id:     String,
+    /// The method name to call.
     method_name:     String,
+    /// The args to pass to the call method.
     args:            String,
+    /// The deposit for the call method.
     call_deposit:    u128,
     #[command(flatten)]
     pub node_config: PartialNodeConfig,

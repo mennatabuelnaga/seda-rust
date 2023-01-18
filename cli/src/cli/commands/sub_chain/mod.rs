@@ -8,11 +8,15 @@ mod view;
 
 #[derive(Debug, Subcommand)]
 pub enum SubChain {
-    // ./seda sub-chain call near mc.mennat0.testnet register_node
-    // "{\"socket_address\":\"127.0.0.1:8080\"}" "870000000000000000000"
+    // seda sub-chain call near mc.mennat0.testnet register_node "{\"socket_address\":\"127.0.0.1:8080\"}"
+    // 870000000000000000000
+    /// Calls the specified method on the specified chain with the given args
+    /// and contract ID.
     Call(call::Call),
-    // TODO maybe a ListMethods,
-    // ./seda sub-chain view near mc.mennat0.testnet get_nodes "{\"offset\":\"0\",\"limit\":\"2\"}"
+    // TODO maybe a ListMethods command,
+    // seda sub-chain view near mc.mennat0.testnet get_nodes "{\"offset\":\"0\",\"limit\":\"2\"}"
+    /// Views the specified method on the specified chain with the given args
+    /// and contract ID.
     View(view::View),
 }
 

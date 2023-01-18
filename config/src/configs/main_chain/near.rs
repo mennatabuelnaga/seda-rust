@@ -5,6 +5,7 @@ use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Parser)]
 pub struct PartialNearConfig {
+    /// An option to override the Near chain rpc url config value.
     #[arg(long)]
     pub chain_rpc_url: Option<String>,
 }

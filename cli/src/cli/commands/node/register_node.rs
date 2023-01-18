@@ -8,11 +8,11 @@ use crate::{cli::commands::call, Result};
 #[derive(Debug, Args)]
 pub struct RegisterNode {
     #[arg(short, long)]
-    pub deposit:        u128,
+    pub register_deposit: u128,
     #[arg(short, long)]
-    pub socket_address: String,
+    pub socket_address:   String,
     #[command(flatten)]
-    pub node_config:    PartialNodeConfig,
+    pub node_config:      PartialNodeConfig,
 }
 
 impl RegisterNode {
@@ -28,7 +28,7 @@ impl RegisterNode {
             Chain::Near,
             &node_config.contract_account_id,
             "register_node",
-            self.deposit,
+            self.register_deposit,
             args,
             node_config,
             &chains_config,

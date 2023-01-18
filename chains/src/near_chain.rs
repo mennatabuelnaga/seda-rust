@@ -11,7 +11,7 @@ use near_primitives::{
 };
 use seda_config::NearConfig;
 use tokio::time;
-use tracing::info;
+use tracing::debug;
 
 use super::errors::{ChainAdapterError, Result};
 use crate::{ChainAdapterTrait, TransactionParams};
@@ -148,9 +148,9 @@ impl ChainAdapterTrait for NearChain {
                     _ => return Err(ChainAdapterError::CallChangeMethod(err.to_string())),
                 },
                 Ok(response) => {
-                    info!("response gotten after: {}s", delta);
+                    debug!("response gotten after: {}s", delta);
 
-                    info!("response.status: {:#?}", response.status);
+                    debug!("response.status: {:#?}", response.status);
 
                     if let FinalExecutionStatus::SuccessValue(value) = response.status {
                         return Ok(value);

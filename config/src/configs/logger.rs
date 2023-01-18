@@ -7,6 +7,7 @@ use crate::{env_overwrite, merge_config_cli, Config, Result};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, Args)]
 pub struct PartialLoggerConfig {
+    /// The path where you want the log file to write to.
     #[arg(long)]
     pub log_file_path: Option<PathBuf>,
 }

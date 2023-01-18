@@ -38,7 +38,8 @@ opt-level = "z"
 actix = "0.13"
 async-trait = "0.1"
 borsh = { version = "0.9", default-features = false }
-clap = { version = "4.0", default-features = false }
+clap = { version = "4.1", default-features = false }
+clap_complete = { version = "4.1", default-features = false }
 dotenv = "0.15"
 futures = { version = "0.3", default-features = false }
 jsonrpsee-types = "0.16"

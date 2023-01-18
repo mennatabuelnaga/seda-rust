@@ -8,24 +8,34 @@ use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 /// The configuration for the seda engine.
 #[derive(Debug, Default, Serialize, Deserialize, Args)]
 pub struct PartialNodeConfig {
+    /// An option to override the node deposit config value.
     #[arg(short, long)]
     pub deposit:                 Option<String>,
+    /// An option to override the node gas config value.
     #[arg(short, long)]
     pub gas:                     Option<u64>,
+    /// An option to override the node secret key config value.
     #[arg(long)]
     pub secret_key:              Option<String>,
+    /// An option to override the node signer account ID config value.
     #[arg(long)]
     pub signer_account_id:       Option<String>,
+    /// An option to override the node contract account ID config value.
     #[arg(long)]
     pub contract_account_id:     Option<String>,
+    /// An option to override the node public key config value.
     #[arg(long)]
     pub public_key:              Option<String>,
+    /// An option to override the node job manager interval(ms) config value.
     #[arg(long)]
     pub job_manager_interval_ms: Option<u64>,
+    /// An option to override the node runtime worker threads config value.
     #[arg(long)]
     pub runtime_worker_threads:  Option<u8>,
+    /// An option to override the node p2p server address config value.
     #[arg(long)]
     pub p2p_server_address:      Option<String>,
+    /// An option to override the node p2p known peers config value.
     #[arg(long)]
     pub p2p_known_peers:         Option<Vec<String>>,
 }

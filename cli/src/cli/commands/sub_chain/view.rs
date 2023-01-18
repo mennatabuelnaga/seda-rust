@@ -6,9 +6,13 @@ use crate::{cli::commands::view, Result};
 
 #[derive(Debug, Args)]
 pub struct View {
+    /// The sub-chain to call.
     chain:       Chain,
+    /// The contract ID for the sub-chain.
     contract_id: String,
+    /// The method name to view.
     method_name: String,
+    /// The args to pass to the view method.
     args:        String,
 }
 

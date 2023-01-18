@@ -26,7 +26,7 @@ impl UnregisterNode {
             Chain::Near,
             &node_config.contract_account_id,
             "unregister_node",
-            node_config.deposit,
+            0,
             args,
             node_config,
             &chains_config,
