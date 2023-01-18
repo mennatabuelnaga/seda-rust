@@ -1,5 +1,6 @@
 use actix::prelude::*;
 use seda_chains::{chain, Client};
+use seda_runtime::HostAdapter;
 use seda_runtime_sdk::Chain;
 
 use crate::{Host, Result};
@@ -14,7 +15,7 @@ pub struct ChainView {
     pub client:      Client,
 }
 
-impl Handler<ChainView> for Host {
+impl<HA: HostAdapter> Handler<ChainView> for Host<HA> {
     type Result = ResponseActFuture<Self, Result<String>>;
 
     fn handle(&mut self, msg: ChainView, _ctx: &mut Self::Context) -> Self::Result {

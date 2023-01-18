@@ -1,8 +1,9 @@
 use actix::{Handler, Message};
 use seda_runtime::HostAdapter;
+use seda_runtime_sdk::events::Event;
 use serde::{Deserialize, Serialize};
 
-use crate::{app::App, event_queue::Event};
+use crate::app::App;
 
 #[derive(Message, Serialize, Deserialize)]
 #[rtype(result = "()")]

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use seda_chains::Client;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_runtime_sdk::Chain;
+use seda_runtime_sdk::{events::Event, Chain};
 
 #[async_trait::async_trait]
 pub trait HostAdapter: Send + Sync + Unpin + 'static {
@@ -35,4 +35,6 @@ pub trait HostAdapter: Send + Sync + Unpin + 'static {
         method_name: &str,
         args: Vec<u8>,
     ) -> Result<String, Self::Error>;
+
+    async fn trigger_event(&self, event: Event) -> Result<(), Self::Error>;
 }

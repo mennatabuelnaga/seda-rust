@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, log, Promise},
+    events::{Event, EventData},
+    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, log, trigger_event, Promise},
     Chain,
     PromiseStatus,
 };
@@ -39,7 +40,6 @@ enum Commands {
 fn main() {
     let options = Options::parse();
     log!(seda_runtime_sdk::Level::Debug, "options: {options:?}");
-    println!("Hello Wasm CLI!");
 
     if let Some(command) = options.command {
         match command {
@@ -48,6 +48,11 @@ fn main() {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
             }
             Commands::Hello => {
+                trigger_event(Event {
+                    id:   "test".to_string(),
+                    data: EventData::ChainTick,
+                })
+                .start();
                 println!("Hello World from inside wasm");
             }
             // TODO how to remove double near specification here?

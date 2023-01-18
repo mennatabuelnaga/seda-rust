@@ -14,6 +14,8 @@ pub enum NodeError {
     RuqliteError(#[from] rusqlite::Error),
     #[error("Chain Adapter Error: {0}")]
     ChainAdapterError(#[from] seda_chains::ChainAdapterError),
+    #[error("Missing app actor address in host adapter, was the node booted?")]
+    MissingAppActorAddress,
 }
 
 pub type Result<T, E = NodeError> = core::result::Result<T, E>;

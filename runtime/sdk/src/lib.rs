@@ -7,6 +7,8 @@ mod promises;
 #[cfg(feature = "wasm")]
 pub mod wasm;
 
+pub mod events;
+
 pub use promises::{
     CallSelfAction,
     ChainCallAction,
@@ -17,4 +19,5 @@ pub use promises::{
     Promise,
     PromiseAction,
     PromiseStatus,
+    TriggerEventAction,
 };

@@ -1,4 +1,5 @@
 use actix::prelude::*;
+use seda_runtime::HostAdapter;
 use serde::{Deserialize, Serialize};
 
 use super::Host;
@@ -9,7 +10,7 @@ pub struct HttpFetch {
     pub url: String,
 }
 
-impl Handler<HttpFetch> for Host {
+impl<HA: HostAdapter> Handler<HttpFetch> for Host<HA> {
     type Result = ResponseActFuture<Self, String>;
 
     fn handle(&mut self, msg: HttpFetch, _ctx: &mut Self::Context) -> Self::Result {

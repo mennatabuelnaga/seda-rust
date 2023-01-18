@@ -4,10 +4,12 @@ use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::HostAdapter;
+use seda_runtime_sdk::events::EventId;
 use tracing::info;
 
 use crate::{
-    event_queue::{EventId, EventQueue},
+    event_queue::EventQueue,
+    host::{Host, SetAppAddress},
     rpc::JsonRpcServer,
     runtime_job::RuntimeWorker,
 };
@@ -57,6 +59,11 @@ impl<HA: HostAdapter> Actor for App<HA> {
         info!("Node starting... \n{}", banner);
 
         info!("Starting Job Manager...");
+        let app_address = ctx.address();
+
+        let host = Host::from_registry();
+        host.do_send(SetAppAddress { address: app_address });
+
         ctx.notify(job_manager::StartJobManager);
     }
 

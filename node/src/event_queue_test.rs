@@ -1,4 +1,6 @@
-use crate::event_queue::{Event, EventData, EventQueue};
+use seda_runtime_sdk::events::{Event, EventData};
+
+use crate::event_queue::EventQueue;
 
 #[test]
 fn add_item_to_event_queue() {
