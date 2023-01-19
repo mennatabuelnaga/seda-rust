@@ -23,6 +23,8 @@ pub enum CliError {
     ConfigError(String),
     #[error(transparent)]
     NodeError(#[from] NodeError),
+    #[error(transparent)]
+    JsonError(#[from] serde_json::Error),
 }
 
 impl From<&str> for CliError {

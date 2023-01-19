@@ -48,8 +48,7 @@ pub(crate) async fn call<T: DeserializeOwned + Serialize>(
         &json!({
                 "status": "success"
         }),
-    )
-    .expect("TODO");
+    )?;
     Ok(())
 }
 
@@ -62,7 +61,7 @@ pub(crate) async fn view<T: DeserializeOwned + Serialize>(
 ) -> crate::Result<()> {
     let client = Client::new(&chain, chains_config)?;
     let result = chain::view(chain, client, contract_id, method_name, args.into_bytes()).await?;
-    let value = serde_json::from_slice::<T>(&result).expect("TODO");
-    serde_json::to_writer_pretty(std::io::stdout(), &value).expect("TODO");
+    let value = serde_json::from_slice::<T>(&result)?;
+    serde_json::to_writer_pretty(std::io::stdout(), &value)?;
     Ok(())
 }
