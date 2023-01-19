@@ -15,6 +15,16 @@ pub enum PromiseAction {
     TriggerEvent(TriggerEventAction),
 }
 
+impl PromiseAction {
+    #[cfg(not(target_family = "wasm"))]
+    pub fn is_limited_action(&self) -> bool {
+        matches!(
+            self,
+            Self::DatabaseGet(_) | Self::DatabaseSet(_) | Self::ChainCall(_) | Self::ChainView(_)
+        )
+    }
+}
+
 impl fmt::Display for PromiseAction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

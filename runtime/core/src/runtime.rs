@@ -96,19 +96,9 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                 promise_queue_mut.queue[index].status = PromiseStatus::Pending;
 
                 match &promise_queue.queue[index].action {
-                    PromiseAction::ChainCall(_)
-                    | PromiseAction::ChainView(_)
-                    | PromiseAction::DatabaseGet(_)
-                    | PromiseAction::DatabaseSet(_)
-                        if self.limited =>
-                    {
-                        // TODO Get exact function called?
+                    action if self.limited && action.is_limited_action() => {
                         promise_queue_mut.queue[index].status = PromiseStatus::Rejected(
-                            format!(
-                                "Method `{}` not allowed in limited runtime",
-                                &promise_queue.queue[index].action
-                            )
-                            .into_bytes(),
+                            format!("Method `{}` not allowed in limited runtime", action).into_bytes(),
                         )
                     }
                     PromiseAction::CallSelf(call_action) => {
