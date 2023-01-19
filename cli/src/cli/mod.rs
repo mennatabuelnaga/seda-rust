@@ -23,7 +23,11 @@ pub struct CliOptions {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    // seda generate bash
+    #[cfg(debug_assertions)]
+    // seda document > CLI.md
+    /// Debug command for helping to generate our CLI.md file.
+    Document,
+    // seda generate bash > seda.bash
     /// Generates an auto-completion file content for the specified shell.
     Generate {
         /// The shell to generate the auto-completion for.
@@ -52,6 +56,11 @@ pub enum Command {
 impl Command {
     pub fn handle(self, config: AppConfig) -> Result<()> {
         match self {
+            #[cfg(debug_assertions)]
+            Self::Document => {
+                clap_markdown::print_help_markdown::<CliOptions>();
+                Ok(())
+            }
             Self::Generate { shell } => {
                 let mut cmd = CliOptions::command();
                 let cmd_name = cmd.get_name().to_string();

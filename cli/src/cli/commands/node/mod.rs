@@ -10,21 +10,21 @@ mod update;
 
 #[derive(Debug, Subcommand)]
 pub enum Node {
-    // seda node get-node -n 1
+    // seda node get -n 1
     /// Get a node from a given node ID if it exists.
     Get(get::Node),
     // seda node get-nodes
     // seda node get-nodes -l 2 -o 1
     /// Get a list of nodes limited by the given size from an offset.
     GetNodes(get::Nodes),
-    // seda node register-node -s 127.0.0.1:6666 -r 870000000000000000000
+    // seda node register -s 127.0.0.1:6666 -r 870000000000000000000
     /// Register a node from the given deposit and socket address.
     Register(register::Register),
-    // seda node update-node -n 18 set-socket-address 127.0.0.1:6666
+    // seda node update -n 18 set-socket-address 127.0.0.1:6666
     /// Update a node by either accepting ownership, setting the pending owner,
     /// or changing the socket address.
     Update(update::Update),
-    // seda node unregister-node -n 19
+    // seda node unregister -n 19
     /// Unregister a node from the given node ID.
     Unregister(unregister::Unregister),
 }
