@@ -8,7 +8,7 @@ use crate::{cli::commands::call, Result};
 
 /// Update node commands
 #[derive(Clone, Debug, Subcommand)]
-pub enum UpdateNodeCommand {
+pub enum UpdateCommand {
     AcceptOwnership,
     SetPendingOwner { owner: String },
     SetSocketAddress { address: String },
@@ -16,19 +16,19 @@ pub enum UpdateNodeCommand {
 
 // Have to either manually implement Serialize or manually implement
 // clap::Subcommand to get the json in the correct format.
-impl Serialize for UpdateNodeCommand {
+impl Serialize for UpdateCommand {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
         match self {
-            UpdateNodeCommand::AcceptOwnership => self.serialize(serializer),
-            UpdateNodeCommand::SetPendingOwner { owner } => {
+            Self::AcceptOwnership => self.serialize(serializer),
+            Self::SetPendingOwner { owner } => {
                 let mut map = serializer.serialize_map(Some(1))?;
                 map.serialize_entry("SetPendingOwner", owner)?;
                 map.end()
             }
-            UpdateNodeCommand::SetSocketAddress { address } => {
+            Self::SetSocketAddress { address } => {
                 let mut map = serializer.serialize_map(Some(1))?;
                 map.serialize_entry("SetSocketAddress", address)?;
                 map.end()
@@ -38,26 +38,24 @@ impl Serialize for UpdateNodeCommand {
 }
 
 #[derive(Debug, Args)]
-pub struct UpdateNode {
+pub struct Update {
     #[arg(short, long)]
     pub node_id:     u64,
     #[command(flatten)]
     pub node_config: PartialNodeConfig,
     #[command(subcommand)]
-    pub command:     UpdateNodeCommand,
+    pub command:     UpdateCommand,
 }
 
-impl UpdateNode {
+impl Update {
     pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
         let chains_config = config.chains.to_config(chains_config)?;
-
         let node_config = &config.node.to_config(self.node_config)?;
         let args = json!({
                     "node_id": self.node_id.to_string(),
                     "command": self.command
         })
         .to_string();
-        dbg!(&args);
         call::<String>(
             Chain::Near,
             &node_config.contract_account_id,

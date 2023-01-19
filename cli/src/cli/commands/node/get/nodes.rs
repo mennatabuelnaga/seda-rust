@@ -3,11 +3,10 @@ use seda_config::{AppConfig, PartialChainConfigs};
 use seda_runtime_sdk::Chain;
 use serde_json::json;
 
-use super::NodeResult;
 use crate::{cli::commands::view, Result};
 
 #[derive(Debug, Args)]
-pub struct GetNodes {
+pub struct Nodes {
     #[arg(short, long, default_value_t = 10)]
     pub limit:       u64,
     #[arg(short, long, default_value_t = 0)]
@@ -16,7 +15,7 @@ pub struct GetNodes {
     pub contract_id: Option<String>,
 }
 
-impl GetNodes {
+impl Nodes {
     pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
         let chains_config = config.chains.to_config(chains_config)?;
 
@@ -26,6 +25,7 @@ impl GetNodes {
                 "offset": self.offset.to_string(),
         })
         .to_string();
-        view::<Vec<NodeResult>>(Chain::Near, &contract_account_id, "get_nodes", args, &chains_config).await
+        view::<Vec<super::result::NodeResult>>(Chain::Near, &contract_account_id, "get_nodes", args, &chains_config)
+            .await
     }
 }

@@ -12,7 +12,7 @@ pub enum SubChain {
     // 870000000000000000000
     /// Calls the specified method on the specified chain with the given args
     /// and contract ID.
-    Call(call::Call),
+    Call(Box<call::Call>),
     // TODO maybe a ListMethods command,
     // seda sub-chain view near mc.mennat0.testnet get_nodes "{\"offset\":\"0\",\"limit\":\"2\"}"
     /// Views the specified method on the specified chain with the given args

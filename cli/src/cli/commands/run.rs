@@ -17,6 +17,6 @@ impl Run {
         let chains_config = config.chains.to_config(self.chains_config)?;
         seda_node::run(&config.seda_server_url, node_config, chains_config);
 
-        return Ok(());
+        Ok(())
     }
 }
