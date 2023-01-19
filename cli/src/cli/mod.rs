@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use clap::{command, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate, Shell};
 use seda_config::{AppConfig, PartialChainConfigs, PartialLoggerConfig};
@@ -24,7 +26,7 @@ pub struct CliOptions {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     #[cfg(debug_assertions)]
-    // seda document > CLI.md
+    // seda document
     /// Debug command for helping to generate our CLI.md file.
     Document,
     // seda generate bash > seda.bash
@@ -58,7 +60,14 @@ impl Command {
         match self {
             #[cfg(debug_assertions)]
             Self::Document => {
-                clap_markdown::print_help_markdown::<CliOptions>();
+                // We have to write to the file for OS support.
+                // If we ask the user to pipe not all shell pipe commands are UTF-8 by default.
+                let help_content = clap_markdown::help_markdown::<CliOptions>();
+                let mut path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                path.pop();
+                path.push("CLI.md");
+                let mut file = std::fs::OpenOptions::new().write(true).open(path)?;
+                file.write_all(help_content.as_bytes())?;
                 Ok(())
             }
             Self::Generate { shell } => {

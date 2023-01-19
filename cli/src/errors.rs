@@ -25,6 +25,9 @@ pub enum CliError {
     NodeError(#[from] NodeError),
     #[error(transparent)]
     JsonError(#[from] serde_json::Error),
+    #[cfg(debug_assertions)]
+    #[error(transparent)]
+    CLIDocumentError(#[from] std::io::Error),
 }
 
 impl From<&str> for CliError {
