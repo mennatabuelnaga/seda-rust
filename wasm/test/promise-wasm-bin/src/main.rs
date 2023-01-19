@@ -93,3 +93,19 @@ fn test_setting_execution_result_step1() {
     let result = "test-success".to_string().into_bytes();
     execution_result(result);
 }
+
+#[no_mangle]
+fn test_limited_runtime() {
+    db_set("foo", "bar")
+        .start()
+        .then(call_self("test_limited_runtime_rejected_db", vec![]));
+}
+
+#[no_mangle]
+fn test_limited_runtime_rejected_db() {
+    let result = Promise::result(0);
+    if let PromiseStatus::Rejected(rejected) = result {
+        let str = std::str::from_utf8(&rejected).unwrap();
+        println!("Promise rejected: {str}");
+    }
+}

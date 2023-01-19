@@ -29,5 +29,5 @@ mod test {
     mod test_host;
     pub(crate) use test_host::*;
 
-    // mod runtime_test;
+    mod runtime_test;
 }

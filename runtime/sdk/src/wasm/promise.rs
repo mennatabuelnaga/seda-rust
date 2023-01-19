@@ -6,7 +6,7 @@ use serde_json::json;
 use super::raw::promise_then;
 use crate::{wasm::raw, PromiseAction, PromiseStatus};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Promise {
     /// The name of the action we should execute
     pub action: PromiseAction,

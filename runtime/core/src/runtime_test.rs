@@ -27,7 +27,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), false)
             .await
             .unwrap();
 
@@ -56,7 +56,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 async fn test_bad_wasm_file() {
     set_env_vars();
     let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), false)
             .await
             .unwrap();
     runtime.init(vec![203]).unwrap();
@@ -83,7 +83,7 @@ async fn test_non_existing_function() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), false)
             .await
             .unwrap();
     runtime.init(wasm_binary).unwrap();
@@ -111,7 +111,7 @@ async fn test_promise_queue_http_fetch() {
 
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), false)
             .await
             .unwrap();
     runtime.init(wasm_binary).unwrap();
@@ -146,7 +146,7 @@ async fn test_promise_queue_http_fetch() {
 async fn test_memory_adapter() {
     set_env_vars();
     let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), false)
             .await
             .unwrap();
     let memory_adapter = memory_adapter();
@@ -190,7 +190,7 @@ async fn test_cli_demo_view_another_chain() {
     set_env_vars();
     let wasm_binary = read_wasm_target("demo-cli");
     let mut runtime =
-        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config())
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), false)
             .await
             .unwrap();
 
@@ -225,6 +225,44 @@ async fn test_cli_demo_view_another_chain() {
     assert_eq!(db_result.unwrap(), "view".to_string());
 }
 
+#[tokio::test(flavor = "multi_thread")]
+async fn test_limited_runtime() {
+    set_env_vars();
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(), ChainConfigsInner::test_config(), true)
+            .await
+            .unwrap();
+
+    runtime.init(wasm_binary).unwrap();
+
+    let runtime_execution_result = runtime.start_runtime(
+        VmConfig {
+            args:         vec![],
+            program_name: "consensus".to_string(),
+            start_func:   Some("test_limited_runtime".to_string()),
+            debug:        true,
+        },
+        memory_adapter(),
+    );
+
+    let vm_result = runtime_execution_result.await;
+    assert!(vm_result.is_ok());
+
+    let vm_result = vm_result.unwrap();
+    assert_eq!(vm_result.output.len(), 1);
+    assert!(
+        vm_result
+            .output
+            .into_iter()
+            .find(|output| output.contains("not allowed in limited runtime"))
+            .is_some()
+    );
+
+    let value = runtime.host_adapter.db_get("foo").await.unwrap();
+    assert!(value.is_none());
+}
+
 // TODO: test with local deployment or mocked RPC
 // #[tokio::test(flavor = "multi_thread")]
 // async fn test_cli_demo_view_near_chain() {
@@ -233,7 +271,7 @@ async fn test_cli_demo_view_another_chain() {
 
 //     let mut runtime =
 //         Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(),
-// ChainConfigsInner::test_config())             .await
+// ChainConfigsInner::test_config(), false)             .await
 //             .unwrap();
 //     let memory_adapter = memory_adapter();
 //     runtime.init(wasm_binary).unwrap();

@@ -37,11 +37,11 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
 
         let node_config = self.node_config.clone();
         let chain_configs = self.chain_configs.clone();
-        // TODO: when conditionally loading the consensus binary see if its full or
-        // limited features
+        // TODO: when conditionally loading the consensus binary see if it allows full
+        // or limited features
         let mut runtime =
             futures::executor::block_on(
-                async move { Runtime::new(node_config, chain_configs, true).await.expect("TODO") },
+                async move { Runtime::new(node_config, chain_configs, false).await.expect("TODO") },
             );
 
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();

@@ -146,14 +146,18 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             let wasi_stdout = wasi_state.fs.stdout_mut()?.as_mut().unwrap();
                             let mut stdout_buffer = String::new();
                             wasi_stdout.read_to_string(&mut stdout_buffer)?;
-                            output.push(stdout_buffer);
+                            if !stdout_buffer.is_empty() {
+                                output.push(stdout_buffer);
+                            }
                         }
 
                         let mut wasi_state = wasi_env.state();
                         let wasi_stderr = wasi_state.fs.stderr_mut()?.as_mut().unwrap();
                         let mut stderr_buffer = String::new();
                         wasi_stderr.read_to_string(&mut stderr_buffer)?;
-                        output.push(stderr_buffer);
+                        if !stderr_buffer.is_empty() {
+                            output.push(stderr_buffer);
+                        }
 
                         // Unwrap the error here after capturing the output
                         // otherwise the output would get lost
