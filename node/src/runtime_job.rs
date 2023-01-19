@@ -28,7 +28,7 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
     type Context = SyncContext<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        // TODO: Replace the binary condinationally with the consensus binary
+        // TODO: Replace the binary conditionally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         #[cfg(debug_assertions)]
         path_prefix.push("../target/wasm32-wasi/debug/cli.wasm");
@@ -37,8 +37,12 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
 
         let node_config = self.node_config.clone();
         let chain_configs = self.chain_configs.clone();
+        // TODO: when conditionally loading the consensus binary see if its full or
+        // limited features
         let mut runtime =
-            futures::executor::block_on(async move { Runtime::new(node_config, chain_configs).await.expect("TODO") });
+            futures::executor::block_on(
+                async move { Runtime::new(node_config, chain_configs, true).await.expect("TODO") },
+            );
 
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();
 

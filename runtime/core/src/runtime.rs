@@ -14,6 +14,7 @@ use crate::{HostAdapter, InMemory, RuntimeError};
 #[derive(Clone)]
 pub struct Runtime<HA: HostAdapter> {
     wasm_module:      Option<Module>,
+    limited:          bool,
     pub host_adapter: HA,
     pub node_config:  NodeConfig,
 }
@@ -27,7 +28,7 @@ pub struct VmResult {
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-    async fn new(node_config: NodeConfig, chains_config: ChainConfigs) -> Result<Self>
+    async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self>
     where
         Self: Sized;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
@@ -50,9 +51,10 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
-    async fn new(node_config: NodeConfig, chains_config: ChainConfigs) -> Result<Self> {
+    async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self> {
         Ok(Self {
             wasm_module: None,
+            limited,
             host_adapter: HA::new(chains_config)
                 .await
                 .map_err(|e| RuntimeError::NodeError(e.to_string()))?,
@@ -94,6 +96,21 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                 promise_queue_mut.queue[index].status = PromiseStatus::Pending;
 
                 match &promise_queue.queue[index].action {
+                    PromiseAction::ChainCall(_)
+                    | PromiseAction::ChainView(_)
+                    | PromiseAction::DatabaseGet(_)
+                    | PromiseAction::DatabaseSet(_)
+                        if self.limited =>
+                    {
+                        // TODO Get exact function called?
+                        promise_queue_mut.queue[index].status = PromiseStatus::Rejected(
+                            format!(
+                                "Method `{}` not allowed in limited runtime",
+                                &promise_queue.queue[index].action
+                            )
+                            .into_bytes(),
+                        )
+                    }
                     PromiseAction::CallSelf(call_action) => {
                         let wasm_store = Store::default();
 

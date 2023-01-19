@@ -1,3 +1,5 @@
+use core::fmt;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{events::Event, Chain};
@@ -11,6 +13,19 @@ pub enum PromiseAction {
     ChainView(ChainViewAction),
     ChainCall(ChainCallAction),
     TriggerEvent(TriggerEventAction),
+}
+
+impl fmt::Display for PromiseAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CallSelf(_) => write!(f, "call_self"),
+            Self::DatabaseSet(_) => write!(f, "db_set"),
+            Self::DatabaseGet(_) => write!(f, "db_get"),
+            Self::Http(_) => write!(f, "http"),
+            Self::ChainView(_) => write!(f, "chain_view"),
+            Self::ChainCall(_) => write!(f, "chain_call"),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
