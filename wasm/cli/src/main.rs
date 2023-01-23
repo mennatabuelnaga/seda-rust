@@ -43,7 +43,6 @@ fn main() {
 
     if let Some(command) = options.command {
         match command {
-            // cargo run -- -c near cli http-fetch "https://www.breakingbadapi.com/api/characters/1"
             Commands::HttpFetch { url } => {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
             }
@@ -55,8 +54,6 @@ fn main() {
                 .start();
                 println!("Hello World from inside wasm");
             }
-            // TODO how to remove double near specification here?
-            // cargo run -- -c near cli view near mc.mennat0.testnet get_node_owner "{\"node_id\":\"12\"}"
             Commands::View {
                 chain,
                 contract_id,
@@ -67,8 +64,6 @@ fn main() {
                     .start()
                     .then(call_self("chain_view_test_success", vec![]));
             }
-            // cargo run -- -c near cli call near mc.mennat0.testnet register_node
-            // "{\"socket_address\":\"127.0.0.1:8080\"}" "870000000000000000000"
             Commands::Call {
                 chain,
                 contract_id,
