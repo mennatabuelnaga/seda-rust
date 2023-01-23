@@ -20,7 +20,11 @@ impl PromiseAction {
     pub fn is_limited_action(&self) -> bool {
         matches!(
             self,
-            Self::DatabaseGet(_) | Self::DatabaseSet(_) | Self::ChainCall(_) | Self::ChainView(_) | Self::TriggerEvent(_)
+            Self::DatabaseGet(_)
+                | Self::DatabaseSet(_)
+                | Self::ChainCall(_)
+                | Self::ChainView(_)
+                | Self::TriggerEvent(_)
         )
     }
 }
