@@ -20,7 +20,7 @@ impl PromiseAction {
     pub fn is_limited_action(&self) -> bool {
         matches!(
             self,
-            Self::DatabaseGet(_) | Self::DatabaseSet(_) | Self::ChainCall(_) | Self::ChainView(_)
+            Self::DatabaseGet(_) | Self::DatabaseSet(_) | Self::ChainCall(_) | Self::ChainView(_) | Self::TriggerEvent(_)
         )
     }
 }
@@ -34,6 +34,7 @@ impl fmt::Display for PromiseAction {
             Self::Http(_) => write!(f, "http"),
             Self::ChainView(_) => write!(f, "chain_view"),
             Self::ChainCall(_) => write!(f, "chain_call"),
+            Self::TriggerEvent(_) => write!(f, "trigger_event"),
         }
     }
 }

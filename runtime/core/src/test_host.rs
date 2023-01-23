@@ -90,7 +90,7 @@ impl HostAdapter for RuntimeTestAdapter {
         Ok(chain::send_tx(chain, client, &signed_txn).await?)
     }
 
-    async fn trigger_event(&self, event: Event) -> Result<()> {
+    async fn trigger_event(&self, _event: Event) -> Result<()> {
         Ok(())
     }
 }

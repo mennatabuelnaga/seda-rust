@@ -1,5 +1,4 @@
 mod node;
-use jsonrpsee::core::DeserializeOwned;
 pub(crate) use node::*;
 
 mod run;

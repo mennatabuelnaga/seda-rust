@@ -255,8 +255,7 @@ async fn test_limited_runtime() {
         vm_result
             .output
             .into_iter()
-            .find(|output| output.contains("not allowed in limited runtime"))
-            .is_some()
+            .any(|output| output.contains("not allowed in limited runtime"))
     );
 
     let value = runtime.host_adapter.db_get("foo").await.unwrap();

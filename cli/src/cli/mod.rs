@@ -1,11 +1,7 @@
-<<<<<<< HEAD
 use std::io::Write;
 
 use clap::{command, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate, Shell};
-=======
-use clap::{command, Parser, Subcommand};
->>>>>>> eaa79c2 (refactor: cli clean up + start calling view and call from cli)
 use seda_config::{AppConfig, PartialChainConfigs, PartialLoggerConfig};
 
 use crate::Result;
@@ -29,7 +25,6 @@ pub struct CliOptions {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-<<<<<<< HEAD
     #[cfg(debug_assertions)]
     // seda document
     /// Debug command for helping to generate our CLI.md file.
@@ -52,10 +47,6 @@ pub enum Command {
     },
     #[cfg(debug_assertions)]
     /// Debug commands to help interact with sub-chains.
-=======
-    #[command(subcommand)]
-    Node(Node),
->>>>>>> eaa79c2 (refactor: cli clean up + start calling view and call from cli)
     SubChain {
         #[command(flatten)]
         chains_config:     PartialChainConfigs,
