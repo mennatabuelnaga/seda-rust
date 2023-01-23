@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = []
 wasm = ["serde_json"]
+full = []
 
 [dependencies]
 clap = { workspace = true, features = ["derive", "std"] }

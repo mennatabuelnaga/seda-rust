@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-seda-runtime-sdk = { workspace = true, features = ["wasm"] }
+seda-runtime-sdk = { workspace = true, features = ["full", "wasm"] }
