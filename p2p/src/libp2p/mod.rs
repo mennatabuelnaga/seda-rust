@@ -15,7 +15,7 @@ use libp2p::{
     PeerId,
 };
 
-use self::behaviour::SedaBehaviour;
+use self::behaviour::{SedaBehaviour, GOSSIP_TOPIC};
 use crate::{
     errors::Result,
     libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport},
@@ -71,7 +71,7 @@ impl P2PServer {
     pub async fn loop_stream(&mut self) -> Result<()> {
         // TODO: Remove stdin feature
         let mut stdin = io::BufReader::new(io::stdin()).lines().fuse();
-        let topic = IdentTopic::new("testnet");
+        let topic = IdentTopic::new(GOSSIP_TOPIC);
 
         loop {
             select! {

@@ -23,6 +23,8 @@ use libp2p::{
 use super::super::errors::Result;
 use crate::P2PAdapterError;
 
+pub const GOSSIP_TOPIC: &str = "testnet";
+
 /// Handles all P2P protocols needed for SEDA.
 #[derive(NetworkBehaviour)]
 #[behaviour(out_event = "SedaBehaviourEvent")]
@@ -51,7 +53,7 @@ impl SedaBehaviour {
         let mut gossipsub = Gossipsub::new(MessageAuthenticity::Signed(key_pair.clone()), gossipsub_config)
             .map_err(|e| P2PAdapterError::Gossip(e.to_string()))?;
 
-        let topic = IdentTopic::new("test-net");
+        let topic = IdentTopic::new(GOSSIP_TOPIC);
         gossipsub.subscribe(&topic)?;
 
         Ok(Self {
