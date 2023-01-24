@@ -18,14 +18,7 @@ pub enum PromiseAction {
 impl PromiseAction {
     #[cfg(not(target_family = "wasm"))]
     pub fn is_limited_action(&self) -> bool {
-        matches!(
-            self,
-            Self::DatabaseGet(_)
-                | Self::DatabaseSet(_)
-                | Self::ChainCall(_)
-                | Self::ChainView(_)
-                | Self::TriggerEvent(_)
-        )
+        !matches!(self, Self::CallSelf(_) | Self::Http(_))
     }
 }
 
