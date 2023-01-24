@@ -16,8 +16,8 @@ use libp2p::{
         ValidationMode,
     },
     identity::Keypair,
-    mdns::{Mdns, MdnsConfig, MdnsEvent},
-    NetworkBehaviour,
+    mdns::{self},
+    swarm::NetworkBehaviour,
 };
 
 use super::super::errors::Result;
@@ -30,7 +30,7 @@ pub struct SedaBehaviour {
     /// Message propagation
     pub gossipsub: Gossipsub,
     // TODO: change discovery mechanism
-    pub mdns:      Mdns,
+    pub mdns:      mdns::async_io::Behaviour,
 }
 
 impl SedaBehaviour {
@@ -55,7 +55,7 @@ impl SedaBehaviour {
         gossipsub.subscribe(&topic)?;
 
         Ok(Self {
-            mdns: Mdns::new(MdnsConfig::default()).await?,
+            mdns: mdns::async_io::Behaviour::new(mdns::Config::default())?,
             gossipsub,
         })
     }
@@ -63,11 +63,11 @@ impl SedaBehaviour {
 
 pub enum SedaBehaviourEvent {
     Gossipsub(GossipsubEvent),
-    Mdns(MdnsEvent),
+    Mdns(mdns::Event),
 }
 
-impl From<MdnsEvent> for SedaBehaviourEvent {
-    fn from(event: MdnsEvent) -> Self {
+impl From<mdns::Event> for SedaBehaviourEvent {
+    fn from(event: mdns::Event) -> Self {
         Self::Mdns(event)
     }
 }

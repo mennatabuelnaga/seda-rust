@@ -9,7 +9,7 @@ use libp2p::{
     futures::{select, StreamExt},
     gossipsub::{GossipsubEvent, IdentTopic},
     identity::{self},
-    mdns::MdnsEvent,
+    mdns::Event as MdnsEvent,
     swarm::{Swarm, SwarmEvent},
     Multiaddr,
     PeerId,
@@ -40,7 +40,7 @@ impl P2PServer {
         let transport = build_tcp_transport(local_key.clone())?;
         let seda_behaviour = SedaBehaviour::new(&local_key).await?;
 
-        let mut swarm = Swarm::new(transport, seda_behaviour, PeerId::from(local_key.public()));
+        let mut swarm = Swarm::with_threadpool_executor(transport, seda_behaviour, PeerId::from(local_key.public()));
         swarm.listen_on(server_address.parse()?)?;
 
         Ok(Self {

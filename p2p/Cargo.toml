@@ -9,10 +9,12 @@ async-std = { version = "1.12.0" }
 futures = { workspace = true }
 libp2p = { workspace = true, features = [
 	"gossipsub",
-	"mdns-async-io",
 	"noise",
-	"tcp-async-io",
 	"yamux",
+	"mdns",
+	"tcp",
+	"macros",
+	"async-std"
 ] }
 thiserror = { workspace = true }
 tracing = { workspace = true }

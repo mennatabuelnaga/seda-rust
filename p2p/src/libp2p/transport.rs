@@ -4,7 +4,7 @@ use libp2p::{
     core::{muxing::StreamMuxerBox, transport, transport::upgrade::Version},
     identity,
     noise,
-    tcp::{GenTcpConfig, TcpTransport},
+    tcp::{async_io::Transport as TcpTransport, Config},
     yamux::YamuxConfig,
     PeerId,
     Transport,
@@ -20,11 +20,13 @@ pub fn build_tcp_transport(key_pair: identity::Keypair) -> Result<transport::Box
     let noise_config = noise::NoiseConfig::xx(noise_keys).into_authenticated();
     let yamux_config = YamuxConfig::default();
 
-    Ok(TcpTransport::new(GenTcpConfig::default().nodelay(true))
+    let transport_config = Config::default().nodelay(true);
+    let transport = TcpTransport::new(transport_config)
         .upgrade(Version::V1)
         .authenticate(noise_config)
         .multiplex(yamux_config)
-        // TODO: use duration from p2p config
         .timeout(Duration::from_secs(20))
-        .boxed())
+        .boxed();
+
+    Ok(transport)
 }

@@ -46,7 +46,7 @@ futures = { version = "0.3", default-features = false }
 jsonrpsee-types = "0.16"
 jsonrpsee = { version = "0.16", default-features = false }
 lazy_static = "1.4"
-libp2p = { version = "0.48", default-features = false }
+libp2p = { version = "0.50", default-features = false }
 near-crypto = "0.15"
 near-jsonrpc-client = { version = "0.4", default-features = false }
 near-jsonrpc-primitives = "0.15"
