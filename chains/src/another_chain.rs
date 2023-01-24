@@ -3,7 +3,7 @@ use std::sync::Arc;
 use seda_config::AnotherConfig;
 
 use super::errors::Result;
-use crate::{ChainAdapterTrait, TransactionParams};
+use crate::ChainAdapterTrait;
 
 #[derive(Debug)]
 pub struct AnotherChain;
@@ -27,10 +27,6 @@ impl ChainAdapterTrait for AnotherChain {
         _deposit: u128,
         _server_url: &str,
     ) -> Result<Vec<u8>> {
-        unimplemented!()
-    }
-
-    async fn sign_tx(_client: Self::Client, _tx_params: TransactionParams) -> Result<Vec<u8>> {
         unimplemented!()
     }
 

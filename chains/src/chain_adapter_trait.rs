@@ -2,16 +2,6 @@ use std::fmt::Debug;
 
 use crate::Result;
 
-pub struct TransactionParams {
-    pub signer_acc_str: String,
-    pub signer_sk_str:  String,
-    pub contract_id:    String,
-    pub method_name:    String,
-    pub args:           Vec<u8>,
-    pub gas:            u64,
-    pub deposit:        u128,
-}
-
 #[async_trait::async_trait]
 pub trait ChainAdapterTrait: Debug + Send + Sync + 'static {
     /// The Client type for the adapter specific implementation.
@@ -34,8 +24,6 @@ pub trait ChainAdapterTrait: Debug + Send + Sync + 'static {
         deposit: u128,
         server_url: &str,
     ) -> Result<Vec<u8>>;
-    /// To sign a transaction for the adapter specific implementation.
-    async fn sign_tx(client: Self::Client, tx_params: TransactionParams) -> Result<Vec<u8>>;
 
     /// To send a transaction for the adapter specific implementation.
     async fn send_tx(client: Self::Client, signed_tx: &[u8]) -> Result<Vec<u8>>;

@@ -90,13 +90,6 @@ pub mod chain {
         }
     }
 
-    async fn _sign_tx(chain: Chain, client: Client, tx_params: TransactionParams) -> Result<Vec<u8>> {
-        match chain {
-            Chain::Another => AnotherChain::sign_tx(client.another(), tx_params).await,
-            Chain::Near => NearChain::sign_tx(client.near(), tx_params).await,
-        }
-    }
-
     pub async fn send_tx(chain: Chain, client: Client, signed_tx: &[u8]) -> Result<Vec<u8>> {
         match chain {
             Chain::Another => AnotherChain::send_tx(client.another(), signed_tx).await,
