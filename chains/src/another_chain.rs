@@ -10,11 +10,11 @@ pub struct AnotherChain;
 
 #[async_trait::async_trait]
 impl ChainAdapterTrait for AnotherChain {
-    type Client = ();
+    type Client = Arc<()>;
     type Config = AnotherConfig;
 
     fn new_client(_config: &Self::Config) -> Result<Self::Client> {
-        Ok(())
+        Ok(Arc::new(()))
     }
 
     async fn construct_signed_tx(
@@ -30,20 +30,15 @@ impl ChainAdapterTrait for AnotherChain {
         unimplemented!()
     }
 
-    async fn sign_tx(_client: Arc<Self::Client>, _tx_params: TransactionParams) -> Result<Vec<u8>> {
+    async fn sign_tx(_client: Self::Client, _tx_params: TransactionParams) -> Result<Vec<u8>> {
         unimplemented!()
     }
 
-    async fn send_tx(_client: Arc<Self::Client>, _signed_tx: &[u8]) -> Result<Vec<u8>> {
+    async fn send_tx(_client: Self::Client, _signed_tx: &[u8]) -> Result<Vec<u8>> {
         unimplemented!()
     }
 
-    async fn view(
-        _client: Arc<Self::Client>,
-        _contract_id: &str,
-        _method_name: &str,
-        _args: Vec<u8>,
-    ) -> Result<Vec<u8>> {
+    async fn view(_client: Self::Client, _contract_id: &str, _method_name: &str, _args: Vec<u8>) -> Result<Vec<u8>> {
         unimplemented!()
     }
 }

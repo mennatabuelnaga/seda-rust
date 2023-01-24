@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
@@ -26,8 +26,8 @@ impl HostAdapter for RuntimeTestAdapter {
 
     async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherChain::new_client(&config.another)?)),
-            near_client:    Client::Near(Arc::new(NearChain::new_client(&config.near)?)),
+            another_client: Client::Another(AnotherChain::new_client(&config.another)?),
+            near_client:    Client::Near(NearChain::new_client(&config.near)?),
             chain_configs:  config,
         })
     }

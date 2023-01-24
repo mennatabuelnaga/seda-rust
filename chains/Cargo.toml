@@ -6,15 +6,11 @@ edition = "2021"
 [dependencies]
 async-trait = { workspace = true }
 borsh = { workspace = true }
-jsonrpsee-types = { workspace = true }
 near-jsonrpc-client = { workspace = true }
 near-jsonrpc-primitives = { workspace = true }
 near-primitives = { workspace = true }
 tokio = { workspace = true }
 seda-config = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 seda-runtime-sdk = { workspace = true }
 near-crypto = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }

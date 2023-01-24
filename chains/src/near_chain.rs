@@ -20,11 +20,11 @@ pub struct NearChain;
 
 #[async_trait::async_trait]
 impl ChainAdapterTrait for NearChain {
-    type Client = JsonRpcClient;
+    type Client = Arc<JsonRpcClient>;
     type Config = NearConfig;
 
     fn new_client(config: &Self::Config) -> Result<Self::Client> {
-        Ok(JsonRpcClient::connect(&config.chain_rpc_url))
+        Ok(Arc::new(JsonRpcClient::connect(&config.chain_rpc_url)))
     }
 
     async fn construct_signed_tx(
@@ -76,7 +76,7 @@ impl ChainAdapterTrait for NearChain {
         Ok(signed_transaction.try_to_vec()?)
     }
 
-    async fn sign_tx(client: Arc<Self::Client>, tx_params: TransactionParams) -> Result<Vec<u8>> {
+    async fn sign_tx(client: Self::Client, tx_params: TransactionParams) -> Result<Vec<u8>> {
         let signer_account_id: AccountId = tx_params.signer_acc_str.parse()?;
 
         let signer_secret_key: near_crypto::SecretKey = tx_params.signer_sk_str.parse()?;
@@ -113,7 +113,7 @@ impl ChainAdapterTrait for NearChain {
         Ok(signed_transaction.try_to_vec()?)
     }
 
-    async fn send_tx(client: Arc<Self::Client>, signed_tx: &[u8]) -> Result<Vec<u8>> {
+    async fn send_tx(client: Self::Client, signed_tx: &[u8]) -> Result<Vec<u8>> {
         let signed_tx = SignedTransaction::try_from_slice(signed_tx)?;
         let request = methods::broadcast_tx_async::RpcBroadcastTxAsyncRequest {
             signed_transaction: signed_tx.clone(),
@@ -157,7 +157,7 @@ impl ChainAdapterTrait for NearChain {
         }
     }
 
-    async fn view(client: Arc<Self::Client>, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>> {
+    async fn view(client: Self::Client, contract_id: &str, method_name: &str, args: Vec<u8>) -> Result<Vec<u8>> {
         let request = methods::query::RpcQueryRequest {
             block_reference: BlockReference::Finality(Finality::Final),
             request:         QueryRequest::CallFunction {

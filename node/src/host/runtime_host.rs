@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use actix::prelude::*;
 use seda_chains::{AnotherChain, ChainAdapterTrait, Client, NearChain};
 use seda_config::{ChainConfigs, NodeConfig};
@@ -21,8 +19,8 @@ impl HostAdapter for RuntimeAdapter {
 
     async fn new(config: ChainConfigs) -> Result<Self> {
         Ok(Self {
-            another_client: Client::Another(Arc::new(AnotherChain::new_client(&config.another)?)),
-            near_client:    Client::Near(Arc::new(NearChain::new_client(&config.near)?)),
+            another_client: Client::Another(AnotherChain::new_client(&config.another)?),
+            near_client:    Client::Near(NearChain::new_client(&config.near)?),
             chains_config:  config,
         })
     }
