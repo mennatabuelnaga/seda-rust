@@ -12,6 +12,7 @@ members = [
 	"runtime/core",
 	"runtime/macros",
 	"wasm/cli",
+	"wasm/consensus",
 	"wasm/test/demo-cli",
 	"wasm/test/promise-wasm-bin",
 ]

@@ -18,11 +18,11 @@ pub fn _log(level: Level, msg: &str, line_info: &str) {
 
 #[macro_export]
 macro_rules! log {
-    ($level:expr, $($arg:tt)*) => {
+    ($level:expr, $($arg:tt)*) => {{
 				let _msg = format!($($arg)*);
 				let _line_info = format!("{}:{}", file!(), line!());
 				seda_runtime_sdk::wasm::_log($level, &_msg, &_line_info)
-    };
+    }};
 }
 
 pub use log;

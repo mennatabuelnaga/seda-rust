@@ -75,7 +75,7 @@ pub struct ChainCallAction {
     pub contract_id: String,
     pub method_name: String,
     pub args:        Vec<u8>,
-    pub deposit:     String,
+    pub deposit:     u128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

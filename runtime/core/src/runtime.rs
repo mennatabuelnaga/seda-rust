@@ -227,7 +227,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                                 &chain_call_action.contract_id,
                                 &chain_call_action.method_name,
                                 chain_call_action.args.clone(),
-                                chain_call_action.deposit.parse::<u128>()?,
+                                chain_call_action.deposit,
                                 self.node_config.clone(),
                             )
                             .await

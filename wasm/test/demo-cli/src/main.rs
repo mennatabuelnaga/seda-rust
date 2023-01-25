@@ -32,7 +32,7 @@ enum Commands {
         contract_id: String,
         method_name: String,
         args:        String,
-        deposit:     String,
+        deposit:     u128,
     },
 }
 
