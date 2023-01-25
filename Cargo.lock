@@ -4529,6 +4529,7 @@ dependencies = [
  "futures",
  "libp2p",
  "seda-config",
+ "seda-runtime-sdk",
  "thiserror",
  "tokio",
  "tracing",

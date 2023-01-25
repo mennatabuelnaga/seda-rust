@@ -13,6 +13,7 @@ pub enum PromiseAction {
     ChainView(ChainViewAction),
     ChainCall(ChainCallAction),
     TriggerEvent(TriggerEventAction),
+    P2PBroadcast(P2PBroadcastAction),
 }
 
 impl PromiseAction {
@@ -32,6 +33,7 @@ impl fmt::Display for PromiseAction {
             Self::ChainView(_) => write!(f, "chain_view"),
             Self::ChainCall(_) => write!(f, "chain_call"),
             Self::TriggerEvent(_) => write!(f, "trigger_event"),
+            Self::P2PBroadcast(_) => write!(f, "p2p_broadcast"),
         }
     }
 }
@@ -79,4 +81,9 @@ pub struct ChainCallAction {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TriggerEventAction {
     pub event: Event,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct P2PBroadcastAction {
+    pub data: Vec<u8>,
 }

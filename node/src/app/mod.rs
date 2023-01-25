@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
 use actix::prelude::*;
+use futures::channel::mpsc::Sender;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::HostAdapter;
-use seda_runtime_sdk::events::EventId;
+use seda_runtime_sdk::{events::EventId, p2p::P2PCommand};
 use tracing::info;
 
 use crate::{
@@ -15,6 +16,7 @@ use crate::{
 };
 
 mod job_manager;
+pub mod p2p_message_handler;
 mod shutdown;
 pub use shutdown::Shutdown;
 // Node Actor definition
@@ -26,16 +28,23 @@ pub struct App<HA: HostAdapter> {
 }
 
 impl<HA: HostAdapter> App<HA> {
-    pub async fn new(node_config: NodeConfig, rpc_server_address: &str, chain_configs: ChainConfigs) -> Self {
+    pub async fn new(
+        node_config: NodeConfig,
+        rpc_server_address: &str,
+        chain_configs: ChainConfigs,
+        p2p_command_sender_channel: Sender<P2PCommand>,
+    ) -> Self {
         let runtime_worker = SyncArbiter::start(node_config.runtime_worker_threads, move || RuntimeWorker {
-            runtime:       None,
-            node_config:   node_config.clone(),
-            chain_configs: chain_configs.clone(),
+            runtime:                    None,
+            node_config:                node_config.clone(),
+            chain_configs:              chain_configs.clone(),
+            p2p_command_sender_channel: p2p_command_sender_channel.clone(),
         });
 
         let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
             .await
             .expect("Error starting jsonrpsee server");
+
         App {
             event_queue: Default::default(),
             running_event_ids: Default::default(),

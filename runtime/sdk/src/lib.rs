@@ -2,6 +2,7 @@ mod chain;
 pub use chain::Chain;
 mod level;
 pub use level::Level;
+pub mod p2p;
 mod promises;
 
 #[cfg(feature = "wasm")]
@@ -16,6 +17,7 @@ pub use promises::{
     DatabaseGetAction,
     DatabaseSetAction,
     HttpAction,
+    P2PBroadcastAction,
     Promise,
     PromiseAction,
     PromiseStatus,

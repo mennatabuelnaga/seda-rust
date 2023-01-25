@@ -1,5 +1,6 @@
 mod app;
-use app::App;
+
+use app::{p2p_message_handler::P2PMessageHandler, App};
 mod errors;
 pub use errors::*;
 mod event_queue;
@@ -9,10 +10,12 @@ mod runtime_job;
 
 mod host;
 use actix::prelude::*;
+use futures::channel::mpsc;
 pub(crate) use host::*;
 pub use host::{ChainCall, ChainView};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_p2p::libp2p::P2PServer;
+use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tracing::info;
 
 use crate::app::Shutdown;
@@ -27,25 +30,40 @@ pub fn run(seda_server_address: &str, config: NodeConfig, chain_configs: ChainCo
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
+        let (p2p_message_sender, p2p_message_receiver) = mpsc::channel::<P2PMessage>(0);
+        let (p2p_command_sender, p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+
         // TODO: add number of workers as config with default value
-        let app = App::<RuntimeAdapter>::new(config.clone(), seda_server_address, chain_configs)
+        let app = App::<RuntimeAdapter>::new(config.clone(), seda_server_address, chain_configs, p2p_command_sender)
             .await
             .start();
 
         // TODO: Use config for P2P Server
+        let mut p2p_server = P2PServer::start_from_config(
+            &config.p2p_server_address,
+            &config.p2p_known_peers,
+            p2p_message_sender,
+            p2p_command_receiver,
+        )
+        .await
+        .expect("P2P swarm cannot be started");
+
+        p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
 
         // P2P initialization
         // TODO: most probably this process should be moved somewhere else
         actix::spawn(async move {
-            let mut p2p_server = P2PServer::start_from_config(&config.p2p_server_address, &config.p2p_known_peers)
-                .await
-                .expect("P2P swarm cannot be started");
-            p2p_server.dial_peers().await.expect("P2P dial behaviour failed");
-            p2p_server.loop_stream().await.expect("P2P listen failed");
+            p2p_server.loop_stream().await.expect("P2P Loop failed");
+        });
+
+        // Listens for p2p messages and sents the to the event queue
+        let mut p2p_message_handler = P2PMessageHandler::new(p2p_message_receiver, app.clone());
+        actix::spawn(async move {
+            p2p_message_handler.listen().await;
         });
 
         // Intercept ctrl+c to stop gracefully the system
-        tokio::spawn(async move {
+        actix::spawn(async move {
             tokio::signal::ctrl_c().await.expect("failed to listen for event");
             info!("\nStopping the node gracefully...");
 

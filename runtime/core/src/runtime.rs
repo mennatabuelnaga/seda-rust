@@ -1,8 +1,9 @@
 use std::{io::Read, sync::Arc};
 
+use futures::{channel::mpsc::Sender, SinkExt};
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_runtime_sdk::{CallSelfAction, Promise, PromiseAction, PromiseStatus};
+use seda_runtime_sdk::{p2p::P2PCommand, CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use wasmer::{Instance, Module, Store};
@@ -44,9 +45,15 @@ pub trait RunnableRuntime {
         // Used to get the result of the last execution (for JSON RPC)
         // Can also be used to debug the queue
         promise_queue_trace: &mut Vec<PromiseQueue>,
+        p2p_command_sender_channel: Sender<P2PCommand>,
     ) -> Result<u8>;
 
-    async fn start_runtime(&self, config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult>;
+    async fn start_runtime(
+        &self,
+        config: VmConfig,
+        memory_adapter: Arc<Mutex<InMemory>>,
+        p2p_command_sender_channel: Sender<P2PCommand>,
+    ) -> Result<VmResult>;
 }
 
 #[async_trait::async_trait]
@@ -80,6 +87,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         promise_queue: PromiseQueue,
         output: &mut Vec<String>,
         promise_queue_trace: &mut Vec<PromiseQueue>,
+        mut p2p_command_sender_channel: Sender<P2PCommand>,
     ) -> Result<u8> {
         let mut next_promise_queue = PromiseQueue::new();
         let mut promise_queue_mut = promise_queue.clone();
@@ -235,6 +243,11 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
                     }
+                    PromiseAction::P2PBroadcast(p2p_broadcast_action) => {
+                        p2p_command_sender_channel
+                            .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
+                            .await?
+                    }
                 }
             }
         }
@@ -247,12 +260,18 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             next_promise_queue,
             output,
             promise_queue_trace,
+            p2p_command_sender_channel,
         );
 
         res.await
     }
 
-    async fn start_runtime(&self, config: VmConfig, memory_adapter: Arc<Mutex<InMemory>>) -> Result<VmResult> {
+    async fn start_runtime(
+        &self,
+        config: VmConfig,
+        memory_adapter: Arc<Mutex<InMemory>>,
+        p2p_command_sender_channel: Sender<P2PCommand>,
+    ) -> Result<VmResult> {
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
@@ -276,6 +295,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                 promise_queue,
                 &mut output,
                 &mut promise_queue_trace,
+                p2p_command_sender_channel,
             )
             .await?;
 

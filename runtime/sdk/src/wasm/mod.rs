@@ -8,6 +8,7 @@ mod execution;
 mod http;
 mod log;
 mod memory;
+mod p2p;
 mod promise;
 mod raw;
 
@@ -21,4 +22,5 @@ pub use execution::*;
 pub use http::*;
 pub use log::*;
 pub use memory::*;
+pub use p2p::*;
 pub use promise::*;

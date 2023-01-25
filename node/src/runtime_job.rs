@@ -1,10 +1,14 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
+use futures::channel::mpsc::Sender;
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::{HostAdapter, InMemory, Result, RunnableRuntime, Runtime, VmConfig, VmResult};
-use seda_runtime_sdk::events::{Event, EventData};
+use seda_runtime_sdk::{
+    events::{Event, EventData},
+    p2p::P2PCommand,
+};
 use tracing::info;
 
 #[derive(MessageResponse)]
@@ -19,9 +23,10 @@ pub struct RuntimeJob {
 }
 
 pub struct RuntimeWorker<HA: HostAdapter> {
-    pub runtime:       Option<Runtime<HA>>,
-    pub node_config:   NodeConfig,
-    pub chain_configs: ChainConfigs,
+    pub runtime:                    Option<Runtime<HA>>,
+    pub node_config:                NodeConfig,
+    pub chain_configs:              ChainConfigs,
+    pub p2p_command_sender_channel: Sender<P2PCommand>,
 }
 
 impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
@@ -59,6 +64,8 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
         let args: Vec<String> = match msg.event.data {
             EventData::ChainTick => vec![],
             EventData::CliCall(args) => args,
+            // TODO: Make args accept byes only
+            EventData::P2PMessage(message) => vec!["p2p".to_string(), String::from_utf8(message.data).unwrap()],
         };
 
         let vm_config = VmConfig {
@@ -70,8 +77,13 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
 
         let runtime = self.runtime.as_ref().unwrap();
 
-        let res = futures::executor::block_on(runtime.start_runtime(vm_config, memory_adapter))?;
+        let res = futures::executor::block_on(runtime.start_runtime(
+            vm_config,
+            memory_adapter,
+            self.p2p_command_sender_channel.clone(),
+        ))?;
         // TODO maybe set up a prettier log format rather than debug of this type?
+
         info!(vm_result = ?res);
 
         Ok(RuntimeJobResult { vm_result: res })

@@ -1,5 +1,6 @@
 use std::num::ParseIntError;
 
+use futures::channel::mpsc::SendError;
 use thiserror::Error;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
@@ -52,6 +53,9 @@ pub enum RuntimeError {
     #[cfg(test)]
     #[error("Chain Adapter Error: {0}")]
     ChainAdapterError(#[from] seda_chains::ChainAdapterError),
+
+    #[error("P2P Command Channel Error: {0}")]
+    P2PCommandChannelError(#[from] SendError),
 }
 
 impl From<InstantiationError> for RuntimeError {

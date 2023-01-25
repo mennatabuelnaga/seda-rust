@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
-    events::{Event, EventData},
-    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, log, trigger_event, Promise},
+    wasm::{call_self, chain_call, chain_view, db_set, http_fetch, log, p2p_broadcast_message, Promise},
     Chain,
     PromiseStatus,
 };
@@ -18,6 +17,9 @@ struct Options {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    P2p {
+        message: String,
+    },
     Hello,
     HttpFetch {
         url: String,
@@ -46,12 +48,11 @@ fn main() {
             Commands::HttpFetch { url } => {
                 http_fetch(&url).start().then(call_self("http_fetch_result", vec![]));
             }
+            Commands::P2p { message } => {
+                println!("Received a message from inside wasm {message}");
+                p2p_broadcast_message(vec![23]).start();
+            }
             Commands::Hello => {
-                trigger_event(Event {
-                    id:   "test".to_string(),
-                    data: EventData::ChainTick,
-                })
-                .start();
                 println!("Hello World from inside wasm");
             }
             Commands::View {
