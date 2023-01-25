@@ -20,10 +20,8 @@ use libp2p::{
     swarm::NetworkBehaviour,
 };
 
-use super::super::errors::Result;
+use super::{super::errors::Result, GOSSIP_TOPIC};
 use crate::P2PAdapterError;
-
-pub const GOSSIP_TOPIC: &str = "testnet";
 
 /// Handles all P2P protocols needed for SEDA.
 #[derive(NetworkBehaviour)]

@@ -15,11 +15,13 @@ use libp2p::{
     PeerId,
 };
 
-use self::behaviour::{SedaBehaviour, GOSSIP_TOPIC};
+use self::behaviour::SedaBehaviour;
 use crate::{
     errors::Result,
     libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport},
 };
+
+pub const GOSSIP_TOPIC: &str = "testnet";
 
 pub struct P2PServer {
     pub known_peers:    Vec<String>,

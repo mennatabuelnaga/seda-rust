@@ -98,7 +98,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                 match &promise_queue.queue[index].action {
                     action if self.limited && action.is_limited_action() => {
                         promise_queue_mut.queue[index].status = PromiseStatus::Rejected(
-                            format!("Method `{}` not allowed in limited runtime", action).into_bytes(),
+                            format!("Method `{action}` not allowed in limited runtime").into_bytes(),
                         )
                     }
                     PromiseAction::CallSelf(call_action) => {

@@ -19,14 +19,13 @@ pub fn build_tcp_transport(key_pair: identity::Keypair) -> Result<transport::Box
         .unwrap();
     let noise_config = noise::NoiseConfig::xx(noise_keys).into_authenticated();
     let yamux_config = YamuxConfig::default();
-
     let transport_config = Config::default().nodelay(true);
-    let transport = TcpTransport::new(transport_config)
+
+    Ok(TcpTransport::new(transport_config)
         .upgrade(Version::V1)
         .authenticate(noise_config)
         .multiplex(yamux_config)
+        // TODO: use duration from p2p config
         .timeout(Duration::from_secs(20))
-        .boxed();
-
-    Ok(transport)
+        .boxed())
 }

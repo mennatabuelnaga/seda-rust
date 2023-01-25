@@ -107,7 +107,7 @@ async fn test_non_existing_function() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_http_fetch() {
     set_env_vars();
-    let fetch_url = "https://www.breakingbadapi.com/api/characters/1".to_string();
+    let fetch_url = "https://swapi.dev/api/planets/1/".to_string();
 
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let mut runtime =
