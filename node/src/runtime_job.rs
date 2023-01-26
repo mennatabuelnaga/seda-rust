@@ -59,7 +59,7 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
     type Result = Result<RuntimeJobResult>;
 
     fn handle(&mut self, msg: RuntimeJob, _ctx: &mut Self::Context) -> Self::Result {
-        let memory_adapter = Arc::new(Mutex::new(InMemory::default()));
+        let memory_adapter = Arc::new(Mutex::new(InMemory::new(&self.node_config)?));
 
         let args: Vec<String> = match msg.event.data {
             EventData::ChainTick => vec![],
