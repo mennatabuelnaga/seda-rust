@@ -4,5 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { workspace = true, features = ["derive", "help", "std", "string"] }
+clap = { workspace = true, features = [
+	"derive",
+	"error-context",
+	"help",
+	"std",
+	"string",
+] }
 seda-runtime-sdk = { workspace = true, features = ["full", "wasm"] }
+serde_json = { workspace = true }

@@ -1,7 +1,6 @@
 use std::str;
 
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use super::raw::promise_then;
 use crate::{wasm::raw, PromiseAction, PromiseStatus};
@@ -14,6 +13,7 @@ pub struct Promise {
     /// The status of the promise, will include the result if it's fulfilled
     pub status: PromiseStatus,
 
+    #[serde(skip)]
     /// The promise we should execute after this one
     pub after: Option<Box<Self>>,
 }
@@ -28,11 +28,8 @@ impl Promise {
     }
 
     fn add_to_queue(promise: &Self) {
-        let promise_data = json!({
-            "action": promise.action,
-            "status": promise.status,
-        })
-        .to_string();
+        // the json! macro was failing
+        let promise_data = serde_json::to_string(&promise).expect("Shouldn't ever fail.");
 
         unsafe {
             promise_then(promise_data.as_ptr(), promise_data.len() as i32);

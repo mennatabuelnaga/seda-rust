@@ -13,7 +13,7 @@ impl fmt::Display for Chain {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Chain::Another => write!(f, "another"),
-            Chain::Near => write!(f, "chain"),
+            Chain::Near => write!(f, "near"),
         }
     }
 }

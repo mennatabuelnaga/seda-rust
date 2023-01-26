@@ -28,27 +28,31 @@ fn bridge() {
     let result = Promise::result(0);
 
     match result {
-        PromiseStatus::Fulfilled(args) => {
+        PromiseStatus::Fulfilled(data) => {
+            let data = String::from_utf8(data).expect("TODO");
+            let args_string = serde_json::json!({ "data_request": data }).to_string();
+            log!(Level::Debug, "Posting args: {args_string}");
             chain_call(
                 Chain::Near,
                 CONFIG.contract_account_id.as_str(),
                 "post_data_request",
-                args,
-                CONFIG.deposit,
+                args_string.into_bytes(),
+                0,
             )
             .start()
             .then(call_self("bridge_result", vec![]));
         }
-        _ => log!(Level::Error, "Cannot bridge sub chain view failed"),
+        _ => log!(Level::Debug, "Cannot bridge sub chain view failed"),
     }
 }
 
 #[no_mangle]
 fn bridge_result() {
+    dbg!("bridge result");
     let result = Promise::result(0);
 
     match result {
         PromiseStatus::Fulfilled(vec) => log!(Level::Info, "Success message: {}", String::from_utf8(vec).unwrap()),
-        _ => log!(Level::Error, "Posting bridge result to main chain failed."),
+        _ => log!(Level::Debug, "Posting bridge result to main chain failed."),
     }
 }

@@ -3,6 +3,7 @@ use seda_config::{AppConfig, PartialChainConfigs};
 
 use crate::Result;
 
+mod bridge;
 mod get;
 mod register;
 mod unregister;
@@ -10,6 +11,7 @@ mod update;
 
 #[derive(Debug, Subcommand)]
 pub enum Node {
+    Bridge(bridge::Bridge),
     // seda node get -n 1
     /// Get a node from a given node ID if it exists.
     Get(get::Node),
@@ -33,6 +35,7 @@ impl Node {
     #[tokio::main]
     pub async fn handle(self, config: AppConfig, chains_config: PartialChainConfigs) -> Result<()> {
         match self {
+            Self::Bridge(bridge) => bridge.handle(config, chains_config).await,
             Self::Get(get_node) => get_node.handle(config, chains_config).await,
             Self::GetNodes(get_nodes) => get_nodes.handle(config, chains_config).await,
             Self::Register(register_node) => register_node.handle(config, chains_config).await,
