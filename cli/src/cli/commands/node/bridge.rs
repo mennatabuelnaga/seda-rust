@@ -13,6 +13,8 @@ pub struct Bridge {
     pub sub_chain_contract_id: String,
     #[arg(long)]
     pub sub_chain_method_name: String,
+    #[arg(long)]
+    pub bridge_deposit:        u128,
     #[arg(short, long)]
     pub args:                  String,
 }
@@ -30,10 +32,14 @@ impl Bridge {
             self.chain.to_string(),
             self.sub_chain_contract_id,
             self.sub_chain_method_name,
+            self.bridge_deposit.to_string(),
             self.args,
         ];
+
         let response: Vec<String> = client.request("cli", rpc_params!(args)).await?;
-        dbg!(response);
+        // This is assuming we are always putting valid json in our wasm output...
+        // This formatting is also a bit awkward...
+        serde_json::to_writer_pretty(std::io::stdout(), &response)?;
         Ok(())
     }
 }

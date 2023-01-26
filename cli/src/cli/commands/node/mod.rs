@@ -11,6 +11,10 @@ mod update;
 
 #[derive(Debug, Subcommand)]
 pub enum Node {
+    // seda node bridge -c near --sub-chain-contract-id "mc.mennat0.testnet" --sub-chain-method-name "get_node"
+    // --bridge-deposit 1350000000000000000000 --args '{\"node_id\": \"1\"}'
+    /// Run a view method on the specified chain with the args and post it to
+    /// the main chain.
     Bridge(bridge::Bridge),
     // seda node get -n 1
     /// Get a node from a given node ID if it exists.

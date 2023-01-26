@@ -95,7 +95,7 @@ Commands to interact with the SEDA node
 
 ###### **Subcommands:**
 
-* `bridge` — 
+* `bridge` — Run a view method on the specified chain with the args and post it to the main chain
 * `get` — Get a node from a given node ID if it exists
 * `get-nodes` — Get a list of nodes limited by the given size from an offset
 * `register` — Register a node from the given deposit and socket address
@@ -110,7 +110,9 @@ Commands to interact with the SEDA node
 
 ## `seda node bridge`
 
-**Usage:** `seda node bridge --chain <CHAIN> --sub-chain-contract-id <SUB_CHAIN_CONTRACT_ID> --sub-chain-method-name <SUB_CHAIN_METHOD_NAME> --args <ARGS>`
+Run a view method on the specified chain with the args and post it to the main chain
+
+**Usage:** `seda node bridge --chain <CHAIN> --sub-chain-contract-id <SUB_CHAIN_CONTRACT_ID> --sub-chain-method-name <SUB_CHAIN_METHOD_NAME> --bridge-deposit <BRIDGE_DEPOSIT> --args <ARGS>`
 
 ###### **Options:**
 
@@ -120,6 +122,7 @@ Commands to interact with the SEDA node
 
 * `--sub-chain-contract-id <SUB_CHAIN_CONTRACT_ID>`
 * `--sub-chain-method-name <SUB_CHAIN_METHOD_NAME>`
+* `--bridge-deposit <BRIDGE_DEPOSIT>`
 * `-a`, `--args <ARGS>`
 
 
@@ -327,9 +330,7 @@ Views the specified method on the specified chain with the given args and contra
     This document was generated automatically by
     <a href="https://crates.io/crates/clap-markdown"><code>clap-markdown</code></a>.
 </i></small>
- d e   t h e   n o d e   d e p o s i t   c o n f i g   v a l u e 
- *   ` - g ` ,   ` - - g a s   < G A S > `      A n   o p t i o n   t o   o v e r r i d e   t h e   n o d e   g a s   c o n f i g   v a l u e 
- *   ` - - s e c r e t - k e y   < S E C R E T _ K E Y > `      A n   o p t i o n   t o   o v e r r i d e   t h e   n o d e   s e c r e t   k e y   c o n f i g   v a l u e 
+ < S E C R E T _ K E Y > `      A n   o p t i o n   t o   o v e r r i d e   t h e   n o d e   s e c r e t   k e y   c o n f i g   v a l u e 
  *   ` - - s i g n e r - a c c o u n t - i d   < S I G N E R _ A C C O U N T _ I D > `      A n   o p t i o n   t o   o v e r r i d e   t h e   n o d e   s i g n e r   a c c o u n t   I D   c o n f i g   v a l u e 
  *   ` - - c o n t r a c t - a c c o u n t - i d   < C O N T R A C T _ A C C O U N T _ I D > `      A n   o p t i o n   t o   o v e r r i d e   t h e   n o d e   c o n t r a c t   a c c o u n t   I D   c o n f i g   v a l u e 
  *   ` - - p u b l i c - k e y   < P U B L I C _ K E Y > `      A n   o p t i o n   t o   o v e r r i d e   t h e   n o d e   p u b l i c   k e y   c o n f i g   v a l u e 
