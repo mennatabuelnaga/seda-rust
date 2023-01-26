@@ -4471,6 +4471,7 @@ dependencies = [
  "clap",
  "lazy_static",
  "serde",
+ "serde_json",
  "thiserror",
  "tokio",
  "toml",
@@ -4568,6 +4569,8 @@ name = "seda-runtime-sdk"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "lazy_static",
+ "seda-config",
  "serde",
  "serde_json",
  "tracing",

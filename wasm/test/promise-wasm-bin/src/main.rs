@@ -1,11 +1,12 @@
 use std::env;
 
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, execution_result, http_fetch, memory_read, memory_write, Promise},
+    wasm::{call_self, db_get, db_set, execution_result, http_fetch, memory_read, memory_write, Promise, CONFIG},
     PromiseStatus,
 };
 
 fn main() {
+    println!("{:?}", &*CONFIG);
     let args: Vec<String> = env::args().collect();
 
     println!("Hello World {:?}", args);

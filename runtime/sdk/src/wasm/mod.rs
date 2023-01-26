@@ -1,6 +1,7 @@
 mod call;
 #[cfg(feature = "full")]
 mod chain_interactor;
+mod config;
 #[cfg(feature = "full")]
 mod database;
 mod execution;
@@ -13,6 +14,7 @@ mod raw;
 pub use call::*;
 #[cfg(feature = "full")]
 pub use chain_interactor::*;
+pub use config::CONFIG;
 #[cfg(feature = "full")]
 pub use database::*;
 pub use execution::*;

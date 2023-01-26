@@ -125,7 +125,7 @@ impl Config for PartialNodeConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConfigInner {
     pub deposit:                 u128,
     pub gas:                     u64,
@@ -154,6 +154,11 @@ impl NodeConfigInner {
             p2p_server_address:      Self::P2P_SERVER_ADDRESS.to_string(),
             p2p_known_peers:         Vec::new(),
         })
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> NodeConfig {
+        let conf = serde_json::from_slice(bytes).unwrap();
+        Arc::new(conf)
     }
 }
 
