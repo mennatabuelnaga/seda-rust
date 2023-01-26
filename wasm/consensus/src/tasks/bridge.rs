@@ -1,7 +1,7 @@
 use clap::Args;
 use seda_runtime_sdk::{
     log,
-    wasm::{call_self, chain_call, chain_view, Promise},
+    wasm::{call_self, chain_call, chain_view, Promise, CONFIG},
     Chain,
     Level,
     PromiseStatus,
@@ -31,12 +31,10 @@ fn bridge() {
         PromiseStatus::Fulfilled(args) => {
             chain_call(
                 Chain::Near,
-                // node_config.contract_account_id?
-                "mc.mennat0.testnet",
+                CONFIG.contract_account_id.as_str(),
                 "post_data_request",
                 args,
-                // node_config.deposit?
-                0,
+                CONFIG.deposit,
             )
             .start()
             .then(call_self("bridge_result", vec![]));
