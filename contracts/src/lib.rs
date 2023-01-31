@@ -1,7 +1,9 @@
 pub mod block;
 pub mod data_request;
+pub mod epoch;
 pub mod merkle;
 pub mod node_registry;
+pub mod slot;
 pub mod storage;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
@@ -64,4 +66,5 @@ mod tests {
     mod block_test;
     mod data_request_test;
     mod node_registry_test;
+    mod slot_test;
 }
