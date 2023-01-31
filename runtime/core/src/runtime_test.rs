@@ -289,8 +289,9 @@ async fn test_limited_runtime() {
 // async fn test_cli_demo_view_near_chain() {
 //     set_env_vars();
 //     let wasm_binary = read_wasm_target("demo-cli");
+
 //     let mut runtime =
-//         Runtime::<RuntimeTestAdapter>::new(,
+//         Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(),
 // ChainConfigsInner::test_config(), false)             .await
 //             .unwrap();
 //     let memory_adapter = memory_adapter();

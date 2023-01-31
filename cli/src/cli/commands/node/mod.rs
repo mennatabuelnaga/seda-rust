@@ -11,6 +11,7 @@ mod update;
 
 #[derive(Debug, Subcommand)]
 pub enum Node {
+    #[cfg(debug_assertions)]
     // seda node bridge -c near --sub-chain-contract-id "mc.mennat0.testnet" --sub-chain-method-name "get_node"
     // --bridge-deposit 1350000000000000000000 --args '{\"node_id\": \"1\"}'
     /// Run a view method on the specified chain with the args and post it to

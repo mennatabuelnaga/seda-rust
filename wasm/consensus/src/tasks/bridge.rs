@@ -20,27 +20,27 @@ impl Bridge {
     pub fn handle(self) {
         // we have a method to auto convert to bytes in a trait in runtime.
         // it should be moved to the sdk
+        // TODO: SEDA-188 will make it so we can pass these instead of a vec of strings
+        // to .then()
         memory_write("bridge_deposit", self.deposit.to_le_bytes().to_vec());
         chain_view(self.chain, self.contract_id, self.method_name, self.args.into_bytes())
             .start()
-            .then(call_self("bridge", vec![]));
+            .then(call_self("step_1", vec![]));
     }
 }
 
-// Oh right wasmer doesn't have strings... or u128s so passing deposit as an arg
-// may not be good
 #[no_mangle]
-fn bridge() {
+fn step_1() {
     let result = Promise::result(0);
     let deposit_bytes = memory_read("bridge_deposit");
     let deposit = u128::from_le_bytes(
-        deposit_bytes
-            .try_into()
-            .expect("This method is in a nice trait in runtime."),
+        // This won't fail.
+        deposit_bytes.try_into().unwrap(),
     );
     match result {
+        // TODO: I wonder if SEDA-188 could also make it so we don't have to do these conversions manually?
         PromiseStatus::Fulfilled(data) => {
-            let data = String::from_utf8(data).expect("TODO");
+            let data = String::from_utf8(data).expect("chain_view resulted in a invalid string");
             let args_string = serde_json::json!({ "data_request": data }).to_string();
             log!(Level::Debug, "Posting args: {args_string}");
             chain_call(
@@ -51,14 +51,14 @@ fn bridge() {
                 deposit,
             )
             .start()
-            .then(call_self("bridge_result", vec![]));
+            .then(call_self("step_2", vec![]));
         }
         _ => log!(Level::Error, "Cannot bridge sub chain view failed"),
     }
 }
 
 #[no_mangle]
-fn bridge_result() {
+fn step_2() {
     let result = Promise::result(0);
     println!("{{\"status\": \"success\"}}");
     match result {
