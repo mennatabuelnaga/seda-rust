@@ -5,6 +5,7 @@ mod configs;
 pub use configs::*;
 
 mod errors;
+#[cfg(not(target_family = "wasm"))]
 use std::path::{Path, PathBuf};
 
 pub use errors::*;

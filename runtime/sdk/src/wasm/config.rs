@@ -1,11 +1,9 @@
 use lazy_static::lazy_static;
 use seda_config::{NodeConfig, NodeConfigInner};
 
-use super::memory_read;
-
 fn config() -> NodeConfig {
-    let config_bytes = memory_read("*&_seda_node_config");
-    NodeConfigInner::from_bytes(&config_bytes)
+    let config_str = std::env::var("WASM_NODE_CONFIG").expect("ENV DNE");
+    NodeConfigInner::from_json_str(&config_str)
 }
 
 // Lazy static so its only converting from bytes once per wasm bin

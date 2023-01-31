@@ -35,11 +35,3 @@ fn test_in_memory_storage_incorrect_read_type() {
     memory_adapter.put("u32", 245u32);
     let _: Option<u8> = memory_adapter.get("u32").unwrap();
 }
-
-#[test]
-fn test_in_memory_retreive_config() {
-    let node_config = seda_config::NodeConfigInner::test_config();
-    let memory_adapter = InMemory::new(&node_config).unwrap();
-
-    let _ = memory_adapter.get_config().unwrap();
-}

@@ -108,6 +108,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let stderr_pipe = Pipe::new();
 
                         let mut wasi_env = WasiState::new(&call_action.function_name)
+                            .env("WASM_NODE_CONFIG", serde_json::to_string(&self.node_config)?)
                             .args(call_action.args.clone())
                             .stdout(Box::new(stdout_pipe))
                             .stderr(Box::new(stderr_pipe))
@@ -137,6 +138,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             let mut stdout_buffer = String::new();
                             wasi_stdout.read_to_string(&mut stdout_buffer)?;
                             if !stdout_buffer.is_empty() {
+                                dbg!(&stdout_buffer);
                                 output.push(stdout_buffer);
                             }
                         }
@@ -146,6 +148,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let mut stderr_buffer = String::new();
                         wasi_stderr.read_to_string(&mut stderr_buffer)?;
                         if !stderr_buffer.is_empty() {
+                            dbg!(&stderr_buffer);
                             output.push(stderr_buffer);
                         }
 

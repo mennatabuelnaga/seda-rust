@@ -1,7 +1,7 @@
 use std::{env, fs, path::PathBuf, sync::Arc};
 
 use parking_lot::Mutex;
-use seda_config::{ChainConfigsInner, NodeConfig, NodeConfigInner};
+use seda_config::{ChainConfigsInner, NodeConfigInner};
 use serde_json::json;
 
 use crate::{test::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
@@ -18,8 +18,8 @@ fn set_env_vars() {
     env::set_var("SEDA_CONFIG_PATH", "../../template_config.toml");
 }
 
-fn memory_adapter(node_config: &NodeConfig) -> Arc<Mutex<InMemory>> {
-    Arc::new(Mutex::new(InMemory::new(node_config).unwrap()))
+fn memory_adapter() -> Arc<Mutex<InMemory>> {
+    Arc::new(Mutex::new(InMemory::default()))
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -27,7 +27,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -57,7 +57,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
 async fn test_bad_wasm_file() {
     set_env_vars();
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -85,7 +85,7 @@ async fn test_non_existing_function() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -114,7 +114,7 @@ async fn test_promise_queue_http_fetch() {
 
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -150,7 +150,7 @@ async fn test_promise_queue_http_fetch() {
 async fn test_memory_adapter() {
     set_env_vars();
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -194,7 +194,7 @@ async fn test_cli_demo_view_another_chain() {
     set_env_vars();
     let wasm_binary = read_wasm_target("demo-cli");
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -234,7 +234,7 @@ async fn test_limited_runtime() {
     set_env_vars();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
-    let memory_adapter = memory_adapter(&node_config);
+    let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), true)
         .await
         .unwrap();

@@ -156,9 +156,9 @@ impl NodeConfigInner {
         })
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> NodeConfig {
-        let conf = serde_json::from_slice(bytes).unwrap();
-        Arc::new(conf)
+    pub fn from_json_str(s: &str) -> NodeConfig {
+        let this = serde_json::from_str(s).unwrap();
+        Arc::new(this)
     }
 }
 
