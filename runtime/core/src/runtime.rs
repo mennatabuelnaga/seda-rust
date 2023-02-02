@@ -138,7 +138,6 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             let mut stdout_buffer = String::new();
                             wasi_stdout.read_to_string(&mut stdout_buffer)?;
                             if !stdout_buffer.is_empty() {
-                                dbg!(&stdout_buffer);
                                 output.push(stdout_buffer);
                             }
                         }
@@ -148,7 +147,6 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let mut stderr_buffer = String::new();
                         wasi_stderr.read_to_string(&mut stderr_buffer)?;
                         if !stderr_buffer.is_empty() {
-                            dbg!(&stderr_buffer);
                             output.push(stderr_buffer);
                         }
 
