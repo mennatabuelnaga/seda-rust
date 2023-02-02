@@ -1,5 +1,3 @@
-use seda_config::NodeConfig;
-
 use super::{Bytes, FromBytes, ToBytes};
 use crate::Result;
 

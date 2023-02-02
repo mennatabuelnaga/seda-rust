@@ -20,8 +20,8 @@ fn set_env_vars() {
     env::set_var("SEDA_CONFIG_PATH", "../../template_config.toml");
 }
 
-fn memory_adapter(node_config: &NodeConfig) -> Arc<Mutex<InMemory>> {
-    Arc::new(Mutex::new(InMemory::new(node_config).unwrap()))
+fn memory_adapter() -> Arc<Mutex<InMemory>> {
+    Arc::new(Mutex::new(InMemory::default()))
 }
 
 #[tokio::test(flavor = "multi_thread")]

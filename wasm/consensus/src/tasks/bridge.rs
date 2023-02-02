@@ -25,12 +25,12 @@ impl Bridge {
         memory_write("bridge_deposit", self.deposit.to_le_bytes().to_vec());
         chain_view(self.chain, self.contract_id, self.method_name, self.args.into_bytes())
             .start()
-            .then(call_self("step_1", vec![]));
+            .then(call_self("bridge_step_1", vec![]));
     }
 }
 
 #[no_mangle]
-fn step_1() {
+fn bridge_step_1() {
     let result = Promise::result(0);
     let deposit_bytes = memory_read("bridge_deposit");
     let deposit = u128::from_le_bytes(
@@ -51,14 +51,14 @@ fn step_1() {
                 deposit,
             )
             .start()
-            .then(call_self("step_2", vec![]));
+            .then(call_self("bridge_step_2", vec![]));
         }
         _ => log!(Level::Error, "Cannot bridge sub chain view failed"),
     }
 }
 
 #[no_mangle]
-fn step_2() {
+fn bridge_step_2() {
     let result = Promise::result(0);
     println!("{{\"status\": \"success\"}}");
     match result {
