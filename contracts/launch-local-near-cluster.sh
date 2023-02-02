@@ -130,7 +130,7 @@ export ${NEAR_CLI_CONTRACT_HELPER_ACCOUNT_ENVVAR}=${master_account}
 export ${NEAR_CLI_EXPLORER_URL_ENVVAR}=${explorer_url}
 
 near create-account mainchain.test.near --masterAccount test.near
-near deploy --accountId mainchain.test.near --wasmFile $script_dirpath/res/seda_contracts.wasm
+near deploy --accountId mainchain.test.near --wasmFile $script_dirpath/../target/wasm32-unknown-unknown/release/seda_contracts.wasm
 near call mainchain.test.near new --accountId test.near
 
 # ==================================================================================================
