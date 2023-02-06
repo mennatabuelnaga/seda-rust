@@ -6,7 +6,6 @@ pub mod fungible_token;
 pub mod merkle;
 pub mod node_registry;
 pub mod slot;
-pub mod staking;
 pub mod storage;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
