@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 # TODO: remove dep this after removing stdin
 async-std = { version = "1.12.0" }
-futures = { workspace = true }
+tokio = { workspace = true }
 libp2p = { workspace = true, features = [
 	"gossipsub",
 	"noise",

@@ -1,7 +1,6 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
-use futures::channel::mpsc::Sender;
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::{HostAdapter, InMemory, Result, RunnableRuntime, Runtime, VmConfig, VmResult};
@@ -9,6 +8,7 @@ use seda_runtime_sdk::{
     events::{Event, EventData},
     p2p::P2PCommand,
 };
+use tokio::sync::mpsc::Sender;
 use tracing::info;
 
 #[derive(MessageResponse)]

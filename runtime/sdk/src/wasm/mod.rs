@@ -22,5 +22,6 @@ pub use execution::*;
 pub use http::*;
 pub use log::*;
 pub use memory::*;
+#[cfg(feature = "full")]
 pub use p2p::*;
 pub use promise::*;

@@ -1,10 +1,10 @@
 use std::{io::Read, sync::Arc};
 
-use futures::{channel::mpsc::Sender, SinkExt};
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::{p2p::P2PCommand, CallSelfAction, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
+use tokio::sync::mpsc::Sender;
 use tracing::info;
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
@@ -87,7 +87,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         promise_queue: PromiseQueue,
         output: &mut Vec<String>,
         promise_queue_trace: &mut Vec<PromiseQueue>,
-        mut p2p_command_sender_channel: Sender<P2PCommand>,
+        p2p_command_sender_channel: Sender<P2PCommand>,
     ) -> Result<u8> {
         let mut next_promise_queue = PromiseQueue::new();
         let mut promise_queue_mut = promise_queue.clone();
@@ -246,7 +246,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     PromiseAction::P2PBroadcast(p2p_broadcast_action) => {
                         p2p_command_sender_channel
                             .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
-                            .await?
+                            .await?;
                     }
                 }
             }

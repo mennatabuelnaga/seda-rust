@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use actix::prelude::*;
-use futures::channel::mpsc::Sender;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::HostAdapter;
 use seda_runtime_sdk::{events::EventId, p2p::P2PCommand};
+use tokio::sync::mpsc::Sender;
 use tracing::info;
 
 use crate::{

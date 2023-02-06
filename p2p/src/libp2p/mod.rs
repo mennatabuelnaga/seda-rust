@@ -5,12 +5,8 @@ mod transport;
 mod libp2p_test;
 
 use async_std::io::{self, prelude::BufReadExt};
-use futures::{
-    channel::mpsc::{Receiver, Sender},
-    SinkExt,
-};
 use libp2p::{
-    futures::{select, StreamExt},
+    futures::StreamExt,
     gossipsub::{GossipsubEvent, IdentTopic},
     identity::{self},
     mdns::Event as MdnsEvent,
@@ -19,6 +15,7 @@ use libp2p::{
     PeerId,
 };
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
+use tokio::sync::mpsc::{Receiver, Sender};
 
 use self::behaviour::SedaBehaviour;
 use crate::{
@@ -92,8 +89,7 @@ impl P2PServer {
         let topic = IdentTopic::new(GOSSIP_TOPIC);
 
         loop {
-            select! {
-
+            tokio::select! {
                 // TODO: Remove stdin feature
                 line = stdin.select_next_some() => {
                     if let Err(e) = self.swarm
@@ -134,15 +130,16 @@ impl P2PServer {
                     },
                     _ => {}
                 },
-                task = self.command_receiver_channel.select_next_some() => match task {
-                    P2PCommand::Broadcast(data) => {
+                task = self.command_receiver_channel.recv() => match task {
+                    Some(P2PCommand::Broadcast(data)) => {
                         if let Err(e) = self.swarm.behaviour_mut().gossipsub.publish(topic.clone(), data) {
                             tracing::error!("Publish error: {e:?}");
                         }
                     },
-                    P2PCommand::Unicast(_unicast) => {
+                    Some(P2PCommand::Unicast(_unicast)) => {
                         unimplemented!("Todo unicast");
-                    }
+                    },
+                    None => {}
                 },
             }
         }

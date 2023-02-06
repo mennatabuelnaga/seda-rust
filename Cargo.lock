@@ -4526,7 +4526,6 @@ name = "seda-p2p"
 version = "0.1.0"
 dependencies = [
  "async-std",
- "futures",
  "libp2p",
  "seda-config",
  "seda-runtime-sdk",

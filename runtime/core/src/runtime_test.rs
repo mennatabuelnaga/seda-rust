@@ -1,10 +1,10 @@
 use std::{env, fs, path::PathBuf, sync::Arc};
 
-use futures::channel::mpsc;
 use parking_lot::Mutex;
 use seda_config::{ChainConfigsInner, NodeConfigInner};
 use seda_runtime_sdk::p2p::P2PCommand;
 use serde_json::json;
+use tokio::sync::mpsc;
 
 use crate::{test::RuntimeTestAdapter, HostAdapter, InMemory, MemoryAdapter, RunnableRuntime, Runtime, VmConfig};
 
@@ -27,7 +27,7 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     set_env_vars();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
@@ -62,7 +62,7 @@ async fn test_bad_wasm_file() {
     set_env_vars();
 
     let node_config = NodeConfigInner::test_config();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
         .unwrap();
@@ -77,7 +77,7 @@ async fn test_bad_wasm_file() {
                 start_func:   None,
                 debug:        true,
             },
-            memory_adapter,
+            memory_adapter(),
             p2p_command_sender,
         )
         .await;
@@ -90,7 +90,7 @@ async fn test_bad_wasm_file() {
 #[should_panic(expected = "non_existing_function")]
 async fn test_non_existing_function() {
     set_env_vars();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
@@ -120,7 +120,7 @@ async fn test_non_existing_function() {
 async fn test_promise_queue_http_fetch() {
     set_env_vars();
     let fetch_url = "https://swapi.dev/api/planets/1/".to_string();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
 
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
@@ -161,7 +161,7 @@ async fn test_promise_queue_http_fetch() {
 async fn test_memory_adapter() {
     set_env_vars();
     let node_config = NodeConfigInner::test_config();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let memory_adapter = memory_adapter();
     let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
         .await
@@ -205,7 +205,7 @@ async fn test_memory_adapter() {
 #[should_panic(expected = "not implemented")]
 async fn test_cli_demo_view_another_chain() {
     set_env_vars();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let wasm_binary = read_wasm_target("demo-cli");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
@@ -247,7 +247,7 @@ async fn test_cli_demo_view_another_chain() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_limited_runtime() {
     set_env_vars();
-    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();

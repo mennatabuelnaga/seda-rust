@@ -1,7 +1,8 @@
 use std::num::ParseIntError;
 
-use futures::channel::mpsc::SendError;
+use seda_runtime_sdk::p2p::P2PCommand;
 use thiserror::Error;
+use tokio::sync::mpsc::error::SendError;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
 #[derive(Debug, Error)]
@@ -55,7 +56,7 @@ pub enum RuntimeError {
     ChainAdapterError(#[from] seda_chains::ChainAdapterError),
 
     #[error("P2P Command Channel Error: {0}")]
-    P2PCommandChannelError(#[from] SendError),
+    P2PCommandChannelError(#[from] SendError<P2PCommand>),
 }
 
 impl From<InstantiationError> for RuntimeError {

@@ -1,14 +1,14 @@
-use futures::{channel::mpsc, StreamExt};
-use libp2p::swarm::SwarmEvent;
+use libp2p::{futures::StreamExt, swarm::SwarmEvent};
 use seda_config::NodeConfigInner;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
+use tokio::sync::mpsc::channel;
 
 use super::P2PServer;
 
 #[tokio::test]
 async fn p2p_service_works() {
-    let (p2p_message_sender, _p2p_message_receiver) = mpsc::channel::<P2PMessage>(0);
-    let (_p2p_command_sender, p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+    let (p2p_message_sender, _p2p_message_receiver) = channel::<P2PMessage>(100);
+    let (_p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);
 
     // TODO p2p should have its own config section.
     let config = NodeConfigInner::test_config();

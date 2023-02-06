@@ -10,12 +10,12 @@ mod runtime_job;
 
 mod host;
 use actix::prelude::*;
-use futures::channel::mpsc;
 pub(crate) use host::*;
 pub use host::{ChainCall, ChainView};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_p2p::libp2p::P2PServer;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
+use tokio::sync::mpsc::channel;
 use tracing::info;
 
 use crate::app::Shutdown;
@@ -30,8 +30,8 @@ pub fn run(seda_server_address: &str, config: NodeConfig, chain_configs: ChainCo
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
-        let (p2p_message_sender, p2p_message_receiver) = mpsc::channel::<P2PMessage>(0);
-        let (p2p_command_sender, p2p_command_receiver) = mpsc::channel::<P2PCommand>(0);
+        let (p2p_message_sender, p2p_message_receiver) = channel::<P2PMessage>(100);
+        let (p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);
 
         // TODO: add number of workers as config with default value
         let app = App::<RuntimeAdapter>::new(config.clone(), seda_server_address, chain_configs, p2p_command_sender)
