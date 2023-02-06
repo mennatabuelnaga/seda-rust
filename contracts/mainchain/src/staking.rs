@@ -11,7 +11,7 @@ use crate::{
 /// Contract private methods
 impl MainchainContract {
     pub(crate) fn is_eligible_for_current_epoch(&self, node: &Node) -> bool {
-        node.epoch_when_eligible > 0 && node.epoch_when_eligible <= env::epoch_height()
+        node.epoch_when_eligible > 0 && node.epoch_when_eligible <= self.get_current_epoch()
     }
 
     pub(crate) fn has_minimum_stake(&self, node: &Node) -> bool {

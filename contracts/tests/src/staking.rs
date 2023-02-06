@@ -1,8 +1,25 @@
-use near_sdk::{json_types::U128, ONE_YOCTO};
+use near_sdk::{
+    borsh::{self, BorshDeserialize, BorshSerialize},
+    json_types::{U128, U64},
+    serde::{Deserialize, Serialize},
+    AccountId,
+    Balance,
+    ONE_YOCTO,
+};
 use near_units::parse_near;
-use seda_mainchain::node_registry::HumanReadableNode;
 
 use crate::utils::init;
+
+// TODO: import from mainchain contract
+#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Eq, PartialEq, Debug, Clone)]
+pub struct HumanReadableNode {
+    /// The NEAR account id of the node
+    pub account_id:          AccountId,
+    /// The IP address and port of the node
+    pub socket_address:      String,
+    pub balance:             Balance,
+    pub epoch_when_eligible: U64,
+}
 
 #[tokio::test]
 async fn test_deposit_withdraw() {
@@ -205,7 +222,7 @@ async fn test_is_eligible_to_propose() {
         .call(mainchain.id(), "register_node")
         .args_json(("0.0.0.0:8080".to_string(),))
         .max_gas()
-        .deposit(5_000_000_000_000_000_000_000) // doesnt work with empty fn
+        .deposit(5_000_000_000_000_000_000_000)
         .transact()
         .await
         .unwrap();
@@ -244,9 +261,27 @@ async fn test_is_eligible_to_propose() {
         .unwrap();
     assert!(!is_eligible_to_propose);
 
+    let get_epoch = mainchain
+        .call("get_current_epoch")
+        .view()
+        .await
+        .unwrap()
+        .json::<u64>()
+        .unwrap();
+    println!("current epoch: {}", get_epoch);
+
     // time travel forward in time to a future epoch
     let blocks_to_advance = 2000;
     worker.fast_forward(blocks_to_advance).await.unwrap();
+
+    let get_epoch = mainchain
+        .call("get_current_epoch")
+        .view()
+        .await
+        .unwrap()
+        .json::<u64>()
+        .unwrap();
+    println!("epoch after time travel: {}", get_epoch);
 
     let node = mainchain
         .call("get_node")
@@ -270,14 +305,23 @@ async fn test_is_eligible_to_propose() {
     assert!(is_eligible_to_propose); // future epoch so should be true
 
     // alice withdraws all
-    // let res = alice
-    //     .call(mainchain.id(), "withdraw_all")
-    //     .max_gas()
-    //     .deposit(0)
-    //     .transact()
-    //     .await
-    //     .unwrap();
-    // assert!(res.is_success());
+    let res = alice
+        .call(mainchain.id(), "withdraw_all")
+        .max_gas()
+        .deposit(0)
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
 
     // assert alice is now not eligible to propose (not enough deposited)
+    let is_eligible_to_propose = mainchain
+        .call("is_eligible_to_propose")
+        .args_json((alice.id(),))
+        .view()
+        .await
+        .unwrap()
+        .json::<bool>()
+        .unwrap();
+    assert!(!is_eligible_to_propose);
 }
