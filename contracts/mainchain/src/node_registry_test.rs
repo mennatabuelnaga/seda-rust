@@ -112,21 +112,21 @@ mod tests {
 
         // define expected nodes
         let node1 = HumanReadableNode {
-            account_id:     "bob_near".to_string().try_into().unwrap(),
-            balance:       0,
-            socket_address: "0.0.0.0:8080".to_string(),
+            account_id:          "bob_near".to_string().try_into().unwrap(),
+            balance:             0,
+            socket_address:      "0.0.0.0:8080".to_string(),
             epoch_when_eligible: U64(0),
         };
         let node2 = HumanReadableNode {
-            account_id:     "alice_near".to_string().try_into().unwrap(),
-            balance:       0,
-            socket_address: "1.1.1.1:8080".to_string(),
+            account_id:          "alice_near".to_string().try_into().unwrap(),
+            balance:             0,
+            socket_address:      "1.1.1.1:8080".to_string(),
             epoch_when_eligible: U64(0),
         };
         let node3 = HumanReadableNode {
-            account_id:     "carol_near".to_string().try_into().unwrap(),
-            balance:       0,
-            socket_address: "2.2.2.2:8080".to_string(),
+            account_id:          "carol_near".to_string().try_into().unwrap(),
+            balance:             0,
+            socket_address:      "2.2.2.2:8080".to_string(),
             epoch_when_eligible: U64(0),
         };
 

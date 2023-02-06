@@ -29,6 +29,16 @@ async fn test_deposit_withdraw() {
         .unwrap()
         .json::<U128>()
         .unwrap();
+    // alice registers node
+    let res = alice
+        .call(mainchain.id(), "register_node")
+        .args_json(("0.0.0.0:8080".to_string(),))
+        .max_gas()
+        .deposit(5_000_000_000_000_000_000_000) // doesnt work with empty fn
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
 
     // alice deposits into pool (without staking)
     let res = alice
@@ -114,6 +124,16 @@ async fn test_deposit_withdraw_all() {
         .unwrap()
         .json::<U128>()
         .unwrap();
+    // alice registers node
+    let res = alice
+        .call(mainchain.id(), "register_node")
+        .args_json(("0.0.0.0:8080".to_string(),))
+        .max_gas()
+        .deposit(5_000_000_000_000_000_000_000) // doesnt work with empty fn
+        .transact()
+        .await
+        .unwrap();
+    assert!(res.is_success());
 
     // alice deposits into pool (without staking)
     let res = alice
@@ -225,7 +245,7 @@ async fn test_is_eligible_to_propose() {
     assert!(!is_eligible_to_propose);
 
     // time travel forward in time to a future epoch
-    let blocks_to_advance = 1000;
+    let blocks_to_advance = 2000;
     worker.fast_forward(blocks_to_advance).await.unwrap();
 
     let node = mainchain

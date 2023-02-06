@@ -99,16 +99,16 @@ impl MainchainContract {
     }
 
     /*************** */
-    /* View methods  */
+    /* View methods */
     /*************** */
 
     pub fn get_node(&self, node_id: AccountId) -> Option<HumanReadableNode> {
         let node = self.nodes.get(&node_id);
         if let Some(node) = node {
             Some(HumanReadableNode {
-                account_id:     node_id,
-                socket_address: node.socket_address,
-                balance:       node.balance,
+                account_id:          node_id,
+                socket_address:      node.socket_address,
+                balance:             node.balance,
                 epoch_when_eligible: node.epoch_when_eligible.into(),
             })
         } else {
@@ -124,9 +124,9 @@ impl MainchainContract {
             if let Some(node_id) = self.nodes.keys().nth(index as usize - 1) {
                 let node = self.nodes.get(&node_id).unwrap();
                 let human_readable_node = HumanReadableNode {
-                    account_id:     node_id,
-                    socket_address: node.socket_address,
-                    balance:       node.balance,
+                    account_id:          node_id,
+                    socket_address:      node.socket_address,
+                    balance:             node.balance,
                     epoch_when_eligible: node.epoch_when_eligible.into(),
                 };
                 nodes.push(human_readable_node);

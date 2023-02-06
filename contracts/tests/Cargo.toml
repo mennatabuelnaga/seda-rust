@@ -12,7 +12,7 @@ near-sdk = { workspace = true }
 near-contract-standards = { workspace = true }
 near-units = { workspace = true }
 schemars = { workspace = true }
-seda-mainchain = { path = "../mainchain" }
+seda-mainchain = { path = "../mainchain"}
 serde_json = { workspace = true }
 tokio = { workspace = true }
 workspaces = { workspace = true }

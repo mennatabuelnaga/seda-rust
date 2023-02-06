@@ -1,6 +1,12 @@
 use near_sdk::{env, json_types::U128, near_bindgen, AccountId, Balance, PromiseError, PromiseOrValue};
 
-use crate::{consts::{GAS_FOR_FT_ON_TRANSFER, MINIMUM_STAKE, EPOCH_DELAY_FOR_ELECTION}, fungible_token::ft, MainchainContract, MainchainContractExt, node_registry::Node};
+use crate::{
+    consts::{EPOCH_DELAY_FOR_ELECTION, GAS_FOR_FT_ON_TRANSFER, MINIMUM_STAKE},
+    fungible_token::ft,
+    node_registry::Node,
+    MainchainContract,
+    MainchainContractExt,
+};
 
 /// Contract private methods
 impl MainchainContract {
@@ -11,7 +17,7 @@ impl MainchainContract {
     pub(crate) fn has_minimum_stake(&self, node: &Node) -> bool {
         node.balance >= MINIMUM_STAKE
     }
-   
+
     pub(crate) fn assert_eligible_to_propose(&self, account_id: &AccountId) {
         let node = self.internal_get_node(&account_id);
         assert!(
@@ -33,13 +39,7 @@ impl MainchainContract {
         self.nodes.insert(&account_id, &node);
         self.last_total_balance += amount;
 
-        env::log_str(
-            format!(
-                "@{} deposited {}. New balance is {}",
-                account_id, amount, node.balance
-            )
-            .as_str(),
-        );
+        env::log_str(format!("@{} deposited {}. New balance is {}", account_id, amount, node.balance).as_str());
 
         PromiseOrValue::Value(U128::from(0)) // no refund
     }
@@ -77,7 +77,7 @@ impl MainchainContract {
         let node = self.internal_get_node(&account_id);
         self.is_eligible_for_current_epoch(&node) && self.has_minimum_stake(&node)
     }
-    
+
     #[private] // require caller to be this contract
     pub fn deposit(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
         self.internal_deposit(amount, account_id)

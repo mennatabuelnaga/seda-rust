@@ -6,7 +6,7 @@ resolver = "2"
 rust-version.workspace = true
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
 
 [dependencies]
 # Not sure why `unit-testing` feature doesn't work when it's only a dev dep.
