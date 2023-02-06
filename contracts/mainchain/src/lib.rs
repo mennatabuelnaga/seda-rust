@@ -1,15 +1,22 @@
 pub mod block;
+pub mod consts;
 pub mod data_request;
 pub mod epoch;
+pub mod fungible_token;
 pub mod merkle;
 pub mod node_registry;
 pub mod slot;
+pub mod staking;
 pub mod storage;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
-    collections::{LookupMap, Vector},
+    collections::{LookupMap, UnorderedMap, Vector},
+    env,
     near_bindgen,
+    AccountId,
+    Balance,
     BorshStorageKey,
+    PanicOnDefault,
 };
 
 use crate::{
@@ -20,7 +27,7 @@ use crate::{
 /// Collection keys
 #[derive(BorshStorageKey, BorshSerialize)]
 enum MainchainStorageKeys {
-    NumNodes,
+    Nodes,
     DataRequestAccumulator,
     BlockIdsByHeight,
     BlocksById,
@@ -28,34 +35,35 @@ enum MainchainStorageKeys {
 
 /// Contract global state
 #[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[derive(PanicOnDefault, BorshDeserialize, BorshSerialize)]
 pub struct MainchainContract {
-    num_nodes:                u64,
-    nodes:                    LookupMap<u64, Node>,
+    seda_token:               AccountId,
+    nodes:                    UnorderedMap<AccountId, Node>,
     data_request_accumulator: Vector<String>,
     num_blocks:               BlockHeight,
     block_ids_by_height:      LookupMap<BlockHeight, BlockId>,
     blocks_by_id:             LookupMap<BlockId, Block>,
-}
-
-impl Default for MainchainContract {
-    fn default() -> Self {
-        Self::new()
-    }
+    last_total_balance:       Balance,
 }
 
 /// Contract public methods
 #[near_bindgen]
 impl MainchainContract {
     #[init]
-    pub fn new() -> Self {
+    pub fn new(seda_token: AccountId) -> Self {
+        assert!(!env::state_exists(), "Already initialized");
+        assert!(
+            env::is_valid_account_id(seda_token.as_bytes()),
+            "The SEDA token account ID is invalid"
+        );
         Self {
-            num_nodes:                0,
-            nodes:                    LookupMap::new(MainchainStorageKeys::NumNodes),
+            seda_token,
+            nodes: UnorderedMap::new(MainchainStorageKeys::Nodes),
             data_request_accumulator: Vector::<String>::new(MainchainStorageKeys::DataRequestAccumulator),
-            num_blocks:               0,
-            block_ids_by_height:      LookupMap::new(MainchainStorageKeys::BlockIdsByHeight),
-            blocks_by_id:             LookupMap::new(MainchainStorageKeys::BlocksById),
+            num_blocks: 0,
+            block_ids_by_height: LookupMap::new(MainchainStorageKeys::BlockIdsByHeight),
+            blocks_by_id: LookupMap::new(MainchainStorageKeys::BlocksById),
+            last_total_balance: 0,
         }
     }
 }
@@ -63,7 +71,6 @@ impl MainchainContract {
 #[cfg(test)]
 #[path = ""]
 mod tests {
-    mod block_test;
     mod data_request_test;
     mod node_registry_test;
     mod slot_test;

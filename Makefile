@@ -76,4 +76,5 @@ wasm-test:
 
 # Builds contracts wasm binaries.
 build-contracts:
-	cargo build -p seda-contracts --target wasm32-unknown-unknown --release
+	cargo build -p seda-mainchain --target wasm32-unknown-unknown --release
+	cargo build -p seda-token --target wasm32-unknown-unknown --release

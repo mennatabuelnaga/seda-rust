@@ -5,7 +5,9 @@ members = [
 	"chains",
 	"cli",
 	"config",
-	"contracts",
+	"contracts/mainchain",
+	"contracts/seda-token",
+	"contracts/tests",
 	"logger",
 	"node",
 	"p2p",
@@ -41,6 +43,7 @@ opt-level = "z"
 [workspace.dependencies]
 actix = "0.13"
 async-trait = "0.1"
+base64 = "0.13"
 borsh = { version = "0.9", default-features = false }
 clap = { version = "4.1", default-features = false }
 clap_complete = { version = "4.1", default-features = false }
@@ -54,11 +57,14 @@ libp2p = { version = "0.50", default-features = false }
 near-crypto = "0.15"
 near-jsonrpc-client = { version = "0.4", default-features = false }
 near-jsonrpc-primitives = "0.15"
+near-contract-standards = "4.0"
 near-primitives = "0.15"
 near-sdk = { version = "4.0", default-features = false }
+near-units = "0.2"
 parking_lot = "0.12"
 reqwest = "0.11"
 rusqlite = { version = "0.28", features = ["bundled"] }
+schemars = "0.8"
 seda-chains = { path = "./chains" }
 seda-config = { path = "./config" }
 seda-logger = { path = "./logger" }
@@ -76,5 +82,7 @@ toml = "0.5"
 tracing = { version = "0.1", features = ["log-always"] }
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false }
+uint = { version = "0.8", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }
+workspaces = "0.7"

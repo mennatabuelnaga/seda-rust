@@ -11,7 +11,7 @@ mod tests {
 
     #[test]
     fn get_current_slot() {
-        let contract = MainchainContract::new();
+        let contract = MainchainContract::new("seda_token".to_string().try_into().unwrap());
 
         testing_env!(get_context(0)); // block 0
         assert_eq!(contract.get_current_slot(), 0); // slot 0
@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn get_current_epoch() {
-        let contract = MainchainContract::new();
+        let contract = MainchainContract::new("seda_token".to_string().try_into().unwrap());
 
         testing_env!(get_context(0)); // block 0
         assert_eq!(contract.get_current_epoch(), 0); // epoch 0
