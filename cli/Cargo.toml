@@ -2,7 +2,7 @@
 name = "seda-cli"
 version = "0.1.0"
 edition = "2021"
-
+rust-version.workspace = true
 
 [[bin]]
 name = "seda"
@@ -20,7 +20,7 @@ near-jsonrpc-client = { workspace = true }
 near-jsonrpc-primitives = { workspace = true }
 near-primitives = { workspace = true }
 seda-chains = { workspace = true }
-seda-config = { workspace = true }
+seda-config = { workspace = true, features = ["cli"]}
 seda-logger = { workspace = true }
 seda-node = { workspace = true }
 seda-runtime-sdk = { workspace = true }

@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use clap::Args;
 use serde::{Deserialize, Serialize};
 
 use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
-
+#[cfg(feature = "cli")]
+#[derive(clap::Args)]
 /// The configuration for the seda engine.
-#[derive(Debug, Default, Serialize, Deserialize, Args)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct PartialNodeConfig {
     /// An option to override the node deposit config value.
     #[arg(short, long)]
@@ -39,7 +39,7 @@ pub struct PartialNodeConfig {
     #[arg(long)]
     pub p2p_known_peers:         Option<Vec<String>>,
 }
-
+#[cfg(feature = "cli")]
 impl PartialNodeConfig {
     pub fn to_contract_account_id(self, contract_id: Option<String>) -> Result<String> {
         match (self.contract_account_id, contract_id) {
@@ -104,6 +104,7 @@ impl PartialNodeConfig {
     }
 }
 
+#[cfg(feature = "cli")]
 impl Config for PartialNodeConfig {
     fn template() -> Self {
         Self {

@@ -28,6 +28,7 @@ fn config_path() -> PathBuf {
 }
 
 #[cfg(not(target_family = "wasm"))]
+#[cfg(feature = "cli")]
 pub fn create_and_load_or_load_config() -> (AppConfig, PartialLoggerConfig) {
     let path = config_path();
     if !path.exists() {

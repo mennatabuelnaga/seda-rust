@@ -1,17 +1,18 @@
 use std::path::PathBuf;
 
-use clap::Args;
 use serde::{Deserialize, Serialize};
 
 use crate::{env_overwrite, merge_config_cli, Config, Result};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, Args)]
+#[cfg(feature = "cli")]
+#[derive(clap::Args, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct PartialLoggerConfig {
     /// The path where you want the log file to write to.
     #[arg(long)]
     pub log_file_path: Option<PathBuf>,
 }
 
+#[cfg(feature = "cli")]
 impl PartialLoggerConfig {
     pub fn to_config(self, cli_options: Self) -> Result<LoggerConfig> {
         let log_file_path = merge_config_cli!(
@@ -23,7 +24,7 @@ impl PartialLoggerConfig {
         Ok(LoggerConfig { log_file_path })
     }
 }
-
+#[cfg(feature = "cli")]
 impl Config for PartialLoggerConfig {
     fn template() -> Self {
         Self {

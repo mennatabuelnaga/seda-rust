@@ -1,15 +1,16 @@
-use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, Parser)]
+#[cfg(feature = "cli")]
+#[derive(clap::Parser, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct PartialNearConfig {
     /// An option to override the Near chain rpc url config value.
     #[arg(long)]
     pub chain_rpc_url: Option<String>,
 }
 
+#[cfg(feature = "cli")]
 impl PartialNearConfig {
     pub fn to_config(self, cli_options: Self) -> Result<NearConfig> {
         let chain_rpc_url = merge_config_cli!(
@@ -22,6 +23,7 @@ impl PartialNearConfig {
     }
 }
 
+#[cfg(feature = "cli")]
 impl Config for PartialNearConfig {
     fn template() -> Self {
         Self {

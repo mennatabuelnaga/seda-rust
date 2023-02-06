@@ -16,6 +16,9 @@ members = [
 	"wasm/test/promise-wasm-bin",
 ]
 
+[workspace.package]
+rust-version = "1.66.1"
+
 [profile.dev]
 codegen-units = 512
 debug = 2
@@ -71,7 +74,6 @@ tokio-rusqlite = "0.3"
 toml = "0.5"
 tracing = { version = "0.1", features = ["log-always"] }
 tracing-appender = "0.2"
-# tracing-log = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false }
 wasmer = { version = "2.3", default-features = false }
 wasmer-wasi = { version = "2.3", default-features = false }

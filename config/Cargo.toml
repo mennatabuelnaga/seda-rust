@@ -2,11 +2,14 @@
 name = "seda-config"
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 
 [features]
+default = []
+cli = ["clap"]
 
 [dependencies]
-clap = { workspace = true, features = ["derive", "std"] }
+clap = { workspace = true, features = ["derive", "std"], optional = true }
 lazy_static = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

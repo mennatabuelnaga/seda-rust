@@ -6,28 +6,33 @@ use crate::{
     env_overwrite,
     errors::{Result, TomlError},
     Config,
-    PartialChainConfigs,
-    PartialLoggerConfig,
-    PartialNodeConfig,
 };
+#[cfg(feature = "cli")]
+use crate::{PartialChainConfigs, PartialLoggerConfig, PartialNodeConfig};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PartialAppConfig {
     pub seda_server_address: String,
     pub seda_server_port:    u64,
+    #[cfg(feature = "cli")]
     pub chains:              PartialChainConfigs,
+    #[cfg(feature = "cli")]
     pub node:                PartialNodeConfig,
+    #[cfg(feature = "cli")]
     pub logging:             PartialLoggerConfig,
 }
 
 impl Default for PartialAppConfig {
     fn default() -> Self {
         let mut this = Self {
-            seda_server_address: "127.0.0.1".to_string(),
-            seda_server_port:    12345,
-            chains:              PartialChainConfigs::default(),
-            node:                PartialNodeConfig::default(),
-            logging:             PartialLoggerConfig::default(),
+            seda_server_address:             "127.0.0.1".to_string(),
+            seda_server_port:                12345,
+            #[cfg(feature = "cli")]
+            chains:                          PartialChainConfigs::default(),
+            #[cfg(feature = "cli")]
+            node:                            PartialNodeConfig::default(),
+            #[cfg(feature = "cli")]
+            logging:                         PartialLoggerConfig::default(),
         };
         this.overwrite_from_env();
         this
@@ -37,11 +42,14 @@ impl Default for PartialAppConfig {
 impl Config for PartialAppConfig {
     fn template() -> Self {
         Self {
-            seda_server_address: "127.0.0.1".to_string(),
-            seda_server_port:    12345,
-            chains:              PartialChainConfigs::template(),
-            node:                PartialNodeConfig::template(),
-            logging:             PartialLoggerConfig::template(),
+            seda_server_address:             "127.0.0.1".to_string(),
+            seda_server_port:                12345,
+            #[cfg(feature = "cli")]
+            chains:                          PartialChainConfigs::template(),
+            #[cfg(feature = "cli")]
+            node:                            PartialNodeConfig::template(),
+            #[cfg(feature = "cli")]
+            logging:                         PartialLoggerConfig::template(),
         }
     }
 
@@ -50,8 +58,11 @@ impl Config for PartialAppConfig {
         env_overwrite!(self.seda_server_port, "SEDA_SERVER_PORT", |p: String| p
             .parse()
             .expect("Invalid port number specified."));
+        #[cfg(feature = "cli")]
         self.chains.overwrite_from_env();
+        #[cfg(feature = "cli")]
         self.node.overwrite_from_env();
+        #[cfg(feature = "cli")]
         self.logging.overwrite_from_env();
     }
 }
@@ -95,7 +106,9 @@ impl PartialAppConfig {
 #[derive(Debug)]
 pub struct AppConfig {
     pub seda_server_url: String,
+    #[cfg(feature = "cli")]
     pub chains:          PartialChainConfigs,
+    #[cfg(feature = "cli")]
     pub node:            PartialNodeConfig,
 }
 
@@ -104,15 +117,18 @@ impl AsRef<AppConfig> for AppConfig {
         self
     }
 }
-
+#[cfg(feature = "cli")]
 impl From<PartialAppConfig> for (AppConfig, PartialLoggerConfig) {
     fn from(value: PartialAppConfig) -> Self {
         (
             AppConfig {
-                seda_server_url: format!("{}:{}", value.seda_server_address, value.seda_server_port),
-                chains:          value.chains,
-                node:            value.node,
+                seda_server_url:                format!("{}:{}", value.seda_server_address, value.seda_server_port),
+                #[cfg(feature = "cli")]
+                chains:                         value.chains,
+                #[cfg(feature = "cli")]
+                node:                           value.node,
             },
+            #[cfg(feature = "cli")]
             value.logging,
         )
     }

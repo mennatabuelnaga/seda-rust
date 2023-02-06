@@ -3,7 +3,6 @@
 mod near;
 use std::sync::Arc;
 
-use clap::Args;
 pub use near::*;
 
 mod another_config;
@@ -11,8 +10,8 @@ pub use another_config::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{Config, Result};
-
-#[derive(Debug, Default, Serialize, Deserialize, Args)]
+#[cfg(feature = "cli")]
+#[derive(clap::Args, Debug, Default, Serialize, Deserialize)]
 pub struct PartialChainConfigs {
     #[arg(skip)]
     pub another: PartialAnotherConfig,
@@ -20,6 +19,7 @@ pub struct PartialChainConfigs {
     pub near:    PartialNearConfig,
 }
 
+#[cfg(feature = "cli")]
 impl PartialChainConfigs {
     pub fn to_config(self, cli_options: PartialChainConfigs) -> Result<ChainConfigs> {
         Ok(Arc::new(ChainConfigsInner {
@@ -29,6 +29,7 @@ impl PartialChainConfigs {
     }
 }
 
+#[cfg(feature = "cli")]
 impl Config for PartialChainConfigs {
     fn template() -> Self {
         PartialChainConfigs {

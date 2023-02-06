@@ -2,6 +2,7 @@
 name = "promise-wasm-bin"
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 
 [dependencies]
 seda-runtime-sdk = { workspace = true, features = ["full", "wasm"] }
