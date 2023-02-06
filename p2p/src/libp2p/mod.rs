@@ -4,14 +4,19 @@ mod transport;
 #[cfg(test)]
 mod libp2p_test;
 
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
+
 use async_std::io::{self, prelude::BufReadExt};
+pub use libp2p::Multiaddr;
 use libp2p::{
     futures::StreamExt,
     gossipsub::{GossipsubEvent, IdentTopic},
     identity::{self},
     mdns::Event as MdnsEvent,
     swarm::{Swarm, SwarmEvent},
-    Multiaddr,
     PeerId,
 };
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
@@ -26,7 +31,7 @@ use crate::{
 pub const GOSSIP_TOPIC: &str = "testnet";
 
 pub struct P2PServer {
-    pub known_peers:              Vec<String>,
+    pub known_peers:              HashSet<String>,
     pub local_key:                identity::Keypair,
     pub server_address:           String,
     pub swarm:                    Swarm<SedaBehaviour>,
@@ -57,7 +62,7 @@ impl P2PServer {
         // Create channels so we can listen for p2p messages
 
         Ok(Self {
-            known_peers: known_peers.to_vec(),
+            known_peers: HashSet::from_iter(known_peers.to_vec()),
             local_key,
             server_address: server_address.to_string(),
             swarm,
@@ -83,6 +88,19 @@ impl P2PServer {
         Ok(())
     }
 
+    fn dial_peer(&mut self, peer_addr: &String) {
+        if let Ok(remote) = peer_addr.parse::<Multiaddr>() {
+            match self.swarm.dial(remote) {
+                Ok(_) => {
+                    tracing::debug!("Dialed {}", peer_addr);
+                }
+                Err(error) => tracing::warn!("Couldn't dial peer ({}): {:?}", peer_addr, error),
+            }
+        } else {
+            tracing::warn!("Couldn't dial peer with address: {}", peer_addr);
+        }
+    }
+
     pub async fn loop_stream(&mut self) -> Result<()> {
         // TODO: Remove stdin feature
         let mut stdin = io::BufReader::new(io::stdin()).lines().fuse();
@@ -103,13 +121,16 @@ impl P2PServer {
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Discovered(list))) => {
                         for (peer_id, _multiaddr) in list {
                             tracing::debug!("mDNS discovered a new peer: {}", peer_id);
-                            self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                            // self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
                         }
+                    }
+                    SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+                        println!("Peer id found: {peer_id}");
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Expired(list))) => {
                         for (peer_id, _multiaddr) in list {
                             tracing::debug!("mDNS discover peer has expired: {}", peer_id);
-                            self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
+                            // self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
                         }
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Gossipsub(GossipsubEvent::Message {
@@ -138,6 +159,16 @@ impl P2PServer {
                     },
                     Some(P2PCommand::Unicast(_unicast)) => {
                         unimplemented!("Todo unicast");
+                    },
+                    Some(P2PCommand::AddPeer(add_peer_command)) => {
+                        self.dial_peer(&add_peer_command.multi_addr);
+                        self.known_peers.insert(add_peer_command.multi_addr);
+                    },
+                    Some(P2PCommand::RemovePeer(remove_peer_command)) => {
+                        match PeerId::from_str(&remove_peer_command.multi_addr) {
+                            Ok(multi_addr) => self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&multi_addr),
+                            Err(error) => tracing::error!("PeerId {} is invalid due: {error}", &remove_peer_command.multi_addr),
+                        }
                     },
                     None => {}
                 },

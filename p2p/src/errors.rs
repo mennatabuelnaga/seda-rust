@@ -12,6 +12,8 @@ pub enum P2PAdapterError {
     Io(#[from] std::io::Error),
     #[error("libp2p multi addr error: {0}")]
     MultiAddr(#[from] libp2p::multiaddr::Error),
+    #[error("libp2p dial error: {0}")]
+    DialError(#[from] libp2p::swarm::DialError),
 }
 
 pub type Result<T, E = P2PAdapterError> = core::result::Result<T, E>;

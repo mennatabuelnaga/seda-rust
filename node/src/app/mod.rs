@@ -4,7 +4,10 @@ use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::HostAdapter;
-use seda_runtime_sdk::{events::EventId, p2p::P2PCommand};
+use seda_runtime_sdk::{
+    events::EventId,
+    p2p::{self, P2PCommand},
+};
 use tokio::sync::mpsc::Sender;
 use tracing::info;
 
@@ -34,16 +37,24 @@ impl<HA: HostAdapter> App<HA> {
         chain_configs: ChainConfigs,
         p2p_command_sender_channel: Sender<P2PCommand>,
     ) -> Self {
+        // Have to clone beforehand in order for the variable to be moved. (We also need
+        // the same sender for the RPC)
+        let p2p_command_sender_channel_clone = p2p_command_sender_channel.clone();
+
         let runtime_worker = SyncArbiter::start(node_config.runtime_worker_threads, move || RuntimeWorker {
             runtime:                    None,
             node_config:                node_config.clone(),
             chain_configs:              chain_configs.clone(),
-            p2p_command_sender_channel: p2p_command_sender_channel.clone(),
+            p2p_command_sender_channel: p2p_command_sender_channel_clone.clone(),
         });
 
-        let rpc_server = JsonRpcServer::start(runtime_worker.clone(), rpc_server_address)
-            .await
-            .expect("Error starting jsonrpsee server");
+        let rpc_server = JsonRpcServer::start(
+            runtime_worker.clone(),
+            rpc_server_address,
+            p2p_command_sender_channel.clone(),
+        )
+        .await
+        .expect("Error starting jsonrpsee server");
 
         App {
             event_queue: Default::default(),

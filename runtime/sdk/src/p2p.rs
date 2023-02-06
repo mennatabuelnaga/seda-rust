@@ -13,7 +13,19 @@ pub struct UnicastCommand {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AddPeerCommand {
+    pub multi_addr: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct RemovePeerCommand {
+    pub multi_addr: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum P2PCommand {
     Broadcast(Vec<u8>),
     Unicast(UnicastCommand),
+    AddPeer(AddPeerCommand),
+    RemovePeer(RemovePeerCommand),
 }

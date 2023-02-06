@@ -1,10 +1,12 @@
 use clap::Subcommand;
 use seda_config::{AppConfig, PartialChainConfigs};
 
+use self::peers::Peers;
 use crate::Result;
 
 mod bridge;
 mod get;
+mod peers;
 mod register;
 mod unregister;
 mod update;
@@ -34,6 +36,11 @@ pub enum Node {
     // seda node unregister -n 19
     /// Unregister a node from the given node ID.
     Unregister(unregister::Unregister),
+    /// Commands for interacting with the p2p peers
+    Peers {
+        #[command(subcommand)]
+        sub_peers_command: Peers,
+    },
 }
 
 impl Node {
@@ -46,6 +53,7 @@ impl Node {
             Self::Register(register_node) => register_node.handle(config, chains_config).await,
             Self::Update(update_node) => update_node.handle(config, chains_config).await,
             Self::Unregister(unregister_node) => unregister_node.handle(config, chains_config).await,
+            Self::Peers { sub_peers_command } => sub_peers_command.handle(config).await,
         }
     }
 }
