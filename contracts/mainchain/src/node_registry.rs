@@ -55,6 +55,14 @@ impl MainchainContract {
         self.nodes.get(&node_id).expect("Node does not exist")
     }
 
+    pub(crate) fn is_eligible_for_current_epoch(&self, node: &Node) -> bool {
+        node.epoch_when_eligible > 0 && node.epoch_when_eligible <= self.get_current_epoch()
+    }
+
+    pub(crate) fn has_minimum_stake(&self, node: &Node) -> bool {
+        node.balance >= MINIMUM_STAKE
+    }
+
     pub fn assert_valid_socket_address(&self, socket_address: &String) {
         for c in socket_address.chars() {
             assert!(
@@ -64,15 +72,7 @@ impl MainchainContract {
         }
     }
 
-    pub(crate) fn is_eligible_for_current_epoch(&self, node: &Node) -> bool {
-        node.epoch_when_eligible > 0 && node.epoch_when_eligible <= self.get_current_epoch()
-    }
-
-    pub(crate) fn has_minimum_stake(&self, node: &Node) -> bool {
-        node.balance >= MINIMUM_STAKE
-    }
-
-    pub(crate) fn assert_eligible_to_propose(&self, account_id: &AccountId) {
+    pub(crate) fn assert_eligible_for_current_epoch(&self, account_id: &AccountId) {
         let node = self.internal_get_node(&account_id);
         assert!(
             self.is_eligible_for_current_epoch(&node),
@@ -133,40 +133,35 @@ impl MainchainContract {
         // require valid socket address characters
         self.assert_valid_socket_address(&socket_address);
 
+        // create a new node
+        let account_id = env::signer_account_id();
+        log!("{} registered node", account_id);
+        let node = Node {
+            socket_address,
+            balance: 0,
+            epoch_when_eligible: 0,
+        };
         manage_storage_deposit!(self, "require", {
-            // create a new node
-            let account_id = env::signer_account_id();
-            log!("{} registered node", account_id);
-            let node = Node {
-                socket_address,
-                balance: 0,
-                epoch_when_eligible: 0,
-            };
             self.nodes.insert(&account_id, &node);
-        }); // end manage_storage_deposit
+        });
     }
 
     /// Updates one of the node's fields
     pub fn update_node(&mut self, command: UpdateNode) {
-        manage_storage_deposit!(self, {
-            let account_id = env::signer_account_id();
-            let mut node = self.get_expect_node(account_id.clone());
-
-            match command {
-                UpdateNode::SetSocketAddress(new_socket_address) => {
-                    self.assert_valid_socket_address(&new_socket_address);
-                    log!("{} updated node socket address to {}", account_id, new_socket_address);
-                    node.socket_address = new_socket_address;
-                }
+        let account_id = env::signer_account_id();
+        let mut node = self.get_expect_node(account_id.clone());
+        
+        match command {
+            UpdateNode::SetSocketAddress(new_socket_address) => {
+                self.assert_valid_socket_address(&new_socket_address);
+                log!("{} updated node socket address to {}", account_id, new_socket_address);
+                node.socket_address = new_socket_address;
             }
-
+        }
+        
+        manage_storage_deposit!(self, {
             self.nodes.insert(&account_id, &node);
-        }); // end manage_storage_deposit
-    }
-
-    pub fn is_eligible_to_propose(&self, account_id: AccountId) -> bool {
-        let node = self.internal_get_node(&account_id);
-        self.is_eligible_for_current_epoch(&node) && self.has_minimum_stake(&node)
+        });
     }
 
     #[private] // require caller to be this contract
@@ -218,9 +213,14 @@ impl MainchainContract {
         self.last_total_balance -= amount.0;
     }
 
-    /*************** */
+    /****************/
     /* View methods */
-    /*************** */
+    /****************/
+
+    pub fn is_eligible_for_current_epoch(&self, account_id: AccountId) -> bool {
+        let node = self.internal_get_node(&account_id);
+        self.is_eligible_for_current_epoch(&node) && self.has_minimum_stake(&node)
+    }
 
     /// Returns the balance of the given account.
     pub fn get_node_balance(&self, account_id: AccountId) -> U128 {

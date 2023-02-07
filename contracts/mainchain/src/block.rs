@@ -38,7 +38,7 @@ impl MainchainContract {
     }
 
     pub fn create_block(&mut self) {
-        self.assert_eligible_to_propose(&env::signer_account_id());
+        self.assert_eligible_for_current_epoch(&env::signer_account_id());
         manage_storage_deposit!(self, "require", {
             let header = BlockHeader {
                 height:     self.num_blocks + 1,
