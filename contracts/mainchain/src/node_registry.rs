@@ -217,7 +217,7 @@ impl MainchainContract {
     /* View methods */
     /****************/
 
-    pub fn is_eligible_for_current_epoch(&self, account_id: AccountId) -> bool {
+    pub fn is_node_active(&self, account_id: AccountId) -> bool {
         let node = self.internal_get_node(&account_id);
         self.is_eligible_for_current_epoch(&node) && self.has_minimum_stake(&node)
     }

@@ -200,7 +200,7 @@ async fn test_deposit_withdraw_all() {
 }
 
 #[tokio::test]
-async fn test_is_eligible_for_current_epoch() {
+async fn test_is_node_active() {
     let initial_balance = U128::from(parse_near!("10000 N"));
     let transfer_amount = U128::from(parse_near!("100 N"));
     let worker = workspaces::sandbox().await.unwrap();
@@ -251,15 +251,15 @@ async fn test_is_eligible_for_current_epoch() {
     assert_eq!(balance, transfer_amount);
 
     // check alice is not eligible to propose
-    let is_eligible_for_current_epoch = mainchain
-        .call("is_eligible_for_current_epoch")
+    let is_node_active = mainchain
+        .call("is_node_active")
         .args_json((alice.id(),))
         .view()
         .await
         .unwrap()
         .json::<bool>()
         .unwrap();
-    assert!(!is_eligible_for_current_epoch);
+    assert!(!is_node_active);
 
     let get_epoch = mainchain
         .call("get_current_epoch")
@@ -293,16 +293,16 @@ async fn test_is_eligible_for_current_epoch() {
         .unwrap();
     println!("node: {:?}", node);
 
-    // check is_eligible_for_current_epoch
-    let is_eligible_for_current_epoch = mainchain
-        .call("is_eligible_for_current_epoch")
+    // check is_node_active
+    let is_node_active = mainchain
+        .call("is_node_active")
         .args_json((alice.id(),))
         .view()
         .await
         .unwrap()
         .json::<bool>()
         .unwrap();
-    assert!(is_eligible_for_current_epoch); // future epoch so should be true
+    assert!(is_node_active); // future epoch so should be true
 
     // alice withdraws all
     let res = alice
@@ -315,13 +315,13 @@ async fn test_is_eligible_for_current_epoch() {
     assert!(res.is_success());
 
     // assert alice is now not eligible to propose (not enough deposited)
-    let is_eligible_for_current_epoch = mainchain
-        .call("is_eligible_for_current_epoch")
+    let is_node_active = mainchain
+        .call("is_node_active")
         .args_json((alice.id(),))
         .view()
         .await
         .unwrap()
         .json::<bool>()
         .unwrap();
-    assert!(!is_eligible_for_current_epoch);
+    assert!(!is_node_active);
 }
