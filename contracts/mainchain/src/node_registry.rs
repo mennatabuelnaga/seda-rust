@@ -150,7 +150,7 @@ impl MainchainContract {
     pub fn update_node(&mut self, command: UpdateNode) {
         let account_id = env::signer_account_id();
         let mut node = self.get_expect_node(account_id.clone());
-        
+
         match command {
             UpdateNode::SetSocketAddress(new_socket_address) => {
                 self.assert_valid_socket_address(&new_socket_address);
@@ -158,7 +158,7 @@ impl MainchainContract {
                 node.socket_address = new_socket_address;
             }
         }
-        
+
         manage_storage_deposit!(self, {
             self.nodes.insert(&account_id, &node);
         });
@@ -213,9 +213,9 @@ impl MainchainContract {
         self.last_total_balance -= amount.0;
     }
 
-    /****************/
+    /*************** */
     /* View methods */
-    /****************/
+    /*************** */
 
     pub fn is_node_active(&self, account_id: AccountId) -> bool {
         let node = self.internal_get_node(&account_id);

@@ -63,7 +63,7 @@ test:
 	cargo test --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin
 
 # Builds the wasm binaries and then runs the same command as make test.
-test-build: wasm-test
+test-build: wasm-test build-contracts
 	cargo test --workspace --exclude demo-cli --exclude seda-cli --exclude promise-wasm-bin
 
 # Builds the wasm binaries.

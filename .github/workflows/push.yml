@@ -40,8 +40,8 @@ jobs:
           toolchain: stable
           components: clippy
 
-      - name: Install Rust Toolchain wasm32-wasi
-        run: rustup target add wasm32-wasi
+      - name: Install WASM Rust Toolchains
+        run: rustup target add wasm32-wasi wasm32-unknown-unknown
 
       - name: Install dependencies
         run: |
