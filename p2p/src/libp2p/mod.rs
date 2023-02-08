@@ -1,17 +1,16 @@
 mod behaviour;
+pub mod peer_list;
 mod transport;
 
 #[cfg(test)]
 mod libp2p_test;
 
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+use std::{str::FromStr, sync::Arc};
 
 use async_std::io::{self, prelude::BufReadExt};
 pub use libp2p::Multiaddr;
 use libp2p::{
+    core::ConnectedPoint,
     futures::StreamExt,
     gossipsub::{GossipsubEvent, IdentTopic},
     identity::{self},
@@ -19,10 +18,11 @@ use libp2p::{
     swarm::{Swarm, SwarmEvent},
     PeerId,
 };
+use parking_lot::RwLock;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use self::behaviour::SedaBehaviour;
+use self::{behaviour::SedaBehaviour, peer_list::PeerList};
 use crate::{
     errors::Result,
     libp2p::{behaviour::SedaBehaviourEvent, transport::build_tcp_transport},
@@ -31,7 +31,7 @@ use crate::{
 pub const GOSSIP_TOPIC: &str = "testnet";
 
 pub struct P2PServer {
-    pub known_peers:              HashSet<String>,
+    pub known_peers:              Arc<RwLock<PeerList>>,
     pub local_key:                identity::Keypair,
     pub server_address:           String,
     pub swarm:                    Swarm<SedaBehaviour>,
@@ -42,7 +42,7 @@ pub struct P2PServer {
 impl P2PServer {
     pub async fn start_from_config(
         server_address: &str,
-        known_peers: &[String],
+        known_peers: Arc<RwLock<PeerList>>,
         message_sender_channel: Sender<P2PMessage>,
         command_receiver_channel: Receiver<P2PCommand>,
     ) -> Result<Self> {
@@ -59,10 +59,8 @@ impl P2PServer {
         let mut swarm = Swarm::with_threadpool_executor(transport, seda_behaviour, PeerId::from(local_key.public()));
         swarm.listen_on(server_address.parse()?)?;
 
-        // Create channels so we can listen for p2p messages
-
         Ok(Self {
-            known_peers: HashSet::from_iter(known_peers.to_vec()),
+            known_peers,
             local_key,
             server_address: server_address.to_string(),
             swarm,
@@ -72,33 +70,47 @@ impl P2PServer {
     }
 
     pub async fn dial_peers(&mut self) -> Result<()> {
-        self.known_peers.iter().for_each(|peer_addr| {
-            if let Ok(remote) = peer_addr.parse::<Multiaddr>() {
-                match self.swarm.dial(remote) {
-                    Ok(_) => {
-                        tracing::debug!("Dialed {}", peer_addr);
-                    }
-                    Err(error) => tracing::warn!("Couldn't dial peer ({}): {:?}", peer_addr, error),
-                };
-            } else {
-                tracing::warn!("Couldn't dial peer with address: {}", peer_addr);
-            }
+        let known_peers = self.known_peers.read();
+
+        known_peers.get_all().iter().for_each(|(peer_addr, _peer_id)| {
+            match self.swarm.dial(peer_addr.clone()) {
+                Ok(_) => {
+                    tracing::debug!("Dialed {}", peer_addr);
+                }
+                Err(error) => tracing::warn!("Couldn't dial peer ({}): {:?}", peer_addr, error),
+            };
         });
 
         Ok(())
     }
 
+    /// Dials the peer and adds it to our known peers list
     fn dial_peer(&mut self, peer_addr: &String) {
-        if let Ok(remote) = peer_addr.parse::<Multiaddr>() {
-            match self.swarm.dial(remote) {
+        let mut known_peers = self.known_peers.write();
+
+        if let Ok(peer_multi_addr) = peer_addr.parse::<Multiaddr>() {
+            match self.swarm.dial(peer_multi_addr.clone()) {
                 Ok(_) => {
                     tracing::debug!("Dialed {}", peer_addr);
+                    known_peers.add_peer(peer_multi_addr, None);
                 }
                 Err(error) => tracing::warn!("Couldn't dial peer ({}): {:?}", peer_addr, error),
             }
         } else {
             tracing::warn!("Couldn't dial peer with address: {}", peer_addr);
         }
+    }
+
+    fn add_peer(&mut self, addr: Multiaddr, peer_id: PeerId) {
+        let mut known_peers = self.known_peers.write();
+        known_peers.add_peer(addr, Some(peer_id));
+        self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+    }
+
+    fn remove_peer(&mut self, peer_id: PeerId) {
+        let mut known_peers = self.known_peers.write();
+        known_peers.remove_peer_by_id(peer_id);
+        self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
     }
 
     pub async fn loop_stream(&mut self) -> Result<()> {
@@ -119,18 +131,22 @@ impl P2PServer {
                 event = self.swarm.select_next_some() => match event {
                     SwarmEvent::NewListenAddr { address, .. } => tracing::info!("Listening on {:?}", address),
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Discovered(list))) => {
-                        for (peer_id, _multiaddr) in list {
+                        for (peer_id, multiaddr) in list {
                             tracing::debug!("mDNS discovered a new peer: {}", peer_id);
-                            // self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                            self.add_peer(multiaddr, peer_id);
                         }
                     }
-                    SwarmEvent::ConnectionEstablished { peer_id, .. } => {
-                        println!("Peer id found: {peer_id}");
+                    SwarmEvent::ConnectionEstablished { peer_id, endpoint, .. } => {
+                        let mut known_peers = self.known_peers.write();
+
+                        if let ConnectedPoint::Dialer { address, .. } = endpoint {
+                            known_peers.set_peer_id(address, peer_id)
+                        }
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Expired(list))) => {
                         for (peer_id, _multiaddr) in list {
                             tracing::debug!("mDNS discover peer has expired: {}", peer_id);
-                            // self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
+                            self.remove_peer(peer_id);
                         }
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Gossipsub(GossipsubEvent::Message {
@@ -162,7 +178,6 @@ impl P2PServer {
                     },
                     Some(P2PCommand::AddPeer(add_peer_command)) => {
                         self.dial_peer(&add_peer_command.multi_addr);
-                        self.known_peers.insert(add_peer_command.multi_addr);
                     },
                     Some(P2PCommand::RemovePeer(remove_peer_command)) => {
                         match PeerId::from_str(&remove_peer_command.multi_addr) {

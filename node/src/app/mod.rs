@@ -3,11 +3,9 @@ use std::sync::Arc;
 use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
+use seda_p2p::PeerList;
 use seda_runtime::HostAdapter;
-use seda_runtime_sdk::{
-    events::EventId,
-    p2p::{self, P2PCommand},
-};
+use seda_runtime_sdk::{events::EventId, p2p::P2PCommand};
 use tokio::sync::mpsc::Sender;
 use tracing::info;
 
@@ -36,6 +34,7 @@ impl<HA: HostAdapter> App<HA> {
         rpc_server_address: &str,
         chain_configs: ChainConfigs,
         p2p_command_sender_channel: Sender<P2PCommand>,
+        known_peers: Arc<RwLock<PeerList>>,
     ) -> Self {
         // Have to clone beforehand in order for the variable to be moved. (We also need
         // the same sender for the RPC)
@@ -52,6 +51,7 @@ impl<HA: HostAdapter> App<HA> {
             runtime_worker.clone(),
             rpc_server_address,
             p2p_command_sender_channel.clone(),
+            known_peers.clone(),
         )
         .await
         .expect("Error starting jsonrpsee server");

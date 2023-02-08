@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 use actix::prelude::*;
 use jsonrpsee::{
@@ -6,12 +6,14 @@ use jsonrpsee::{
     proc_macros::rpc,
     server::{ServerBuilder, ServerHandle},
 };
-use seda_p2p::libp2p::Multiaddr;
+use parking_lot::RwLock;
+use seda_p2p::{libp2p::Multiaddr, PeerList};
 use seda_runtime::HostAdapter;
 use seda_runtime_sdk::{
     events::{Event, EventData},
     p2p::{AddPeerCommand, P2PCommand},
 };
+use serde_json::Value;
 use tokio::sync::mpsc::Sender;
 use tracing::debug;
 
@@ -26,12 +28,13 @@ pub trait Rpc {
     async fn add_peer(&self, multi_addr: String) -> Result<(), Error>;
 
     #[method(name = "list_peers")]
-    async fn list_peers(&self) -> Result<(), Error>;
+    async fn list_peers(&self) -> Result<Value, Error>;
 }
 
 pub struct CliServer<HA: HostAdapter> {
     runtime_worker:             Addr<RuntimeWorker<HA>>,
     p2p_command_sender_channel: Sender<P2PCommand>,
+    known_peers:                Arc<RwLock<PeerList>>,
 }
 
 #[async_trait]
@@ -67,8 +70,11 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
         Ok(())
     }
 
-    async fn list_peers(&self) -> Result<(), Error> {
-        Ok(())
+    async fn list_peers(&self) -> Result<Value, Error> {
+        let peer_list = self.known_peers.read();
+        let result = peer_list.get_json();
+
+        Ok(result)
     }
 }
 pub struct JsonRpcServer {
@@ -80,11 +86,13 @@ impl JsonRpcServer {
         runtime_worker: Addr<RuntimeWorker<HA>>,
         addrs: &str,
         p2p_command_sender_channel: Sender<P2PCommand>,
+        known_peers: Arc<RwLock<PeerList>>,
     ) -> Result<Self, Error> {
         let server = ServerBuilder::default().build(addrs).await?;
         let rpc = CliServer {
             runtime_worker,
             p2p_command_sender_channel,
+            known_peers,
         };
         let handle = server.start(rpc.into_rpc())?;
 
