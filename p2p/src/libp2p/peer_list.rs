@@ -38,10 +38,8 @@ impl PeerList {
     pub fn remove_peer_by_addr(&mut self, multi_addr: Multiaddr) {
         let item = self.addr_to_peer.get(&multi_addr);
 
-        if let Some(peer) = item {
-            if let Some(peer_id) = peer {
-                self.peer_to_addr.remove(peer_id);
-            }
+        if let Some(Some(peer_id)) = item {
+            self.peer_to_addr.remove(peer_id);
         }
 
         self.addr_to_peer.remove(&multi_addr);
@@ -53,19 +51,21 @@ impl PeerList {
         if let Some(multi_addr) = addr {
             self.addr_to_peer.remove(multi_addr);
         }
+
+        self.peer_to_addr.remove(&peer_id);
     }
 
     pub fn get_json(&self) -> Value {
-        let mut result: HashMap<String, Option<String>> = HashMap::new();
+        let mut result: HashMap<String, String> = HashMap::new();
 
-        self.addr_to_peer.iter().for_each(|(addr, peer)| {
-            result.insert(addr.to_string(), peer.map(|p| p.to_base58()));
+        self.peer_to_addr.iter().for_each(|(peer, addr)| {
+            result.insert(addr.to_string(), peer.to_base58());
         });
 
         serde_json::json!(result)
     }
 
-    pub fn get_all(&self) -> HashMap<Multiaddr, Option<PeerId>> {
-        self.addr_to_peer.clone()
+    pub fn get_all(&self) -> HashMap<PeerId, Multiaddr> {
+        self.peer_to_addr.clone()
     }
 }

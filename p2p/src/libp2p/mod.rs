@@ -8,7 +8,6 @@ mod libp2p_test;
 use std::{str::FromStr, sync::Arc};
 
 use async_std::io::{self, prelude::BufReadExt};
-pub use libp2p::Multiaddr;
 use libp2p::{
     core::ConnectedPoint,
     futures::StreamExt,
@@ -16,8 +15,8 @@ use libp2p::{
     identity::{self},
     mdns::Event as MdnsEvent,
     swarm::{Swarm, SwarmEvent},
-    PeerId,
 };
+pub use libp2p::{Multiaddr, PeerId};
 use parking_lot::RwLock;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -73,7 +72,7 @@ impl P2PServer {
         let known_peers = self.known_peers.read();
 
         known_peers.get_all().iter().for_each(|(peer_addr, _peer_id)| {
-            match self.swarm.dial(peer_addr.clone()) {
+            match self.swarm.dial(*peer_addr) {
                 Ok(_) => {
                     tracing::debug!("Dialed {}", peer_addr);
                 }
@@ -110,7 +109,10 @@ impl P2PServer {
     fn remove_peer(&mut self, peer_id: PeerId) {
         let mut known_peers = self.known_peers.write();
         known_peers.remove_peer_by_id(peer_id);
-        self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
+
+        if self.swarm.disconnect_peer_id(peer_id).is_ok() {
+            tracing::debug!("Removed peer {peer_id}");
+        }
     }
 
     pub async fn loop_stream(&mut self) -> Result<()> {
@@ -120,7 +122,7 @@ impl P2PServer {
 
         loop {
             tokio::select! {
-                // TODO: Remove stdin feature
+                // TODO: Remove stdin feature after we got a working p2p message system
                 line = stdin.select_next_some() => {
                     if let Err(e) = self.swarm
                         .behaviour_mut().gossipsub
@@ -180,9 +182,9 @@ impl P2PServer {
                         self.dial_peer(&add_peer_command.multi_addr);
                     },
                     Some(P2PCommand::RemovePeer(remove_peer_command)) => {
-                        match PeerId::from_str(&remove_peer_command.multi_addr) {
-                            Ok(multi_addr) => self.swarm.behaviour_mut().gossipsub.remove_explicit_peer(&multi_addr),
-                            Err(error) => tracing::error!("PeerId {} is invalid due: {error}", &remove_peer_command.multi_addr),
+                        match PeerId::from_str(&remove_peer_command.peer_id) {
+                            Ok(peer_id) => self.remove_peer(peer_id),
+                            Err(error) => tracing::error!("PeerId {} is invalid due: {error}", &remove_peer_command.peer_id),
                         }
                     },
                     None => {}

@@ -19,7 +19,7 @@ pub struct AddPeerCommand {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct RemovePeerCommand {
-    pub multi_addr: String,
+    pub peer_id: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

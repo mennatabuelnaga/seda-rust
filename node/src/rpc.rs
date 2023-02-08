@@ -7,11 +7,14 @@ use jsonrpsee::{
     server::{ServerBuilder, ServerHandle},
 };
 use parking_lot::RwLock;
-use seda_p2p::{libp2p::Multiaddr, PeerList};
+use seda_p2p::{
+    libp2p::{Multiaddr, PeerId},
+    PeerList,
+};
 use seda_runtime::HostAdapter;
 use seda_runtime_sdk::{
     events::{Event, EventData},
-    p2p::{AddPeerCommand, P2PCommand},
+    p2p::{AddPeerCommand, P2PCommand, RemovePeerCommand},
 };
 use serde_json::Value;
 use tokio::sync::mpsc::Sender;
@@ -29,6 +32,9 @@ pub trait Rpc {
 
     #[method(name = "list_peers")]
     async fn list_peers(&self) -> Result<Value, Error>;
+
+    #[method(name = "remove_peer")]
+    async fn remove_peer(&self, peer_id: String) -> Result<(), Error>;
 }
 
 pub struct CliServer<HA: HostAdapter> {
@@ -75,6 +81,19 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
         let result = peer_list.get_json();
 
         Ok(result)
+    }
+
+    async fn remove_peer(&self, peer_id: String) -> Result<(), Error> {
+        if let Err(err) = PeerId::from_str(&peer_id) {
+            return Err(Error::Custom(err.to_string()));
+        }
+
+        self.p2p_command_sender_channel
+            .send(P2PCommand::RemovePeer(RemovePeerCommand { peer_id }))
+            .await
+            .map_err(|err| Error::Custom(err.to_string()))?;
+
+        Ok(())
     }
 }
 pub struct JsonRpcServer {
