@@ -7,19 +7,9 @@ use near_sdk::{
     ONE_YOCTO,
 };
 use near_units::parse_near;
+use seda_mainchain::node_registry::HumanReadableNode;
 
 use crate::utils::init;
-
-// TODO: import from mainchain contract
-#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Eq, PartialEq, Debug, Clone)]
-pub struct HumanReadableNode {
-    /// The NEAR account id of the node
-    pub account_id:          AccountId,
-    /// The IP address and port of the node
-    pub socket_address:      String,
-    pub balance:             Balance,
-    pub epoch_when_eligible: U64,
-}
 
 #[tokio::test]
 async fn test_deposit_withdraw() {
