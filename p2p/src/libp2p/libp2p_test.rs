@@ -18,6 +18,7 @@ async fn p2p_service_works() {
     let config = NodeConfigInner::test_config();
     let known_peers = Arc::new(RwLock::new(PeerList::from_vec(&config.p2p_known_peers)));
     let mut p2p_service = P2PServer::start_from_config(
+        config.clone(),
         &config.p2p_server_address,
         known_peers,
         p2p_message_sender,

@@ -38,6 +38,9 @@ pub struct PartialNodeConfig {
     /// An option to override the node p2p known peers config value.
     #[arg(long)]
     pub p2p_known_peers:         Option<Vec<String>>,
+    /// Option to use mDNS to discover peers locally
+    #[arg(long)]
+    pub enable_mdns:             Option<bool>,
 }
 #[cfg(feature = "cli")]
 impl PartialNodeConfig {
@@ -89,6 +92,8 @@ impl PartialNodeConfig {
         )?;
         let p2p_known_peers = merge_config_cli!(self, cli_options, p2p_known_peers, Ok(Vec::new()))?;
 
+        let enable_mdns = merge_config_cli!(self, cli_options, enable_mdns, Ok(true))?;
+
         Ok(Arc::new(NodeConfigInner {
             deposit,
             gas,
@@ -100,6 +105,7 @@ impl PartialNodeConfig {
             runtime_worker_threads,
             p2p_server_address,
             p2p_known_peers,
+            enable_mdns,
         }))
     }
 }
@@ -118,6 +124,7 @@ impl Config for PartialNodeConfig {
             runtime_worker_threads:  None,
             p2p_server_address:      Some(NodeConfigInner::P2P_SERVER_ADDRESS.to_string()),
             p2p_known_peers:         None,
+            enable_mdns:             None,
         }
     }
 
@@ -138,6 +145,7 @@ pub struct NodeConfigInner {
     pub runtime_worker_threads:  usize,
     pub p2p_server_address:      String,
     pub p2p_known_peers:         Vec<String>,
+    pub enable_mdns:             bool,
 }
 
 impl NodeConfigInner {
@@ -154,6 +162,7 @@ impl NodeConfigInner {
             runtime_worker_threads:  Self::RUNTIME_WORKER_THREADS,
             p2p_server_address:      Self::P2P_SERVER_ADDRESS.to_string(),
             p2p_known_peers:         Vec::new(),
+            enable_mdns:             true,
         })
     }
 

@@ -18,6 +18,7 @@ use libp2p::{
 };
 pub use libp2p::{Multiaddr, PeerId};
 use parking_lot::RwLock;
+use seda_config::NodeConfig;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::{Receiver, Sender};
 
@@ -30,6 +31,7 @@ use crate::{
 pub const GOSSIP_TOPIC: &str = "testnet";
 
 pub struct P2PServer {
+    pub node_config:              NodeConfig,
     pub known_peers:              Arc<RwLock<PeerList>>,
     pub local_key:                identity::Keypair,
     pub server_address:           String,
@@ -40,6 +42,7 @@ pub struct P2PServer {
 
 impl P2PServer {
     pub async fn start_from_config(
+        node_config: NodeConfig,
         server_address: &str,
         known_peers: Arc<RwLock<PeerList>>,
         message_sender_channel: Sender<P2PMessage>,
@@ -59,6 +62,7 @@ impl P2PServer {
         swarm.listen_on(server_address.parse()?)?;
 
         Ok(Self {
+            node_config,
             known_peers,
             local_key,
             server_address: server_address.to_string(),
@@ -133,6 +137,10 @@ impl P2PServer {
                 event = self.swarm.select_next_some() => match event {
                     SwarmEvent::NewListenAddr { address, .. } => tracing::info!("Listening on {:?}", address),
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Discovered(list))) => {
+                        if !self.node_config.enable_mdns {
+                            continue;
+                        }
+
                         for (peer_id, multiaddr) in list {
                             tracing::debug!("mDNS discovered a new peer: {}", peer_id);
                             self.add_peer(multiaddr, peer_id);
@@ -146,6 +154,10 @@ impl P2PServer {
                         }
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Expired(list))) => {
+                        if !self.node_config.enable_mdns {
+                            continue;
+                        }
+
                         for (peer_id, _multiaddr) in list {
                             tracing::debug!("mDNS discover peer has expired: {}", peer_id);
                             self.remove_peer(peer_id);

@@ -51,6 +51,7 @@ pub fn run(seda_server_address: &str, config: NodeConfig, chain_configs: ChainCo
 
         // TODO: Use config for P2P Server
         let mut p2p_server = P2PServer::start_from_config(
+            config.clone(),
             &config.p2p_server_address,
             known_peers,
             p2p_message_sender,

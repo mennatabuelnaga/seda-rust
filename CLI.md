@@ -87,6 +87,10 @@ Runs the SEDA node
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
 * `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
 * `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
+* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
+
+  Possible values: `true`, `false`
+
 * `--chain-rpc-url <CHAIN_RPC_URL>` — An option to override the Near chain rpc url config value
 
 
@@ -183,6 +187,10 @@ Register a node from the given deposit and socket address
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
 * `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
 * `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
+* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
+
+  Possible values: `true`, `false`
+
 
 
 
@@ -211,6 +219,10 @@ Update a node by either accepting ownership, setting the pending owner, or chang
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
 * `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
 * `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
+* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
+
+  Possible values: `true`, `false`
+
 
 
 
@@ -259,6 +271,10 @@ Unregister a node from the given node ID
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
 * `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
 * `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
+* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
+
+  Possible values: `true`, `false`
+
 
 
 
@@ -354,6 +370,10 @@ Calls the specified method on the specified chain with the given args and contra
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
 * `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
 * `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
+* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
+
+  Possible values: `true`, `false`
+
 
 
 
