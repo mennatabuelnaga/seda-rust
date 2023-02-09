@@ -1,5 +1,6 @@
 pub mod block;
 pub mod consts;
+pub mod dao;
 pub mod data_request;
 pub mod epoch;
 pub mod fungible_token;
@@ -36,6 +37,8 @@ enum MainchainStorageKeys {
 #[near_bindgen]
 #[derive(PanicOnDefault, BorshDeserialize, BorshSerialize)]
 pub struct MainchainContract {
+    dao:                      AccountId,
+    config:                   dao::Config,
     seda_token:               AccountId,
     nodes:                    UnorderedMap<AccountId, Node>,
     data_request_accumulator: Vector<String>,
@@ -49,13 +52,15 @@ pub struct MainchainContract {
 #[near_bindgen]
 impl MainchainContract {
     #[init]
-    pub fn new(seda_token: AccountId) -> Self {
+    pub fn new(dao: AccountId, seda_token: AccountId) -> Self {
         assert!(!env::state_exists(), "Already initialized");
         assert!(
             env::is_valid_account_id(seda_token.as_bytes()),
             "The SEDA token account ID is invalid"
         );
         Self {
+            dao,
+            config: dao::Config::default(),
             seda_token,
             nodes: UnorderedMap::new(MainchainStorageKeys::Nodes),
             data_request_accumulator: Vector::<String>::new(MainchainStorageKeys::DataRequestAccumulator),
@@ -70,6 +75,7 @@ impl MainchainContract {
 #[cfg(test)]
 #[path = ""]
 mod tests {
+    mod dao_test;
     mod data_request_test;
     mod node_registry_test;
     mod slot_test;

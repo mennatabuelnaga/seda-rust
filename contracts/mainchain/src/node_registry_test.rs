@@ -30,7 +30,10 @@ mod tests {
             .build()
     }
     fn new_contract() -> MainchainContract {
-        MainchainContract::new("token_near".to_string().try_into().unwrap())
+        MainchainContract::new(
+            "dao_near".to_string().try_into().unwrap(),
+            "token_near".to_string().try_into().unwrap(),
+        )
     }
 
     #[test]

@@ -8,10 +8,16 @@ mod tests {
     fn get_context(block_index: u64) -> VMContext {
         VMContextBuilder::new().block_index(block_index).is_view(true).build()
     }
+    fn new_contract() -> MainchainContract {
+        MainchainContract::new(
+            "dao_near".to_string().try_into().unwrap(),
+            "seda_token".to_string().try_into().unwrap(),
+        )
+    }
 
     #[test]
     fn get_current_slot() {
-        let contract = MainchainContract::new("seda_token".to_string().try_into().unwrap());
+        let contract = new_contract();
 
         testing_env!(get_context(0)); // block 0
         assert_eq!(contract.get_current_slot(), 0); // slot 0
@@ -25,7 +31,7 @@ mod tests {
 
     #[test]
     fn get_current_epoch() {
-        let contract = MainchainContract::new("seda_token".to_string().try_into().unwrap());
+        let contract = new_contract();
 
         testing_env!(get_context(0)); // block 0
         assert_eq!(contract.get_current_epoch(), 0); // epoch 0

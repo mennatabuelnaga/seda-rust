@@ -42,6 +42,17 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .into_result()
         .unwrap();
 
+    // create dap account
+    let dao = token_contract
+        .as_account()
+        .create_subaccount("dao")
+        .initial_balance(parse_near!("10 N"))
+        .transact()
+        .await
+        .unwrap()
+        .into_result()
+        .unwrap();
+
     // alice storage deposits into token contract
     register_user(&token_contract, alice.id()).await;
 
@@ -54,7 +65,7 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .unwrap();
     let res = mainchain_contract
         .call("new")
-        .args_json((token_contract.id(),))
+        .args_json((dao.id(), token_contract.id()))
         .max_gas()
         .transact()
         .await

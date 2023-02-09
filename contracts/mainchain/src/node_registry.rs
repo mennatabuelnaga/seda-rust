@@ -12,7 +12,7 @@ use near_sdk::{
 };
 
 use crate::{
-    consts::{EPOCH_DELAY_FOR_ELECTION, GAS_FOR_FT_ON_TRANSFER, MINIMUM_STAKE},
+    consts::GAS_FOR_FT_ON_TRANSFER,
     fungible_token::ft,
     manage_storage_deposit,
     MainchainContract,
@@ -60,7 +60,7 @@ impl MainchainContract {
     }
 
     pub(crate) fn has_minimum_stake(&self, node: &Node) -> bool {
-        node.balance >= MINIMUM_STAKE
+        node.balance >= self.config.minimum_stake
     }
 
     pub fn assert_valid_socket_address(&self, socket_address: &String) {
@@ -87,8 +87,8 @@ impl MainchainContract {
     pub(crate) fn internal_deposit(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
         let mut node = self.get_expect_node(account_id.clone());
         node.balance += amount;
-        if node.balance >= MINIMUM_STAKE {
-            node.epoch_when_eligible = env::epoch_height() + EPOCH_DELAY_FOR_ELECTION;
+        if node.balance >= self.config.minimum_stake {
+            node.epoch_when_eligible = env::epoch_height() + self.config.epoch_delay_for_election;
         }
         self.nodes.insert(&account_id, &node);
         self.last_total_balance += amount;
@@ -106,7 +106,7 @@ impl MainchainContract {
 
         // update account
         node.balance -= amount;
-        if node.balance < MINIMUM_STAKE {
+        if node.balance < self.config.minimum_stake {
             node.epoch_when_eligible = 0;
         }
         self.nodes.insert(&account_id, &node);
@@ -194,8 +194,8 @@ impl MainchainContract {
             env::log_str("withdraw failed");
             // revert withdrawal
             node.balance += amount.0;
-            if node.balance >= MINIMUM_STAKE {
-                node.epoch_when_eligible = self.get_current_epoch() + EPOCH_DELAY_FOR_ELECTION;
+            if node.balance >= self.config.minimum_stake {
+                node.epoch_when_eligible = self.get_current_epoch() + self.config.epoch_delay_for_election;
             }
             self.nodes.insert(&account_id, &node);
             return;
