@@ -36,8 +36,7 @@ impl MainchainContract {
         let storage_cost = env::storage_byte_cost() * u128::from(env::storage_usage() - initial_storage_usage);
         assert!(
             storage_cost <= env::attached_deposit(),
-            "Insufficient storage, need {}",
-            storage_cost
+            "Insufficient storage, need {storage_cost}",
         );
     }
 

@@ -44,14 +44,14 @@ mod tests {
         testing_env!(get_context_with_deposit("bob_near".to_string()));
         contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node"]);
-        // check owner and socket address
+        // check owner and multi_addr
         testing_env!(get_context_view());
         assert_eq!(
             "0.0.0.0:8080".to_string(),
             contract
                 .get_node("bob_near".to_string().try_into().unwrap())
                 .unwrap()
-                .socket_address
+                .multi_addr
         );
     }
 
@@ -66,7 +66,7 @@ mod tests {
     }
 
     #[test]
-    fn set_node_socket_address() {
+    fn set_node_multi_addr() {
         let mut contract = new_contract();
 
         // register node
@@ -74,28 +74,18 @@ mod tests {
         contract.register_node("0.0.0.0:8080".to_string());
         assert_eq!(get_logs(), vec!["bob_near registered node"]);
 
-        // update the socket address
+        // update the multi_addr
         contract.update_node(UpdateNode::SetSocketAddress("1.1.1.1:8081".to_string()));
 
-        // check the socket address after updating
+        // check the multi_addr after updating
         testing_env!(get_context_view());
         assert_eq!(
             "1.1.1.1:8081".to_string(),
             contract
                 .get_node("bob_near".to_string().try_into().unwrap())
                 .unwrap()
-                .socket_address
+                .multi_addr
         );
-    }
-
-    #[test]
-    #[should_panic(expected = "Invalid socket address")]
-    fn register_invalid_characters() {
-        let mut contract = new_contract();
-
-        // register node
-        testing_env!(get_context_with_deposit("bob_near".to_string()));
-        contract.register_node("0.0.0[".to_string());
     }
 
     #[test]
@@ -117,19 +107,19 @@ mod tests {
         let node1 = HumanReadableNode {
             account_id:          "bob_near".to_string().try_into().unwrap(),
             balance:             0,
-            socket_address:      "0.0.0.0:8080".to_string(),
+            multi_addr:          "0.0.0.0:8080".to_string(),
             epoch_when_eligible: U64(0),
         };
         let node2 = HumanReadableNode {
             account_id:          "alice_near".to_string().try_into().unwrap(),
             balance:             0,
-            socket_address:      "1.1.1.1:8080".to_string(),
+            multi_addr:          "1.1.1.1:8080".to_string(),
             epoch_when_eligible: U64(0),
         };
         let node3 = HumanReadableNode {
             account_id:          "carol_near".to_string().try_into().unwrap(),
             balance:             0,
-            socket_address:      "2.2.2.2:8080".to_string(),
+            multi_addr:          "2.2.2.2:8080".to_string(),
             epoch_when_eligible: U64(0),
         };
 

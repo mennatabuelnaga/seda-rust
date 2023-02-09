@@ -23,7 +23,7 @@ use crate::{
 #[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Default)]
 pub struct Node {
     /// The IP address and port of the node
-    pub socket_address:      String,
+    pub multi_addr:          String,
     pub balance:             Balance,
     pub epoch_when_eligible: u64,
 }
@@ -34,7 +34,7 @@ pub struct HumanReadableNode {
     /// The NEAR account id of the node
     pub account_id:          AccountId,
     /// The IP address and port of the node
-    pub socket_address:      String,
+    pub multi_addr:          String,
     pub balance:             Balance,
     pub epoch_when_eligible: U64,
 }
@@ -63,17 +63,8 @@ impl MainchainContract {
         node.balance >= self.config.minimum_stake
     }
 
-    pub fn assert_valid_socket_address(&self, socket_address: &String) {
-        for c in socket_address.chars() {
-            assert!(
-                c.is_numeric() || c.is_alphabetic() || c == '.' || c == ':',
-                "Invalid socket address"
-            );
-        }
-    }
-
     pub(crate) fn assert_eligible_for_current_epoch(&self, account_id: &AccountId) {
-        let node = self.internal_get_node(&account_id);
+        let node = self.internal_get_node(account_id);
         assert!(
             self.is_eligible_for_current_epoch(&node),
             "Account is not eligible for this epoch"
@@ -99,6 +90,8 @@ impl MainchainContract {
     }
 
     pub fn internal_withdraw(&mut self, amount: Balance) {
+        // TODO: epoch delay for withdrawal
+
         assert!(amount > 0, "Withdrawal amount should be positive");
         let account_id = env::predecessor_account_id();
         let mut node = self.internal_get_node(&account_id);
@@ -129,15 +122,12 @@ impl MainchainContract {
 impl MainchainContract {
     /// Registers a new node while charging for storage usage
     #[payable]
-    pub fn register_node(&mut self, socket_address: String) {
-        // require valid socket address characters
-        self.assert_valid_socket_address(&socket_address);
-
+    pub fn register_node(&mut self, multi_addr: String) {
         // create a new node
         let account_id = env::signer_account_id();
         log!("{} registered node", account_id);
         let node = Node {
-            socket_address,
+            multi_addr,
             balance: 0,
             epoch_when_eligible: 0,
         };
@@ -152,10 +142,9 @@ impl MainchainContract {
         let mut node = self.get_expect_node(account_id.clone());
 
         match command {
-            UpdateNode::SetSocketAddress(new_socket_address) => {
-                self.assert_valid_socket_address(&new_socket_address);
-                log!("{} updated node socket address to {}", account_id, new_socket_address);
-                node.socket_address = new_socket_address;
+            UpdateNode::SetSocketAddress(new_multi_addr) => {
+                log!("{} updated node multi_addr to {}", account_id, new_multi_addr);
+                node.multi_addr = new_multi_addr;
             }
         }
 
@@ -232,7 +221,7 @@ impl MainchainContract {
         if let Some(node) = node {
             Some(HumanReadableNode {
                 account_id:          node_id,
-                socket_address:      node.socket_address,
+                multi_addr:          node.multi_addr,
                 balance:             node.balance,
                 epoch_when_eligible: node.epoch_when_eligible.into(),
             })
@@ -250,7 +239,7 @@ impl MainchainContract {
                 let node = self.nodes.get(&node_id).unwrap();
                 let human_readable_node = HumanReadableNode {
                     account_id:          node_id,
-                    socket_address:      node.socket_address,
+                    multi_addr:          node.multi_addr,
                     balance:             node.balance,
                     epoch_when_eligible: node.epoch_when_eligible.into(),
                 };
