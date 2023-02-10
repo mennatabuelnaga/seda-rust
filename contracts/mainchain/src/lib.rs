@@ -73,6 +73,7 @@ impl MainchainContract {
 }
 
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 #[path = ""]
 mod tests {
     mod dao_test;

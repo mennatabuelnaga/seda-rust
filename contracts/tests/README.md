@@ -3,7 +3,7 @@ SEDA Contracts Integration Tests
 
 ## Building
 To build run in root:
-```make build-wasm
+```make build-contracts
 ```
 
 ## Testing
