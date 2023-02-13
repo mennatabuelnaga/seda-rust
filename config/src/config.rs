@@ -8,7 +8,7 @@ use crate::{
     Config,
 };
 #[cfg(feature = "cli")]
-use crate::{PartialChainConfigs, PartialLoggerConfig, PartialNodeConfig};
+use crate::{PartialChainConfigs, PartialLoggerConfig, PartialNodeConfig, PartialP2PConfig};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PartialAppConfig {
@@ -20,6 +20,8 @@ pub struct PartialAppConfig {
     pub node:                PartialNodeConfig,
     #[cfg(feature = "cli")]
     pub logging:             PartialLoggerConfig,
+    #[cfg(feature = "cli")]
+    pub p2p:                 PartialP2PConfig,
 }
 
 impl Default for PartialAppConfig {
@@ -33,6 +35,8 @@ impl Default for PartialAppConfig {
             node:                            PartialNodeConfig::default(),
             #[cfg(feature = "cli")]
             logging:                         PartialLoggerConfig::default(),
+            #[cfg(feature = "cli")]
+            p2p:                             PartialP2PConfig::default(),
         };
         this.overwrite_from_env();
         this
@@ -50,6 +54,8 @@ impl Config for PartialAppConfig {
             node:                            PartialNodeConfig::template(),
             #[cfg(feature = "cli")]
             logging:                         PartialLoggerConfig::template(),
+            #[cfg(feature = "cli")]
+            p2p:                             PartialP2PConfig::template(),
         }
     }
 
@@ -110,6 +116,8 @@ pub struct AppConfig {
     pub chains:          PartialChainConfigs,
     #[cfg(feature = "cli")]
     pub node:            PartialNodeConfig,
+    #[cfg(feature = "cli")]
+    pub p2p:             PartialP2PConfig,
 }
 
 impl AsRef<AppConfig> for AppConfig {
@@ -127,6 +135,8 @@ impl From<PartialAppConfig> for (AppConfig, PartialLoggerConfig) {
                 chains:                         value.chains,
                 #[cfg(feature = "cli")]
                 node:                           value.node,
+                #[cfg(feature = "cli")]
+                p2p:                            value.p2p,
             },
             #[cfg(feature = "cli")]
             value.logging,

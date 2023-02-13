@@ -18,7 +18,7 @@ use libp2p::{
 };
 pub use libp2p::{Multiaddr, PeerId};
 use parking_lot::RwLock;
-use seda_config::NodeConfig;
+use seda_config::P2PConfig;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::{Receiver, Sender};
 
@@ -31,10 +31,9 @@ use crate::{
 pub const GOSSIP_TOPIC: &str = "testnet";
 
 pub struct P2PServer {
-    pub node_config:              NodeConfig,
+    pub p2p_config:               P2PConfig,
     pub known_peers:              Arc<RwLock<PeerList>>,
     pub local_key:                identity::Keypair,
-    pub server_address:           String,
     pub swarm:                    Swarm<SedaBehaviour>,
     pub message_sender_channel:   Sender<P2PMessage>,
     pub command_receiver_channel: Receiver<P2PCommand>,
@@ -42,8 +41,7 @@ pub struct P2PServer {
 
 impl P2PServer {
     pub async fn start_from_config(
-        node_config: NodeConfig,
-        server_address: &str,
+        p2p_config: P2PConfig,
         known_peers: Arc<RwLock<PeerList>>,
         message_sender_channel: Sender<P2PMessage>,
         command_receiver_channel: Receiver<P2PCommand>,
@@ -59,13 +57,12 @@ impl P2PServer {
         let seda_behaviour = SedaBehaviour::new(&local_key).await?;
 
         let mut swarm = Swarm::with_threadpool_executor(transport, seda_behaviour, PeerId::from(local_key.public()));
-        swarm.listen_on(server_address.parse()?)?;
+        swarm.listen_on(p2p_config.p2p_server_address.parse()?)?;
 
         Ok(Self {
-            node_config,
+            p2p_config,
             known_peers,
             local_key,
-            server_address: server_address.to_string(),
             swarm,
             message_sender_channel,
             command_receiver_channel,
@@ -137,7 +134,7 @@ impl P2PServer {
                 event = self.swarm.select_next_some() => match event {
                     SwarmEvent::NewListenAddr { address, .. } => tracing::info!("Listening on {:?}", address),
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Discovered(list))) => {
-                        if !self.node_config.enable_mdns {
+                        if !self.p2p_config.enable_mdns {
                             continue;
                         }
 
@@ -154,7 +151,7 @@ impl P2PServer {
                         }
                     }
                     SwarmEvent::Behaviour(SedaBehaviourEvent::Mdns(MdnsEvent::Expired(list))) => {
-                        if !self.node_config.enable_mdns {
+                        if !self.p2p_config.enable_mdns {
                             continue;
                         }
 

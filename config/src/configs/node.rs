@@ -32,15 +32,6 @@ pub struct PartialNodeConfig {
     /// An option to override the node runtime worker threads config value.
     #[arg(long)]
     pub runtime_worker_threads:  Option<u8>,
-    /// An option to override the node p2p server address config value.
-    #[arg(long)]
-    pub p2p_server_address:      Option<String>,
-    /// An option to override the node p2p known peers config value.
-    #[arg(long)]
-    pub p2p_known_peers:         Option<Vec<String>>,
-    /// Option to use mDNS to discover peers locally
-    #[arg(long)]
-    pub enable_mdns:             Option<bool>,
 }
 #[cfg(feature = "cli")]
 impl PartialNodeConfig {
@@ -84,15 +75,6 @@ impl PartialNodeConfig {
             Ok(NodeConfigInner::RUNTIME_WORKER_THREADS),
             |f| f as usize
         )?;
-        let p2p_server_address = merge_config_cli!(
-            self,
-            cli_options,
-            p2p_server_address,
-            Ok(NodeConfigInner::P2P_SERVER_ADDRESS.to_string())
-        )?;
-        let p2p_known_peers = merge_config_cli!(self, cli_options, p2p_known_peers, Ok(Vec::new()))?;
-
-        let enable_mdns = merge_config_cli!(self, cli_options, enable_mdns, Ok(true))?;
 
         Ok(Arc::new(NodeConfigInner {
             deposit,
@@ -103,9 +85,6 @@ impl PartialNodeConfig {
             public_key,
             job_manager_interval_ms,
             runtime_worker_threads,
-            p2p_server_address,
-            p2p_known_peers,
-            enable_mdns,
         }))
     }
 }
@@ -122,9 +101,6 @@ impl Config for PartialNodeConfig {
             public_key:              None,
             job_manager_interval_ms: None,
             runtime_worker_threads:  None,
-            p2p_server_address:      Some(NodeConfigInner::P2P_SERVER_ADDRESS.to_string()),
-            p2p_known_peers:         None,
-            enable_mdns:             None,
         }
     }
 
@@ -143,9 +119,6 @@ pub struct NodeConfigInner {
     pub public_key:              String,
     pub job_manager_interval_ms: u64,
     pub runtime_worker_threads:  usize,
-    pub p2p_server_address:      String,
-    pub p2p_known_peers:         Vec<String>,
-    pub enable_mdns:             bool,
 }
 
 impl NodeConfigInner {
@@ -160,9 +133,6 @@ impl NodeConfigInner {
             public_key:              String::new(),
             job_manager_interval_ms: Self::JOB_MANAGER_INTERVAL_MS,
             runtime_worker_threads:  Self::RUNTIME_WORKER_THREADS,
-            p2p_server_address:      Self::P2P_SERVER_ADDRESS.to_string(),
-            p2p_known_peers:         Vec::new(),
-            enable_mdns:             true,
         })
     }
 
@@ -176,7 +146,6 @@ impl NodeConfigInner {
     pub const DEPOSIT: u128 = 87 * 10_u128.pow(19);
     pub const GAS: u64 = 300_000_000_000_000;
     pub const JOB_MANAGER_INTERVAL_MS: u64 = 10;
-    pub const P2P_SERVER_ADDRESS: &str = "/ip4/0.0.0.0/tcp/0";
     pub const RUNTIME_WORKER_THREADS: usize = 2;
 }
 
