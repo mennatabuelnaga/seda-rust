@@ -28,4 +28,5 @@ pub enum P2PCommand {
     Unicast(UnicastCommand),
     AddPeer(AddPeerCommand),
     RemovePeer(RemovePeerCommand),
+    DiscoverPeers,
 }

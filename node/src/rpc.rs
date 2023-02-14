@@ -35,6 +35,9 @@ pub trait Rpc {
 
     #[method(name = "remove_peer")]
     async fn remove_peer(&self, peer_id: String) -> Result<(), Error>;
+
+    #[method(name = "discover_peers")]
+    async fn discover_peers(&self) -> Result<(), Error>;
 }
 
 pub struct CliServer<HA: HostAdapter> {
@@ -90,6 +93,15 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
 
         self.p2p_command_sender_channel
             .send(P2PCommand::RemovePeer(RemovePeerCommand { peer_id }))
+            .await
+            .map_err(|err| Error::Custom(err.to_string()))?;
+
+        Ok(())
+    }
+
+    async fn discover_peers(&self) -> Result<(), Error> {
+        self.p2p_command_sender_channel
+            .send(P2PCommand::DiscoverPeers)
             .await
             .map_err(|err| Error::Custom(err.to_string()))?;
 

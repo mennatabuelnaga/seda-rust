@@ -4,6 +4,7 @@ use seda_config::AppConfig;
 use crate::Result;
 
 mod add;
+mod discover;
 mod list;
 mod remove;
 
@@ -15,6 +16,8 @@ pub enum Peers {
     List(list::ListPeers),
     /// Removes a connected peer
     Remove(remove::RemovePeer),
+    /// Triggers the node to discover more peers
+    Discover(discover::DiscoverPeers),
 }
 
 impl Peers {
@@ -23,6 +26,7 @@ impl Peers {
             Self::Add(add_peer) => add_peer.handle(config).await,
             Self::List(list_peers) => list_peers.handle(config).await,
             Self::Remove(remove_peer) => remove_peer.handle(config).await,
+            Self::Discover(discover_peers) => discover_peers.handle(config).await,
         }
     }
 }

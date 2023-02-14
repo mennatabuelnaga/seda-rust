@@ -15,7 +15,8 @@ libp2p = { workspace = true, features = [
 	"mdns",
 	"tcp",
 	"macros",
-	"async-std"
+	"async-std",
+	"kad"
 ] }
 parking_lot = { workspace = true }
 seda-config = { workspace = true }

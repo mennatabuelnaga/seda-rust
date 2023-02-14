@@ -13,6 +13,7 @@ use libp2p::{
     futures::StreamExt,
     gossipsub::{GossipsubEvent, IdentTopic},
     identity::{self},
+    kad::{KademliaEvent, QueryResult},
     mdns::Event as MdnsEvent,
     swarm::{Swarm, SwarmEvent},
 };
@@ -103,7 +104,10 @@ impl P2PServer {
 
     fn add_peer(&mut self, addr: Multiaddr, peer_id: PeerId) {
         let mut known_peers = self.known_peers.write();
-        known_peers.add_peer(addr, Some(peer_id));
+        known_peers.add_peer(addr.clone(), Some(peer_id));
+
+        self.swarm.behaviour_mut().kademlia.add_address(&peer_id, addr);
+
         self.swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
     }
 
@@ -120,6 +124,8 @@ impl P2PServer {
         // TODO: Remove stdin feature
         let mut stdin = io::BufReader::new(io::stdin()).lines().fuse();
         let topic = IdentTopic::new(GOSSIP_TOPIC);
+
+        self.swarm.behaviour_mut().kademlia.get_closest_peers(PeerId::random());
 
         loop {
             tokio::select! {
@@ -146,7 +152,14 @@ impl P2PServer {
                     SwarmEvent::ConnectionEstablished { peer_id, endpoint, .. } => {
                         let mut known_peers = self.known_peers.write();
 
+                        tracing::debug!("Connection established with {peer_id}");
+
                         if let ConnectedPoint::Dialer { address, .. } = endpoint {
+                            self.swarm
+                                .behaviour_mut()
+                                .kademlia
+                                .add_address(&peer_id, address.clone());
+
                             known_peers.set_peer_id(address, peer_id)
                         }
                     }
@@ -176,6 +189,21 @@ impl P2PServer {
                             tracing::error!("Couldn't send message through channel: {err}");
                         }
                     },
+                    SwarmEvent::Behaviour(SedaBehaviourEvent::Kademlia(KademliaEvent::OutboundQueryProgressed {
+                        result: QueryResult::GetClosestPeers(result),
+                        ..
+                    })) => {
+                        match result {
+                            Ok(closest_peers_query_result) => {
+                                if closest_peers_query_result.peers.is_empty() {
+                                    tracing::debug!("No new peers found using kademlia");
+                                } else {
+                                    tracing::debug!("Found new peers: {:#?}", closest_peers_query_result.peers);
+                                }
+                            }
+                            Err(err) => tracing::error!("Error while using Kademlia: {err}")
+                        }
+                    }
                     _ => {}
                 },
                 task = self.command_receiver_channel.recv() => match task {
@@ -195,6 +223,14 @@ impl P2PServer {
                             Ok(peer_id) => self.remove_peer(peer_id),
                             Err(error) => tracing::error!("PeerId {} is invalid due: {error}", &remove_peer_command.peer_id),
                         }
+                    },
+                    Some(P2PCommand::DiscoverPeers) => {
+                        let local_peer_id = PeerId::from(self.local_key.public());
+
+                        self.swarm
+                            .behaviour_mut()
+                            .kademlia
+                            .get_closest_peers(local_peer_id);
                     },
                     None => {}
                 },

@@ -16,8 +16,10 @@ use libp2p::{
         ValidationMode,
     },
     identity::Keypair,
+    kad::{store::MemoryStore, Kademlia, KademliaConfig, KademliaEvent},
     mdns::{self},
     swarm::NetworkBehaviour,
+    PeerId,
 };
 
 use super::{super::errors::Result, GOSSIP_TOPIC};
@@ -31,6 +33,8 @@ pub struct SedaBehaviour {
     pub gossipsub: Gossipsub,
     // TODO: change discovery mechanism
     pub mdns:      mdns::async_io::Behaviour,
+
+    pub kademlia: Kademlia<MemoryStore>,
 }
 
 impl SedaBehaviour {
@@ -54,9 +58,16 @@ impl SedaBehaviour {
         let topic = IdentTopic::new(GOSSIP_TOPIC);
         gossipsub.subscribe(&topic)?;
 
+        let local_peer_id = PeerId::from(key_pair.public());
+        let mut kademlia_config = KademliaConfig::default();
+        kademlia_config.disjoint_query_paths(true);
+        let kademlia_memory_store = MemoryStore::new(local_peer_id);
+        let kademlia = Kademlia::with_config(local_peer_id, kademlia_memory_store, kademlia_config);
+
         Ok(Self {
             mdns: mdns::async_io::Behaviour::new(mdns::Config::default())?,
             gossipsub,
+            kademlia,
         })
     }
 }
@@ -64,6 +75,7 @@ impl SedaBehaviour {
 pub enum SedaBehaviourEvent {
     Gossipsub(GossipsubEvent),
     Mdns(mdns::Event),
+    Kademlia(KademliaEvent),
 }
 
 impl From<mdns::Event> for SedaBehaviourEvent {
@@ -75,5 +87,11 @@ impl From<mdns::Event> for SedaBehaviourEvent {
 impl From<GossipsubEvent> for SedaBehaviourEvent {
     fn from(event: GossipsubEvent) -> Self {
         Self::Gossipsub(event)
+    }
+}
+
+impl From<KademliaEvent> for SedaBehaviourEvent {
+    fn from(event: KademliaEvent) -> Self {
+        Self::Kademlia(event)
     }
 }
