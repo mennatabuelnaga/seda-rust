@@ -9,7 +9,7 @@ use jsonrpsee::{
 use parking_lot::RwLock;
 use seda_p2p::{
     libp2p::{Multiaddr, PeerId},
-    PeerList,
+    DiscoveryStatus,
 };
 use seda_runtime::HostAdapter;
 use seda_runtime_sdk::{
@@ -43,7 +43,7 @@ pub trait Rpc {
 pub struct CliServer<HA: HostAdapter> {
     runtime_worker:             Addr<RuntimeWorker<HA>>,
     p2p_command_sender_channel: Sender<P2PCommand>,
-    known_peers:                Arc<RwLock<PeerList>>,
+    discovery_status:           Arc<RwLock<DiscoveryStatus>>,
 }
 
 #[async_trait]
@@ -80,8 +80,8 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
     }
 
     async fn list_peers(&self) -> Result<Value, Error> {
-        let peer_list = self.known_peers.read();
-        let result = peer_list.get_json();
+        let peer_list = self.discovery_status.read();
+        let result = peer_list.connected_peers.get_json();
 
         Ok(result)
     }
@@ -117,13 +117,13 @@ impl JsonRpcServer {
         runtime_worker: Addr<RuntimeWorker<HA>>,
         addrs: &str,
         p2p_command_sender_channel: Sender<P2PCommand>,
-        known_peers: Arc<RwLock<PeerList>>,
+        discovery_status: Arc<RwLock<DiscoveryStatus>>,
     ) -> Result<Self, Error> {
         let server = ServerBuilder::default().build(addrs).await?;
         let rpc = CliServer {
             runtime_worker,
             p2p_command_sender_channel,
-            known_peers,
+            discovery_status,
         };
         let handle = server.start(rpc.into_rpc())?;
 

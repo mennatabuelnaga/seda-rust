@@ -61,6 +61,8 @@ impl SedaBehaviour {
         let local_peer_id = PeerId::from(key_pair.public());
         let mut kademlia_config = KademliaConfig::default();
         kademlia_config.disjoint_query_paths(true);
+        kademlia_config.set_kbucket_inserts(libp2p::kad::KademliaBucketInserts::Manual);
+
         let kademlia_memory_store = MemoryStore::new(local_peer_id);
         let kademlia = Kademlia::with_config(local_peer_id, kademlia_memory_store, kademlia_config);
 
