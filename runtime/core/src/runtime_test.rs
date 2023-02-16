@@ -319,3 +319,91 @@ async fn test_limited_runtime() {
 
 //     assert_eq!(db_result.unwrap(), "127.0.0.1:9000".to_string());
 // }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_bn254_verify_valid() {
+    set_env_vars();
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
+
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
+    let node_config = NodeConfigInner::test_config();
+    let memory_adapter = memory_adapter();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
+        .await
+        .unwrap();
+    runtime.init(wasm_binary).unwrap();
+
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args:         vec![
+                    // Message ("sample" in ASCII)
+                    "73616d706c65".to_string(),
+                    // Signature (compressed G1 point)
+                    "020f047a153e94b5f109e4013d1bd078112817cf0d58cdf6ba8891f9849852ba5b".to_string(),
+                    // Public Key (compressed G2 point)
+                    "0b0087beab84f1aeacf30597cda920c6772ecd26ba95d84f66750a16dc9b68cea6d89173eff7f72817e4698f93fcb5a5b04b272a7085d8a12fceb5481e651df7a7".to_string()
+                ],
+                program_name: "consensus".to_string(),
+                start_func:   Some("bn254_verify_test".to_string()),
+                debug:        true,
+            },
+            memory_adapter,
+            p2p_command_sender,
+        )
+        .await;
+
+    assert!(runtime_execution_result.is_ok());
+
+    // Fetch bn254 verify result from DB
+    let db_result = runtime.host_adapter.db_get("bn254_verify_result").await.unwrap();
+    assert!(db_result.is_some());
+    let result = db_result.unwrap();
+
+    // Valid verification returns true
+    assert_eq!(result, format!("{}", true));
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_bn254_verify_invalid() {
+    set_env_vars();
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
+
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
+    let node_config = NodeConfigInner::test_config();
+    let memory_adapter = memory_adapter();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
+        .await
+        .unwrap();
+    runtime.init(wasm_binary).unwrap();
+
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args:         vec![
+                    // Message ("sample" in ASCII)
+                    "73616d706c65".to_string(),
+                    // WRONG Signature (compressed G1 point) -> 1 flipped bit!
+                    "020f047a153e94b5f109e4013d1bd078112817cf0d58cdf6ba8891f9849852ba5c".to_string(),
+                    // Public Key (compressed G2 point)
+                    "0b0087beab84f1aeacf30597cda920c6772ecd26ba95d84f66750a16dc9b68cea6d89173eff7f72817e4698f93fcb5a5b04b272a7085d8a12fceb5481e651df7a7".to_string()
+                ],
+                program_name: "consensus".to_string(),
+                start_func:   Some("bn254_verify_test".to_string()),
+                debug:        true,
+            },
+            memory_adapter,
+            p2p_command_sender,
+        )
+        .await;
+
+    assert!(runtime_execution_result.is_ok());
+
+    // Fetch bn254 verify result from DB
+    let db_result = runtime.host_adapter.db_get("bn254_verify_result").await.unwrap();
+    assert!(db_result.is_some());
+    let result = db_result.unwrap();
+
+    // Valid verification returns true
+    assert_eq!(result, format!("{}", false));
+}

@@ -1,7 +1,21 @@
-use std::env;
+use std::{env, num::ParseIntError};
 
 use seda_runtime_sdk::{
-    wasm::{call_self, db_get, db_set, execution_result, http_fetch, memory_read, memory_write, Promise, CONFIG},
+    wasm::{
+        bn254_verify,
+        call_self,
+        db_get,
+        db_set,
+        execution_result,
+        http_fetch,
+        memory_read,
+        memory_write,
+        Bn254PrivateKey,
+        Bn254PublicKey,
+        Bn254Signature,
+        Promise,
+        CONFIG,
+    },
     PromiseStatus,
 };
 
@@ -110,3 +124,42 @@ fn test_limited_runtime_rejected_db() {
         println!("Promise rejected: {str}");
     }
 }
+
+#[no_mangle]
+fn bn254_verify_test() {
+    let args: Vec<String> = env::args().collect();
+    println!("bn254 verify test: {:?}", args);
+
+    // Message "sample" (`0x73616d706c65`)
+    let message_hex = args.get(1).unwrap();
+    let message = decode_hex(message_hex).unwrap();
+
+    // Signature
+    let signature_hex = args.get(2).unwrap();
+    let signature_bytes = decode_hex(signature_hex).unwrap();
+    let signature = Bn254Signature::from_compressed(&signature_bytes).unwrap();
+
+    // Public key
+    let public_key_hex = args.get(3).unwrap();
+    let public_key_bytes = decode_hex(public_key_hex).unwrap();
+    let public_key = Bn254PublicKey::from_compressed(&public_key_bytes).unwrap();
+
+    let result = bn254_verify(&message, &signature, &public_key);
+    db_set("bn254_verify_result", &format!("{result}")).start();
+}
+
+fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+        .collect()
+}
+
+// // Add `use std::fmt::Write`;
+// fn encode_hex(bytes: &[u8]) -> String {
+//     let mut s = String::with_capacity(bytes.len() * 2);
+//     for &b in bytes {
+//         write!(&mut s, "{:02x}", b).unwrap();
+//     }
+//     s
+// }
