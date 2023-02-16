@@ -1,3 +1,4 @@
+mod bn254;
 mod call;
 #[cfg(feature = "full")]
 mod chain_interactor;
@@ -25,3 +26,5 @@ pub use memory::*;
 #[cfg(feature = "full")]
 pub use p2p::*;
 pub use promise::*;
+
+pub use self::bn254::*;

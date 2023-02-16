@@ -14,4 +14,12 @@ extern "C" {
         line_info: *const u8,
         line_info_len: i64,
     );
+    pub fn bn254_verify(
+        message: *const u8,
+        message_length: i64,
+        signature: *const u8,
+        signature_length: i64,
+        public_key: *const u8,
+        public_key_length: i64,
+    ) -> u8;
 }

@@ -10,6 +10,7 @@ wasm = ["serde_json"]
 full = []
 
 [dependencies]
+bn254 = { workspace = true }
 clap = { workspace = true, features = ["derive", "std"] }
 lazy_static = { workspace = true }
 seda-config = { workspace = true }
