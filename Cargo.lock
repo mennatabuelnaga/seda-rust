@@ -556,6 +556,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bn254"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7694a2df5ffc5f2e385503b2987d281abeb80e02f3c30acd7de0d3db18794e73"
+dependencies = [
+ "byteorder",
+ "rand 0.8.5",
+ "sha2 0.10.6",
+ "substrate-bn",
+ "thiserror",
+]
+
+[[package]]
 name = "borsh"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4976,6 +4989,7 @@ name = "seda-runtime"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "bn254",
  "futures",
  "lazy_static",
  "parking_lot 0.12.1",
@@ -5005,6 +5019,7 @@ dependencies = [
 name = "seda-runtime-sdk"
 version = "0.1.0"
 dependencies = [
+ "bn254",
  "clap",
  "lazy_static",
  "seda-config",
@@ -5423,6 +5438,19 @@ dependencies = [
  "quote",
  "rustversion",
  "syn",
+]
+
+[[package]]
+name = "substrate-bn"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b5bbfa79abbae15dd642ea8176a21a635ff3c00059961d1ea27ad04e5b441c"
+dependencies = [
+ "byteorder",
+ "crunchy",
+ "lazy_static",
+ "rand 0.8.5",
+ "rustc-hex",
 ]
 
 [[package]]

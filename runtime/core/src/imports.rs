@@ -217,6 +217,54 @@ pub fn log_import_obj(store: &Store, vm_context: VmContext) -> Function {
     Function::new_native_with_env(store, vm_context, log)
 }
 
+/// Verifies if bn254 signature is valid.
+///
+/// Inputs:
+///     - message (any payload in bytes)
+///     - signature (bytes as compressed G1 point)
+///     - public_key (bytes as compressed G2 point)
+///
+/// Output:
+///     - u8 (boolean, 1 for true)
+pub fn bn254_verify_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn bn254_verify(
+        env: &VmContext,
+        message: WasmPtr<u8, Array>,
+        message_length: i64,
+        signature: WasmPtr<u8, Array>,
+        signature_length: i64,
+        public_key: WasmPtr<u8, Array>,
+        public_key_length: i64,
+    ) -> Result<u8> {
+        // Fetch function arguments as Vec<u8>
+        let memory_ref = get_memory(env)?;
+        let message = message
+            .deref(memory_ref, 0, message_length as u32)
+            .ok_or("Invalid pointer")?;
+        let message: Vec<u8> = message.into_iter().map(|wc| wc.get()).collect();
+
+        let signature = signature
+            .deref(memory_ref, 0, signature_length as u32)
+            .ok_or("Invalid pointer")?;
+        let signature: Vec<u8> = signature.into_iter().map(|wc| wc.get()).collect();
+
+        let public_key = public_key
+            .deref(memory_ref, 0, public_key_length as u32)
+            .ok_or("Invalid pointer")?;
+        let public_key: Vec<u8> = public_key.into_iter().map(|wc| wc.get()).collect();
+
+        // `bn254` verification
+        let signature_obj = bn254::Signature::from_compressed(signature)?;
+        let public_key_obj = bn254::PublicKey::from_compressed(public_key)?;
+
+        Ok(bn254::ECDSA::verify(&message, &signature_obj, &public_key_obj)
+            .is_ok()
+            .into())
+    }
+
+    Function::new_native_with_env(store, vm_context, bn254_verify)
+}
+
 // Creates the WASM function imports with the stringed names.
 pub fn create_wasm_imports(
     store: &Store,
@@ -233,7 +281,8 @@ pub fn create_wasm_imports(
             "memory_read_length" => memory_read_length_import_obj(store, vm_context.clone()),
             "memory_write" => memory_write_import_obj(store, vm_context.clone()),
             "execution_result" => execution_result_import_obj(store, vm_context.clone()),
-            "_log" => log_import_obj(store, vm_context),
+            "_log" => log_import_obj(store, vm_context.clone()),
+            "bn254_verify" => bn254_verify_import_obj(store, vm_context),
         }
     };
 

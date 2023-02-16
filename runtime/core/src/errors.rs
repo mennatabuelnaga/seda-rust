@@ -57,6 +57,9 @@ pub enum RuntimeError {
 
     #[error("P2P Command Channel Error: {0}")]
     P2PCommandChannelError(#[from] SendError<P2PCommand>),
+
+    #[error("BN254 Error: {0}")]
+    Bn254Error(#[from] bn254::Error),
 }
 
 impl From<InstantiationError> for RuntimeError {
