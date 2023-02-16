@@ -26,3 +26,6 @@ seda_log.*
 
 # WASM bins
 **/*.wasm
+
+# DS_Store
+**/.DS_Store
