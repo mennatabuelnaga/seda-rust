@@ -116,6 +116,7 @@ pub fn memory_read_import_obj(store: &Store, vm_context: VmContext) -> Function 
                 .ok_or("Writing out of bounds to memory")?
                 .set(*byte);
         }
+
         Ok(())
     }
 
@@ -217,7 +218,7 @@ pub fn log_import_obj(store: &Store, vm_context: VmContext) -> Function {
     Function::new_native_with_env(store, vm_context, log)
 }
 
-/// Verifies if bn254 signature is valid.
+/// Verifies a `bn254` ECDSA signature.
 ///
 /// Inputs:
 ///     - message (any payload in bytes)
@@ -265,6 +266,65 @@ pub fn bn254_verify_import_obj(store: &Store, vm_context: VmContext) -> Function
     Function::new_native_with_env(store, vm_context, bn254_verify)
 }
 
+/// Signs with ECDSA using `bn254`.
+///
+/// Inputs:
+///
+/// * `message`     - The message bytes
+/// * `private_key` - The private key
+///
+/// Output:
+///     - Signature (a G1 point) as byte array to the wasm result pointer
+pub fn bn254_sign_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn bn254_sign(
+        env: &VmContext,
+        message: WasmPtr<u8, Array>,
+        message_length: i64,
+        private_key: WasmPtr<u8, Array>,
+        private_key_length: i64,
+        result_data_ptr: WasmPtr<u8, Array>,
+        result_data_length: i64,
+    ) -> Result<()> {
+        // Fetch function arguments as Vec<u8>
+        let memory_ref = get_memory(env)?;
+        let message = message
+            .deref(memory_ref, 0, message_length as u32)
+            .ok_or("Invalid pointer")?;
+        let message: Vec<u8> = message.into_iter().map(|wc| wc.get()).collect();
+
+        let private_key = private_key
+            .deref(memory_ref, 0, private_key_length as u32)
+            .ok_or("Invalid pointer")?;
+        let private_key: Vec<u8> = private_key.into_iter().map(|wc| wc.get()).collect();
+
+        // `bn254` sign
+        let private_key_obj = bn254::PrivateKey::try_from(private_key.as_ref())?;
+        let signature = bn254::ECDSA::sign(&message, &private_key_obj)?;
+        let result = signature.to_compressed()?;
+
+        if result_data_length as usize != result.len() {
+            Err(format!(
+                "The result data length `{result_data_length}` is not the same length for the value `{}`",
+                result.len()
+            ))?;
+        }
+
+        let derefed_ptr = result_data_ptr
+            .deref(memory_ref, 0, result_data_length as u32)
+            .ok_or("Invalid pointer")?;
+        for (index, byte) in result.iter().enumerate().take(result_data_length as usize) {
+            derefed_ptr
+                .get(index)
+                .ok_or("Writing out of bounds to memory")?
+                .set(*byte);
+        }
+
+        Ok(())
+    }
+
+    Function::new_native_with_env(store, vm_context, bn254_sign)
+}
+
 // Creates the WASM function imports with the stringed names.
 pub fn create_wasm_imports(
     store: &Store,
@@ -282,7 +342,8 @@ pub fn create_wasm_imports(
             "memory_write" => memory_write_import_obj(store, vm_context.clone()),
             "execution_result" => execution_result_import_obj(store, vm_context.clone()),
             "_log" => log_import_obj(store, vm_context.clone()),
-            "bn254_verify" => bn254_verify_import_obj(store, vm_context),
+            "bn254_verify" => bn254_verify_import_obj(store, vm_context.clone()),
+            "bn254_sign" => bn254_sign_import_obj(store, vm_context)
         }
     };
 
