@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "cli")]
 use crate::{merge_config_cli, Config, Result};
+
 #[cfg(feature = "cli")]
 #[derive(clap::Args)]
 /// The configuration for the seda engine.

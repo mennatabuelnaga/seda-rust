@@ -1,8 +1,10 @@
 use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
-
-use crate::{env_overwrite, merge_config_cli, Config, Result};
+#[cfg(feature = "cli")]
+use {
+    crate::{env_overwrite, merge_config_cli, Config, Result},
+    serde::{Deserialize, Serialize},
+};
 
 #[cfg(feature = "cli")]
 #[derive(clap::Args, Debug, Clone, Default, Serialize, Deserialize)]

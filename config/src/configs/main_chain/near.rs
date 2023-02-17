@@ -1,6 +1,8 @@
-use serde::{Deserialize, Serialize};
-
-use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
+#[cfg(feature = "cli")]
+use {
+    crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result},
+    serde::{Deserialize, Serialize},
+};
 
 #[cfg(feature = "cli")]
 #[derive(clap::Parser, Debug, Clone, Default, Serialize, Deserialize)]

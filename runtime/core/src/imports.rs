@@ -258,7 +258,7 @@ pub fn bn254_verify_import_obj(store: &Store, vm_context: VmContext) -> Function
         let signature_obj = bn254::Signature::from_compressed(signature)?;
         let public_key_obj = bn254::PublicKey::from_compressed(public_key)?;
 
-        Ok(bn254::ECDSA::verify(&message, &signature_obj, &public_key_obj)
+        Ok(bn254::ECDSA::verify(message, &signature_obj, &public_key_obj)
             .is_ok()
             .into())
     }

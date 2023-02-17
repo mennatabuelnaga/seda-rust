@@ -7,9 +7,12 @@ pub use near::*;
 
 mod another_config;
 pub use another_config::*;
-use serde::{Deserialize, Serialize};
+#[cfg(feature = "cli")]
+use {
+    crate::{Config, Result},
+    serde::{Deserialize, Serialize},
+};
 
-use crate::{Config, Result};
 #[cfg(feature = "cli")]
 #[derive(clap::Args, Debug, Default, Serialize, Deserialize)]
 pub struct PartialChainConfigs {

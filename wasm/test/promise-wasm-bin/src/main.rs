@@ -180,6 +180,6 @@ fn encode_hex(bytes: &[u8]) -> String {
     for &b in bytes {
         write!(&mut result, "{:02x}", b).unwrap();
     }
-    
+
     result
 }
