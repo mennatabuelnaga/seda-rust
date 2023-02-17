@@ -407,3 +407,46 @@ async fn test_bn254_verify_invalid() {
     // Valid verification returns true
     assert_eq!(result, format!("{}", false));
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_bn254_signature() {
+    set_env_vars();
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
+
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
+    let node_config = NodeConfigInner::test_config();
+    let memory_adapter = memory_adapter();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
+        .await
+        .unwrap();
+    runtime.init(wasm_binary).unwrap();
+
+    let runtime_execution_result = runtime
+        .start_runtime(
+            VmConfig {
+                args:         vec![
+                    // Message ("sample" in ASCII)
+                    "73616d706c65".to_string(),
+                    // Private Key
+                    "2009da7287c158b126123c113d1c85241b6e3294dd75c643588630a8bc0f934c".to_string(),
+                ],
+                program_name: "consensus".to_string(),
+                start_func:   Some("bn254_sign_test".to_string()),
+                debug:        true,
+            },
+            memory_adapter,
+            p2p_command_sender,
+        )
+        .await;
+
+    assert!(runtime_execution_result.is_ok());
+
+    // Fetch bn254 sign result from DB
+    let db_result = runtime.host_adapter.db_get("bn254_sign_result").await.unwrap();
+    assert!(db_result.is_some());
+    let result = db_result.unwrap();
+
+    // Check if expected signature
+    let expected_signature = "020f047a153e94b5f109e4013d1bd078112817cf0d58cdf6ba8891f9849852ba5b";
+    assert_eq!(result, format!("{}", expected_signature));
+}

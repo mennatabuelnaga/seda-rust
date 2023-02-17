@@ -1,7 +1,8 @@
-use std::{env, num::ParseIntError};
+use std::{env, fmt::Write, num::ParseIntError};
 
 use seda_runtime_sdk::{
     wasm::{
+        bn254_sign,
         bn254_verify,
         call_self,
         db_get,
@@ -130,7 +131,7 @@ fn bn254_verify_test() {
     let args: Vec<String> = env::args().collect();
     println!("bn254 verify test: {:?}", args);
 
-    // Message "sample" (`0x73616d706c65`)
+    // Message
     let message_hex = args.get(1).unwrap();
     let message = decode_hex(message_hex).unwrap();
 
@@ -148,6 +149,25 @@ fn bn254_verify_test() {
     db_set("bn254_verify_result", &format!("{result}")).start();
 }
 
+#[no_mangle]
+fn bn254_sign_test() {
+    let args: Vec<String> = env::args().collect();
+    println!("bn254 sign test: {:?}", args);
+
+    // Message
+    let message_hex = args.get(1).unwrap();
+    let message = decode_hex(message_hex).unwrap();
+
+    // Private Key
+    let private_key_hex = args.get(2).unwrap();
+    let private_key_bytes = decode_hex(private_key_hex).unwrap();
+    let private_key = Bn254PrivateKey::try_from(private_key_bytes.as_ref()).unwrap();
+
+    let result = bn254_sign(&message, &private_key);
+    let result_hex = encode_hex(&result.to_compressed().unwrap());
+    db_set("bn254_sign_result", &format!("{result_hex}")).start();
+}
+
 fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
     (0..s.len())
         .step_by(2)
@@ -155,11 +175,11 @@ fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
         .collect()
 }
 
-// // Add `use std::fmt::Write`;
-// fn encode_hex(bytes: &[u8]) -> String {
-//     let mut s = String::with_capacity(bytes.len() * 2);
-//     for &b in bytes {
-//         write!(&mut s, "{:02x}", b).unwrap();
-//     }
-//     s
-// }
+fn encode_hex(bytes: &[u8]) -> String {
+    let mut result = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        write!(&mut result, "{:02x}", b).unwrap();
+    }
+    
+    result
+}
