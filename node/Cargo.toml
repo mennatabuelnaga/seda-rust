@@ -7,9 +7,11 @@ rust-version.workspace = true
 [dependencies]
 actix = { workspace = true }
 async-trait = { workspace = true }
+borsh = { workspace = true }
 futures = { workspace = true }
 jsonrpsee = { workspace = true, features = ["macros", "server"] }
 parking_lot = { workspace = true }
+rand = { workspace = true }
 reqwest = { workspace = true }
 rusqlite = { workspace = true }
 seda-chains = { workspace = true }
@@ -23,3 +25,4 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-rusqlite = { workspace = true }
 tracing = { workspace = true }
+zeropool-bn = { workspace = true }

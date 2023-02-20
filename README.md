@@ -100,7 +100,7 @@ SEDA configuration uses the following ENV variables if they exist.
 | `SEDA_CONFIG_PATH`    | Defines an alternative path for the seda configuration file to be.                                                                 |
 | `SEDA_LOG_FILE_PATH`  | Overwrites the config `logging.log_file_path` field.                                                                               |
 | `SEDA_NEAR_RPC_URL`   | Overwrites the config `near_chain.chain_rpc_url` field.                                                                            |
-| `SEDA_SECRET_KEY`     | Overwrites the config `node.secret_key` field.                                                                                     |
+| `CHAIN_SECRET_KEY`     | Overwrites the config `node.secret_key` field.                                                                                     |
 | `SEDA_SERVER_ADDRESS` | Overwrites the config `seda_server_address` field.                                                                                 |
 | `SEDA_SERVER_PORT`    | Overwrites the config `seda_server_port` field.                                                                                    |
 | `RUST_LOG`            | Controlled via the [tracing_subscriber](https://docs.rs/tracing-subscriber/0.3.16/tracing_subscriber/struct.EnvFilter.html) crate. |

@@ -107,7 +107,7 @@ impl Config for PartialNodeConfig {
     }
 
     fn overwrite_from_env(&mut self) {
-        env_overwrite!(self.secret_key, "SEDA_SECRET_KEY");
+        env_overwrite!(self.secret_key, "CHAIN_SECRET_KEY");
     }
 }
 

@@ -5020,9 +5020,11 @@ version = "0.1.0"
 dependencies = [
  "actix",
  "async-trait",
+ "borsh",
  "futures",
  "jsonrpsee",
  "parking_lot 0.12.1",
+ "rand 0.8.5",
  "reqwest",
  "rusqlite",
  "seda-chains",
@@ -5036,6 +5038,7 @@ dependencies = [
  "tokio",
  "tokio-rusqlite",
  "tracing",
+ "zeropool-bn",
 ]
 
 [[package]]
