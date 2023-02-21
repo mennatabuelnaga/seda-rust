@@ -14,6 +14,7 @@ mod host;
 use std::io::Write;
 
 use actix::prelude::*;
+use bn254::PrivateKey;
 pub(crate) use host::*;
 pub use host::{ChainCall, ChainView};
 use parking_lot::RwLock;
@@ -22,7 +23,6 @@ use seda_p2p::{libp2p::P2PServer, DiscoveryStatusInner, PeerList};
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::channel;
 use tracing::info;
-use zeropool_bn::Fr;
 
 use crate::app::Shutdown;
 
@@ -31,7 +31,7 @@ use crate::app::Shutdown;
 pub mod test {
     mod event_queue_test;
 }
-
+const SK_PATH: &str = "./seda_key";
 pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig, chain_configs: ChainConfigs) {
     let system = System::new();
     // Initialize actors inside system context
@@ -40,9 +40,9 @@ pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig,
         // If not, it generates a new random one and saves it into a file
         if std::env::var("SEDA_SECRET_KEY").is_err() {
             let rng = &mut rand::thread_rng();
-            let sk = Fr::random(rng);
-            let mut f = File::create("./random_sk").expect("Unable to create file");
-            writeln!(f, "{sk:?}").expect("Unable to write sk");
+            let sk = PrivateKey::random(rng);
+            let mut file = File::create(SK_PATH).expect("Unable to create file");
+            writeln!(file, "{:?}", sk.to_bytes().expect("couldn't serialize sk")).expect("Unable to write secret key");
         }
         let (p2p_message_sender, p2p_message_receiver) = channel::<P2PMessage>(100);
         let (p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);

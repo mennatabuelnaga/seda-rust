@@ -5020,6 +5020,7 @@ version = "0.1.0"
 dependencies = [
  "actix",
  "async-trait",
+ "bn254",
  "borsh",
  "futures",
  "jsonrpsee",
@@ -5038,7 +5039,6 @@ dependencies = [
  "tokio",
  "tokio-rusqlite",
  "tracing",
- "zeropool-bn",
 ]
 
 [[package]]
