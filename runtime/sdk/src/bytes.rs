@@ -45,6 +45,12 @@ impl ToBytes for String {
     }
 }
 
+impl ToBytes for &str {
+    fn to_bytes(self) -> Bytes {
+        Bytes(self.as_bytes().to_vec())
+    }
+}
+
 /// For functions that return an `()` to be converted to a
 /// [crate::PromiseStatus]
 impl ToBytes for () {

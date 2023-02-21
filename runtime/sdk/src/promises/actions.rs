@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{events::Event, Chain};
 
+// TODO: all action types with Vec<u8> can just be the Bytes type.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PromiseAction {
     CallSelf(CallSelfAction),

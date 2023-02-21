@@ -17,7 +17,9 @@ use seda_runtime_sdk::{
         Promise,
         CONFIG,
     },
+    FromBytes,
     PromiseStatus,
+    ToBytes,
 };
 
 fn main() {
@@ -67,7 +69,7 @@ fn http_fetch_test_success() {
     let result = Promise::result(0);
 
     if let PromiseStatus::Fulfilled(bytes) = result {
-        let value_to_store = String::from_utf8(bytes).unwrap();
+        let value_to_store = String::from_bytes_vec(bytes).unwrap();
 
         db_set("http_fetch_result", &value_to_store).start();
     }
@@ -76,7 +78,7 @@ fn http_fetch_test_success() {
 #[no_mangle]
 fn memory_adapter_test_success() {
     let key = "u8";
-    let value = 234u8.to_le_bytes().to_vec();
+    let value = 234u8.to_bytes().eject();
     memory_write(key, value.clone());
 
     let read_value = memory_read(key);
@@ -84,7 +86,7 @@ fn memory_adapter_test_success() {
     assert_eq!(read_value, value);
 
     let key = "u32";
-    let value = 3467u32.to_le_bytes().to_vec();
+    let value = 3467u32.to_bytes().eject();
     memory_write(key, value);
     call_self("memory_adapter_callback_test_success", Vec::new()).start();
 }
@@ -106,7 +108,7 @@ fn test_setting_execution_result() {
 
 #[no_mangle]
 fn test_setting_execution_result_step1() {
-    let result = "test-success".to_string().into_bytes();
+    let result = "test-success".to_bytes().eject();
     execution_result(result);
 }
 

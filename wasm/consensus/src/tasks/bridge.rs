@@ -3,8 +3,10 @@ use seda_runtime_sdk::{
     log,
     wasm::{call_self, chain_call, chain_view, memory_read, memory_write, Promise, CONFIG},
     Chain,
+    FromBytes,
     Level,
     PromiseStatus,
+    ToBytes,
 };
 
 #[derive(Debug, Args)]
@@ -22,7 +24,7 @@ impl Bridge {
         // it should be moved to the sdk
         // TODO: SEDA-188 will make it so we can pass these instead of a vec of strings
         // to .then()
-        memory_write("bridge_deposit", self.deposit.to_le_bytes().to_vec());
+        memory_write("bridge_deposit", self.deposit.to_bytes().eject());
         chain_view(self.chain, self.contract_id, self.method_name, self.args.into_bytes())
             .start()
             .then(call_self("bridge_step_1", vec![]));
@@ -33,14 +35,11 @@ impl Bridge {
 fn bridge_step_1() {
     let result = Promise::result(0);
     let deposit_bytes = memory_read("bridge_deposit");
-    let deposit = u128::from_le_bytes(
-        // This won't fail.
-        deposit_bytes.try_into().unwrap(),
-    );
+    let deposit = u128::from_bytes_vec(deposit_bytes).unwrap();
     match result {
         // TODO: I wonder if SEDA-188 could also make it so we don't have to do these conversions manually?
         PromiseStatus::Fulfilled(data) => {
-            let data = String::from_utf8(data).expect("chain_view resulted in a invalid string");
+            let data = String::from_bytes_vec(data).expect("chain_view resulted in a invalid string");
             let args_string = serde_json::json!({ "data_request": data }).to_string();
             log!(Level::Debug, "Posting args: {args_string}");
             chain_call(
@@ -62,7 +61,11 @@ fn bridge_step_2() {
     let result = Promise::result(0);
     println!("{{\"status\": \"success\"}}");
     match result {
-        PromiseStatus::Fulfilled(vec) => log!(Level::Debug, "Success message: {}", String::from_utf8(vec).unwrap()),
+        PromiseStatus::Fulfilled(vec) => log!(
+            Level::Debug,
+            "Success message: {}",
+            String::from_bytes_vec(vec).unwrap()
+        ),
         _ => log!(Level::Error, "Posting bridge result to main chain failed."),
     }
 }

@@ -11,6 +11,8 @@ pub fn memory_read(key: &str) -> Vec<u8> {
     result_data_ptr
 }
 
+// TODO: Value could be cleaned up to a generic that implements our ToBytes
+// trait :)
 pub fn memory_write(key: &str, mut value: Vec<u8>) {
     let key_len = key.len() as i64;
     let mut key = key.to_string().into_bytes();

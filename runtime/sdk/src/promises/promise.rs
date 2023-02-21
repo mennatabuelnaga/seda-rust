@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::PromiseAction;
 use crate::ToBytes;
 
+// TODO: Fulfilled and Rejected could now just be our Bytes type.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PromiseStatus {
     /// Initial state
@@ -15,6 +16,8 @@ pub enum PromiseStatus {
     Fulfilled(Vec<u8>),
 
     /// There was an error executing this promise
+    // TODO: Is there ever a case where Rejected isn't a string?
+    // Could private the type and then have methods or something.
     Rejected(Vec<u8>),
 }
 
