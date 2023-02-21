@@ -131,7 +131,7 @@ fn get_nodes() {
 
     // check the latest 3 nodes
     let latest_3_nodes = contract.get_nodes(U64(100), U64(0));
-    assert_eq!(latest_3_nodes, vec![node3.clone(), node2.clone(), node1.clone()]);
+    assert_eq!(latest_3_nodes, vec![node3, node2.clone(), node1.clone()]);
 
     // check offset of 1
     let latest_nodes_offset = contract.get_nodes(U64(100), U64(1));
