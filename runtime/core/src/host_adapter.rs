@@ -6,7 +6,7 @@ use seda_runtime_sdk::{events::Event, Chain};
 
 #[async_trait::async_trait]
 pub trait HostAdapter: Send + Sync + Unpin + 'static {
-    type Error: Display;
+    type Error: Display + std::error::Error;
 
     async fn new(config: ChainConfigs) -> Result<Self, Self::Error>
     where

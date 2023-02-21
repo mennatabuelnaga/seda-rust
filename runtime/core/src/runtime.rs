@@ -172,15 +172,15 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        self.host_adapter
+                        promise_queue_mut.queue[index].status = self
+                            .host_adapter
                             .db_set(&db_action.key, &String::from_bytes(&db_action.value)?)
                             .await
-                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
-
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
+                            .into();
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
+                        // TODO discuss how we should handle options for promise rejections!
                         let result = self
                             .host_adapter
                             .db_get(&db_action.key)
@@ -197,16 +197,11 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     }
 
                     PromiseAction::Http(http_action) => {
-                        let resp = self
-                            .host_adapter
-                            .http_fetch(&http_action.url)
-                            .await
-                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
-
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp.into_bytes());
+                        promise_queue_mut.queue[index].status =
+                            self.host_adapter.http_fetch(&http_action.url).await.into();
                     }
                     PromiseAction::ChainView(chain_view_action) => {
-                        let resp = self
+                        promise_queue_mut.queue[index].status = self
                             .host_adapter
                             .chain_view(
                                 chain_view_action.chain,
@@ -215,12 +210,10 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                                 chain_view_action.args.clone(),
                             )
                             .await
-                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
-
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
+                            .into();
                     }
                     PromiseAction::ChainCall(chain_call_action) => {
-                        let resp = self
+                        promise_queue_mut.queue[index].status = self
                             .host_adapter
                             .chain_call(
                                 chain_call_action.chain,
@@ -231,19 +224,17 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                                 self.node_config.clone(),
                             )
                             .await
-                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
-
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(resp);
+                            .into();
                     }
                     PromiseAction::TriggerEvent(trigger_event_action) => {
-                        self.host_adapter
+                        promise_queue_mut.queue[index].status = self
+                            .host_adapter
                             .trigger_event(trigger_event_action.event.clone())
                             .await
-                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
-
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(vec![]);
+                            .into();
                     }
                     PromiseAction::P2PBroadcast(p2p_broadcast_action) => {
+                        // TODO do we return no promise rejection or success here intentionally?
                         p2p_command_sender_channel
                             .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
                             .await?;

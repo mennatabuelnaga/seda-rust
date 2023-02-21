@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::Result;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
@@ -42,6 +42,14 @@ impl ToBytes for Vec<u8> {
 impl ToBytes for String {
     fn to_bytes(self) -> Bytes {
         Bytes(self.as_bytes().to_vec())
+    }
+}
+
+/// For functions that return an `()` to be converted to a
+/// [crate::PromiseStatus]
+impl ToBytes for () {
+    fn to_bytes(self) -> Bytes {
+        "Promise success".to_string().to_bytes()
     }
 }
 

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::PromiseAction;
+use crate::ToBytes;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum PromiseStatus {
@@ -17,11 +18,11 @@ pub enum PromiseStatus {
     Rejected(Vec<u8>),
 }
 
-impl<T: crate::ToBytes, E: crate::ToBytes> From<Result<T, E>> for PromiseStatus {
+impl<T: crate::ToBytes, E: std::error::Error> From<Result<T, E>> for PromiseStatus {
     fn from(value: Result<T, E>) -> Self {
         match value {
             Ok(fulfilled) => PromiseStatus::Fulfilled(fulfilled.to_bytes().eject()),
-            Err(rejection) => PromiseStatus::Rejected(rejection.to_bytes().eject()),
+            Err(rejection) => PromiseStatus::Rejected(rejection.to_string().to_bytes().eject()),
         }
     }
 }
