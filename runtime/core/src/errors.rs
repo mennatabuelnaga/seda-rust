@@ -1,10 +1,11 @@
 use std::num::ParseIntError;
 
-use seda_runtime_sdk::p2p::P2PCommand;
+use seda_runtime_sdk::{p2p::P2PCommand, SDKError};
 use thiserror::Error;
 use tokio::sync::mpsc::error::SendError;
 use wasmer::{CompileError, ExportError, InstantiationError};
 use wasmer_wasi::{FsError, WasiError, WasiStateCreationError};
+
 #[derive(Debug, Error)]
 pub enum RuntimeError {
     #[error(transparent)]
@@ -34,15 +35,7 @@ pub enum RuntimeError {
     IoError(#[from] std::io::Error),
 
     #[error(transparent)]
-    FromUtf8Error(#[from] std::string::FromUtf8Error),
-
-    #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
-
-    #[error("{0:?}")]
-    StringBytesConversion(#[from] std::str::Utf8Error),
-    #[error("{0}")]
-    NumBytesConversion(#[from] std::array::TryFromSliceError),
 
     // TODO this is scuffed and not true for test_host.
     #[error("Node Error: {0}")]
@@ -60,6 +53,9 @@ pub enum RuntimeError {
 
     #[error("BN254 Error: {0}")]
     Bn254Error(#[from] bn254::Error),
+
+    #[error("SDK Error: {0}")]
+    SDKError(#[from] SDKError),
 }
 
 impl From<InstantiationError> for RuntimeError {

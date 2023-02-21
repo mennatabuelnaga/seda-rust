@@ -17,6 +17,15 @@ pub enum PromiseStatus {
     Rejected(Vec<u8>),
 }
 
+impl<T: crate::ToBytes, E: crate::ToBytes> From<Result<T, E>> for PromiseStatus {
+    fn from(value: Result<T, E>) -> Self {
+        match value {
+            Ok(fulfilled) => PromiseStatus::Fulfilled(fulfilled.to_bytes().eject()),
+            Err(rejection) => PromiseStatus::Rejected(rejection.to_bytes().eject()),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Promise {
     /// The name of the action we should execute

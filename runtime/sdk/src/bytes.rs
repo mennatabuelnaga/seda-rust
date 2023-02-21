@@ -7,6 +7,12 @@ use crate::Result;
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bytes(Vec<u8>);
 
+impl Bytes {
+    pub fn eject(self) -> Vec<u8> {
+        self.0
+    }
+}
+
 /// We implement Deref over the Bytes type allowing us to avoid a clone for
 /// `FromBytes`.
 impl Deref for Bytes {

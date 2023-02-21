@@ -16,4 +16,5 @@ lazy_static = { workspace = true }
 seda-config = { workspace = true }
 serde = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, optional = true, features = ["std"] }
+thiserror = { workspace = true }
 tracing = { workspace = true }

@@ -13,7 +13,7 @@ impl MemoryAdapter for InMemory {
     where
         O: FromBytes,
     {
-        self.memory.get(key).map(|b| O::from_bytes(b.deref())).transpose()
+        Ok(self.memory.get(key).map(|b| O::from_bytes(b.deref())).transpose()?)
     }
 
     fn put<V>(&mut self, key: &str, value: V) -> Option<Bytes>

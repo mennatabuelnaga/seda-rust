@@ -2,7 +2,7 @@ use std::{io::Read, sync::Arc};
 
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
-use seda_runtime_sdk::{p2p::P2PCommand, CallSelfAction, Promise, PromiseAction, PromiseStatus};
+use seda_runtime_sdk::{p2p::P2PCommand, CallSelfAction, FromBytes, Promise, PromiseAction, PromiseStatus};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tracing::info;
@@ -173,7 +173,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
                         self.host_adapter
-                            .db_set(&db_action.key, &String::from_utf8(db_action.value.clone())?)
+                            .db_set(&db_action.key, &String::from_bytes(&db_action.value)?)
                             .await
                             .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
 

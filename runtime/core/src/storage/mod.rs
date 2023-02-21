@@ -1,11 +1,9 @@
-mod bytes;
-pub use bytes::*;
-
 mod in_memory_adapter;
 pub use in_memory_adapter::*;
 
 mod memory_adapter;
 pub use memory_adapter::*;
+pub(crate) use seda_runtime_sdk::{Bytes, FromBytes, ToBytes};
 
 #[cfg(test)]
 #[path = ""]
