@@ -116,6 +116,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             format!("Method `{action}` not allowed in limited runtime").into_bytes(),
                         )
                     }
+                    // TODO need an ok_or type situation here. if its ok continue otherwise reject
+                    // promise? or maybe it should return a VMResult. Might hold off on this till the VMResult changes.
                     PromiseAction::CallSelf(call_action) => {
                         let wasm_store = Store::default();
 
@@ -140,24 +142,17 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, wasm_module)?;
                         let wasmer_instance = Instance::new(wasm_module, &imports)?;
-
                         let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
-
                         let runtime_result = main_func.call(&[]);
 
-                        {
-                            // We need to use the wasi_state twice (which is not clonable) so this
-                            // puts into scope the wasi_state so the MutexGuard gets unlocked after
-                            let mut wasi_state = wasi_env.state();
-                            let wasi_stdout = wasi_state.fs.stdout_mut()?.as_mut().unwrap();
-                            let mut stdout_buffer = String::new();
-                            wasi_stdout.read_to_string(&mut stdout_buffer)?;
-                            if !stdout_buffer.is_empty() {
-                                output.push(stdout_buffer);
-                            }
+                        let mut wasi_state = wasi_env.state();
+                        let wasi_stdout = wasi_state.fs.stdout_mut()?.as_mut().unwrap();
+                        let mut stdout_buffer = String::new();
+                        wasi_stdout.read_to_string(&mut stdout_buffer)?;
+                        if !stdout_buffer.is_empty() {
+                            output.push(stdout_buffer);
                         }
 
-                        let mut wasi_state = wasi_env.state();
                         let wasi_stderr = wasi_state.fs.stderr_mut()?.as_mut().unwrap();
                         let mut stderr_buffer = String::new();
                         wasi_stderr.read_to_string(&mut stderr_buffer)?;
@@ -165,10 +160,6 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             output.push(stderr_buffer);
                         }
 
-                        // TODO @gluax: test if this should be a rejection as well.
-                        // I think it should be.
-                        // Unwrap the error here after capturing the output
-                        // otherwise the output would get lost
                         if let Err(err) = runtime_result {
                             info!("WASM Error output: {:?}", &output);
                             return Err(RuntimeError::ExecutionError(err));
