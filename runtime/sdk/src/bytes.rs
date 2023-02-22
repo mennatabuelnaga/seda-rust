@@ -55,7 +55,7 @@ impl ToBytes for &str {
 /// [crate::PromiseStatus]
 impl ToBytes for () {
     fn to_bytes(self) -> Bytes {
-        "Promise success".to_string().to_bytes()
+        Bytes::default()
     }
 }
 

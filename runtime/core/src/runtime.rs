@@ -176,7 +176,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         let execution_result = vm_context.result.lock();
                         next_promise_queue = next_queue.lock().clone();
-                        promise_queue_mut.queue[index].status = PromiseStatus::Fulfilled(execution_result.clone());
+                        promise_queue_mut.queue[index].status =
+                            PromiseStatus::Fulfilled(Some(execution_result.clone()));
                     }
 
                     // Just an example, delete this later
@@ -189,20 +190,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
-                        // TODO discuss how we should handle options for promise rejections!
-                        let result = self
-                            .host_adapter
-                            .db_get(&db_action.key)
-                            .await
-                            .map_err(|e| RuntimeError::NodeError(e.to_string()))?;
-
-                        match result {
-                            Some(r) => {
-                                promise_queue_mut.queue[index].status =
-                                    PromiseStatus::Fulfilled(r.to_string().into_bytes())
-                            }
-                            None => promise_queue_mut.queue[index].status = PromiseStatus::Rejected(vec![]),
-                        }
+                        promise_queue_mut.queue[index].status = self.host_adapter.db_get(&db_action.key).await.into();
                     }
 
                     PromiseAction::Http(http_action) => {
@@ -243,7 +231,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             .into();
                     }
                     PromiseAction::P2PBroadcast(p2p_broadcast_action) => {
-                        // TODO do we return no promise rejection or success here intentionally?
+                        // TODO we need to figure this out at some point.
                         p2p_command_sender_channel
                             .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
                             .await?;
@@ -310,7 +298,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             .clone();
 
         let result_data = match last_promise_status {
-            PromiseStatus::Fulfilled(data) => data,
+            PromiseStatus::Fulfilled(Some(data)) => data,
             PromiseStatus::Rejected(data) => data,
             _ => vec![],
         };

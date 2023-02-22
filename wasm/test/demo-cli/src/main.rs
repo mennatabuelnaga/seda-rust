@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use seda_runtime_sdk::{
     wasm::{call_self, chain_call, chain_view, db_set, http_fetch, Promise},
     Chain,
+    FromBytes,
     PromiseStatus,
 };
 
@@ -81,7 +82,7 @@ fn http_fetch_result() {
     let result = Promise::result(0);
 
     let value_to_store: String = match result {
-        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        PromiseStatus::Fulfilled(Some(vec)) => String::from_bytes_vec(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
 
@@ -92,7 +93,7 @@ fn http_fetch_result() {
 fn chain_view_test_success() {
     let result = Promise::result(0);
     let value_to_store: String = match result {
-        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        PromiseStatus::Fulfilled(Some(vec)) => String::from_bytes_vec(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
     println!("Value: {value_to_store}");
@@ -104,7 +105,7 @@ fn chain_view_test_success() {
 fn chain_call_test_success() {
     let result = Promise::result(0);
     let value_to_store: String = match result {
-        PromiseStatus::Fulfilled(vec) => String::from_utf8(vec).unwrap(),
+        PromiseStatus::Fulfilled(Some(vec)) => String::from_bytes_vec(vec).unwrap(),
         _ => "Promise failed..".to_string(),
     };
     println!("Value: {value_to_store}");

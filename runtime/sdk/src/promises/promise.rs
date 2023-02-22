@@ -13,7 +13,7 @@ pub enum PromiseStatus {
     Pending,
 
     /// The promise completed
-    Fulfilled(Vec<u8>),
+    Fulfilled(Option<Vec<u8>>),
 
     /// There was an error executing this promise
     // TODO: Is there ever a case where Rejected isn't a string?
@@ -24,7 +24,16 @@ pub enum PromiseStatus {
 impl<T: crate::ToBytes, E: std::error::Error> From<Result<T, E>> for PromiseStatus {
     fn from(value: Result<T, E>) -> Self {
         match value {
-            Ok(fulfilled) => PromiseStatus::Fulfilled(fulfilled.to_bytes().eject()),
+            Ok(fulfilled) => PromiseStatus::Fulfilled(Some(fulfilled.to_bytes().eject())),
+            Err(rejection) => PromiseStatus::Rejected(rejection.to_string().to_bytes().eject()),
+        }
+    }
+}
+
+impl<T: crate::ToBytes, E: std::error::Error> From<Result<Option<T>, E>> for PromiseStatus {
+    fn from(value: Result<Option<T>, E>) -> Self {
+        match value {
+            Ok(fulfilled) => PromiseStatus::Fulfilled(fulfilled.map(|inner| inner.to_bytes().eject())),
             Err(rejection) => PromiseStatus::Rejected(rejection.to_string().to_bytes().eject()),
         }
     }

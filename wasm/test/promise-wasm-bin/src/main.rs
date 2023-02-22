@@ -68,7 +68,7 @@ fn http_fetch_test() {
 fn http_fetch_test_success() {
     let result = Promise::result(0);
 
-    if let PromiseStatus::Fulfilled(bytes) = result {
+    if let PromiseStatus::Fulfilled(Some(bytes)) = result {
         let value_to_store = String::from_bytes_vec(bytes).unwrap();
 
         db_set("http_fetch_result", &value_to_store).start();
@@ -123,7 +123,7 @@ fn test_limited_runtime() {
 fn test_limited_runtime_rejected_db() {
     let result = Promise::result(0);
     if let PromiseStatus::Rejected(rejected) = result {
-        let str = std::str::from_utf8(&rejected).unwrap();
+        let str = String::from_bytes(&rejected).unwrap();
         println!("Promise rejected: {str}");
     }
 }
@@ -170,6 +170,7 @@ fn bn254_sign_test() {
     db_set("bn254_sign_result", &result_hex).start();
 }
 
+// TODO: Something to include in our SDK? Or bn254 lib. Or use hex crate.
 fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
     (0..s.len())
         .step_by(2)
@@ -177,6 +178,7 @@ fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
         .collect()
 }
 
+// TODO: Something to include in our SDK? Or bn254 lib. Or use hex crate.
 fn encode_hex(bytes: &[u8]) -> String {
     let mut result = String::with_capacity(bytes.len() * 2);
     for &b in bytes {

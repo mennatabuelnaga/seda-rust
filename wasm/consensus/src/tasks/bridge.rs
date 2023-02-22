@@ -38,7 +38,7 @@ fn bridge_step_1() {
     let deposit = u128::from_bytes_vec(deposit_bytes).unwrap();
     match result {
         // TODO: I wonder if SEDA-188 could also make it so we don't have to do these conversions manually?
-        PromiseStatus::Fulfilled(data) => {
+        PromiseStatus::Fulfilled(Some(data)) => {
             let data = String::from_bytes_vec(data).expect("chain_view resulted in a invalid string");
             let args_string = serde_json::json!({ "data_request": data }).to_string();
             log!(Level::Debug, "Posting args: {args_string}");
@@ -61,7 +61,7 @@ fn bridge_step_2() {
     let result = Promise::result(0);
     println!("{{\"status\": \"success\"}}");
     match result {
-        PromiseStatus::Fulfilled(vec) => log!(
+        PromiseStatus::Fulfilled(Some(vec)) => log!(
             Level::Debug,
             "Success message: {}",
             String::from_bytes_vec(vec).unwrap()
