@@ -450,3 +450,43 @@ async fn test_bn254_signature() {
     let expected_signature = "020f047a153e94b5f109e4013d1bd078112817cf0d58cdf6ba8891f9849852ba5b";
     assert_eq!(result, format!("{}", expected_signature));
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_error_turns_into_rejection() {
+    set_env_vars();
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
+    let node_config = NodeConfigInner::test_config();
+    let memory_adapter = memory_adapter();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
+        .await
+        .unwrap();
+
+    runtime.init(wasm_binary).unwrap();
+
+    let runtime_execution_result = runtime.start_runtime(
+        VmConfig {
+            args:         vec![],
+            program_name: "consensus".to_string(),
+            start_func:   Some("test_error_turns_into_rejection".to_string()),
+            debug:        true,
+        },
+        memory_adapter,
+        p2p_command_sender,
+    );
+
+    let vm_result = runtime_execution_result.await;
+    assert!(vm_result.is_ok());
+
+    let vm_result = vm_result.unwrap();
+    assert_eq!(vm_result.output.len(), 1);
+    assert!(
+        vm_result
+            .output
+            .into_iter()
+            .any(|output| output.contains("relative URL without a base"))
+    );
+
+    let value = runtime.host_adapter.db_get("foo").await.unwrap();
+    assert!(value.is_none());
+}

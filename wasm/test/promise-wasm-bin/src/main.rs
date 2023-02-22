@@ -114,18 +114,7 @@ fn test_setting_execution_result_step1() {
 
 #[no_mangle]
 fn test_limited_runtime() {
-    db_set("foo", "bar")
-        .start()
-        .then(call_self("test_limited_runtime_rejected_db", vec![]));
-}
-
-#[no_mangle]
-fn test_limited_runtime_rejected_db() {
-    let result = Promise::result(0);
-    if let PromiseStatus::Rejected(rejected) = result {
-        let str = String::from_bytes(&rejected).unwrap();
-        println!("Promise rejected: {str}");
-    }
+    db_set("foo", "bar").start().then(call_self("test_rejected", vec![]));
 }
 
 #[no_mangle]
@@ -186,4 +175,20 @@ fn encode_hex(bytes: &[u8]) -> String {
     }
 
     result
+}
+
+#[no_mangle]
+fn test_error_turns_into_rejection() {
+    http_fetch("fail!").start().then(call_self("test_rejected", vec![]));
+}
+
+#[no_mangle]
+fn test_rejected() {
+    let result = Promise::result(0);
+    if let PromiseStatus::Rejected(rejected) = result {
+        let str = String::from_bytes(&rejected).unwrap();
+        println!("Promise rejected: {str}");
+    } else {
+        panic!("didn't reject");
+    }
 }
