@@ -45,6 +45,8 @@ pub enum VmResultStatus {
     FailedToGetWASMStdout,
     /// When we fail to fetch the WASM VM stderr
     FailedToGetWASMStderr,
+    /// When we fail to fetch the WASM VM stderr
+    FailedToConvertVMPipeToString,
     // TODO @gluax is this necessary?
     /// An execution error from the WASM Runtime
     ExecutionError(String),
@@ -66,6 +68,9 @@ impl From<VmResultStatus> for ExitInfo {
             }
             VmResultStatus::FailedToGetWASMStdout => ("Error: Failed to get STDOUT of VM".into(), 6).into(),
             VmResultStatus::FailedToGetWASMStderr => ("Error: Failed to get STDERR of VM".into(), 7).into(),
+            VmResultStatus::FailedToConvertVMPipeToString => {
+                ("Error: Failed to convert VM pipe output to String".into(), 8).into()
+            }
             VmResultStatus::ExecutionError(err) => (format!("Error: {err}"), 8).into(),
         }
     }

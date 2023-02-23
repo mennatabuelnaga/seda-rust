@@ -162,7 +162,9 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             .as_mut()
                             .unwrap();
                         let mut stdout_buffer = String::new();
-                        wasi_stdout.read_to_string(&mut stdout_buffer).expect("TODO");
+                        wasi_stdout
+                            .read_to_string(&mut stdout_buffer)
+                            .map_err(|_| VmResultStatus::FailedToConvertVMPipeToString)?;
                         if !stdout_buffer.is_empty() {
                             stdout.push(stdout_buffer);
                         }
@@ -174,7 +176,9 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             .as_mut()
                             .unwrap();
                         let mut stderr_buffer = String::new();
-                        wasi_stderr.read_to_string(&mut stderr_buffer).expect("TODO");
+                        wasi_stderr
+                            .read_to_string(&mut stderr_buffer)
+                            .map_err(|_| VmResultStatus::FailedToGetWASMStderr)?;
                         if !stderr_buffer.is_empty() {
                             stderr.push(stderr_buffer);
                         }
@@ -196,11 +200,12 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                     // Just an example, delete this later
                     PromiseAction::DatabaseSet(db_action) => {
-                        promise_queue_mut.queue[index].status = self
-                            .host_adapter
-                            .db_set(&db_action.key, &String::from_bytes(&db_action.value).expect("TODO"))
-                            .await
-                            .into();
+                        let res = String::from_bytes(&db_action.value);
+                        promise_queue_mut.queue[index].status = if res.is_err() {
+                            res.into()
+                        } else {
+                            self.host_adapter.db_set(&db_action.key, &res.unwrap()).await.into()
+                        };
                     }
 
                     PromiseAction::DatabaseGet(db_action) => {
@@ -249,7 +254,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         p2p_command_sender_channel
                             .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
                             .await
-                            .expect("TODO");
+                            .expect("fixed with above TODO");
                     }
                 }
             }
