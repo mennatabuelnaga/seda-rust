@@ -3,14 +3,18 @@ use std::{io::Read, sync::Arc};
 use parking_lot::Mutex;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::{p2p::P2PCommand, CallSelfAction, FromBytes, Promise, PromiseAction, PromiseStatus};
-use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tracing::info;
 use wasmer::{Instance, Module, Store};
 use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
-use crate::{HostAdapter, InMemory, RuntimeError};
+use crate::{
+    vm_result::{ExecutionResult, VmResult, VmResultStatus},
+    HostAdapter,
+    InMemory,
+    RuntimeError,
+};
 
 #[derive(Clone)]
 pub struct Runtime<HA: HostAdapter> {
@@ -20,13 +24,13 @@ pub struct Runtime<HA: HostAdapter> {
     pub node_config:  NodeConfig,
 }
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct VmResult {
-    pub output:    Vec<String>,
-    pub result:    Vec<u8>,
-    pub exit_code: u8,
-}
-
+// TODO: can I move this trait to the sdk?
+// only expose during non wasm compilation.
+// purely allows for clean up of implementations of said trait.
+// Ah but then the HostAdapter stuff all needs to be folded into this trait, or
+// something similar.
+// Probably should be done but in another PR.
+// PS> CallSelf would be a pain >.<
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
     async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self>
@@ -34,26 +38,27 @@ pub trait RunnableRuntime {
         Self: Sized;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
 
+    #[allow(clippy::too_many_arguments)]
     async fn execute_promise_queue(
         &self,
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: PromiseQueue,
-        output: &mut Vec<String>,
-
+        stdout: &mut Vec<String>,
+        stderr: &mut Vec<String>,
         // Getting the results of all the promise queues
         // Used to get the result of the last execution (for JSON RPC)
         // Can also be used to debug the queue
         promise_queue_trace: &mut Vec<PromiseQueue>,
         p2p_command_sender_channel: Sender<P2PCommand>,
-    ) -> Result<u8>;
+    ) -> ExecutionResult;
 
     async fn start_runtime(
         &self,
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
         p2p_command_sender_channel: Sender<P2PCommand>,
-    ) -> Result<VmResult>;
+    ) -> VmResult;
 }
 
 #[async_trait::async_trait]
@@ -85,10 +90,11 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         wasm_module: &Module,
         memory_adapter: Arc<Mutex<InMemory>>,
         promise_queue: PromiseQueue,
-        output: &mut Vec<String>,
+        stdout: &mut Vec<String>,
+        stderr: &mut Vec<String>,
         promise_queue_trace: &mut Vec<PromiseQueue>,
         p2p_command_sender_channel: Sender<P2PCommand>,
-    ) -> Result<u8> {
+    ) -> ExecutionResult {
         let mut next_promise_queue = PromiseQueue::new();
         let mut promise_queue_mut = promise_queue.clone();
 
@@ -97,7 +103,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             // We should not use the same promise_queue otherwise getting results back would
             // be hard to do due the indexes of results (will be hard to refactor)
             if promise_queue.queue.is_empty() {
-                return Ok(0);
+                return VmResultStatus::EmptyQueue.into();
             }
 
             for index in 0..promise_queue.queue.len() {
@@ -118,11 +124,16 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let stderr_pipe = Pipe::new();
 
                         let mut wasi_env = WasiState::new(&call_action.function_name)
-                            .env("WASM_NODE_CONFIG", serde_json::to_string(&self.node_config)?)
+                            .env(
+                                "WASM_NODE_CONFIG",
+                                serde_json::to_string(&self.node_config)
+                                    .map_err(|_| VmResultStatus::FailedToSetConfig)?,
+                            )
                             .args(call_action.args.clone())
                             .stdout(Box::new(stdout_pipe))
                             .stderr(Box::new(stderr_pipe))
-                            .finalize()?;
+                            .finalize()
+                            .map_err(|_| VmResultStatus::WasiEnvInitializeFailure)?;
 
                         let current_promise_queue = Arc::new(Mutex::new(promise_queue_mut.clone()));
                         let next_queue = Arc::new(Mutex::new(PromiseQueue::new()));
@@ -133,29 +144,48 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             next_queue.clone(),
                         );
 
-                        let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, wasm_module)?;
-                        let wasmer_instance = Instance::new(wasm_module, &imports)?;
-                        let main_func = wasmer_instance.exports.get_function(&call_action.function_name)?;
+                        let imports = create_wasm_imports(&wasm_store, vm_context.clone(), &mut wasi_env, wasm_module)
+                            .map_err(|_| VmResultStatus::FailedToCreateVMImports)?;
+                        let wasmer_instance = Instance::new(wasm_module, &imports)
+                            .map_err(|_| VmResultStatus::FailedToCreateWasmerInstance)?;
+                        let main_func = wasmer_instance
+                            .exports
+                            .get_function(&call_action.function_name)
+                            .map_err(|_| VmResultStatus::FailedToGetWASMFn)?;
                         let runtime_result = main_func.call(&[]);
 
                         let mut wasi_state = wasi_env.state();
-                        let wasi_stdout = wasi_state.fs.stdout_mut()?.as_mut().unwrap();
+                        let wasi_stdout = wasi_state
+                            .fs
+                            .stdout_mut()
+                            .map_err(|_| VmResultStatus::FailedToGetWASMStdout)?
+                            .as_mut()
+                            .unwrap();
                         let mut stdout_buffer = String::new();
-                        wasi_stdout.read_to_string(&mut stdout_buffer)?;
+                        wasi_stdout.read_to_string(&mut stdout_buffer).expect("TODO");
                         if !stdout_buffer.is_empty() {
-                            output.push(stdout_buffer);
+                            stdout.push(stdout_buffer);
                         }
 
-                        let wasi_stderr = wasi_state.fs.stderr_mut()?.as_mut().unwrap();
+                        let wasi_stderr = wasi_state
+                            .fs
+                            .stderr_mut()
+                            .map_err(|_| VmResultStatus::FailedToGetWASMStderr)?
+                            .as_mut()
+                            .unwrap();
                         let mut stderr_buffer = String::new();
-                        wasi_stderr.read_to_string(&mut stderr_buffer)?;
+                        wasi_stderr.read_to_string(&mut stderr_buffer).expect("TODO");
                         if !stderr_buffer.is_empty() {
-                            output.push(stderr_buffer);
+                            stderr.push(stderr_buffer);
                         }
 
                         if let Err(err) = runtime_result {
-                            info!("WASM Error output: {:?}", &output);
-                            return Err(RuntimeError::ExecutionError(err));
+                            info!("WASM Error output: {:?}", &stderr);
+                            // promise_queue_mut.queue[index].status =
+                            // PromiseStatus::Rejected(err.to_string().to_bytes().eject());
+                            // TODO I think this means it didn't run?
+                            // or does this mean it had an error in the WASM?
+                            return VmResultStatus::ExecutionError(err.to_string()).into();
                         }
 
                         let execution_result = vm_context.result.lock();
@@ -168,7 +198,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                     PromiseAction::DatabaseSet(db_action) => {
                         promise_queue_mut.queue[index].status = self
                             .host_adapter
-                            .db_set(&db_action.key, &String::from_bytes(&db_action.value)?)
+                            .db_set(&db_action.key, &String::from_bytes(&db_action.value).expect("TODO"))
                             .await
                             .into();
                     }
@@ -218,7 +248,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         // TODO we need to figure out how to handle success and errors using channels.
                         p2p_command_sender_channel
                             .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
-                            .await?;
+                            .await
+                            .expect("TODO");
                     }
                 }
             }
@@ -230,7 +261,8 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             wasm_module,
             memory_adapter.clone(),
             next_promise_queue,
-            output,
+            stdout,
+            stderr,
             promise_queue_trace,
             p2p_command_sender_channel,
         );
@@ -243,7 +275,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         config: VmConfig,
         memory_adapter: Arc<Mutex<InMemory>>,
         p2p_command_sender_channel: Sender<P2PCommand>,
-    ) -> Result<VmResult> {
+    ) -> VmResult {
         let function_name = config.clone().start_func.unwrap_or_else(|| "_start".to_string());
         let wasm_module = self.wasm_module.as_ref().unwrap();
 
@@ -258,39 +290,44 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             status: PromiseStatus::Unfulfilled,
         });
 
-        let mut output: Vec<String> = vec![];
+        let mut stdout: Vec<String> = vec![];
+        let mut stderr: Vec<String> = vec![];
 
-        let exit_code = self
+        let mut vm_result: VmResult = self
             .execute_promise_queue(
                 wasm_module,
                 memory_adapter,
                 promise_queue,
-                &mut output,
+                &mut stdout,
+                &mut stderr,
                 &mut promise_queue_trace,
                 p2p_command_sender_channel,
             )
-            .await?;
+            .await
+            .into();
 
-        // There is always 1 queue with 1 promise in the trace (due this func addinging
+        // There is always 1 queue with 1 promise in the trace (due to this func adding
         // the entrypoint)
-        let last_queue = promise_queue_trace.last().ok_or("Failed to get last promise queue")?;
+        let mut last_queue = promise_queue_trace
+            .pop()
+            .ok_or("Failed to get last promise queue")
+            .unwrap();
         let last_promise_status = last_queue
             .queue
-            .last()
-            .ok_or("Failed to get last promise in promise queue")?
-            .status
-            .clone();
+            .pop()
+            .ok_or("Failed to get last promise in promise queue")
+            .unwrap()
+            .status;
 
         let result_data = match last_promise_status {
-            PromiseStatus::Fulfilled(Some(data)) => data,
-            PromiseStatus::Rejected(data) => data,
-            _ => vec![],
+            PromiseStatus::Fulfilled(Some(data)) => Some(data),
+            PromiseStatus::Rejected(data) => Some(data),
+            _ => None,
         };
 
-        Ok(VmResult {
-            output,
-            exit_code,
-            result: result_data,
-        })
+        vm_result.stdout = stdout;
+        vm_result.stderr = stderr;
+        vm_result.result = result_data;
+        vm_result
     }
 }

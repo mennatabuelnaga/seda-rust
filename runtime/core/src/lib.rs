@@ -23,6 +23,9 @@ pub use runtime::*;
 mod storage;
 pub use storage::*;
 
+mod vm_result;
+pub use vm_result::VmResult;
+
 #[cfg(test)]
 #[path = ""]
 mod test {

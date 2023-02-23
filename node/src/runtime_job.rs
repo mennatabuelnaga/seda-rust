@@ -81,7 +81,7 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
             vm_config,
             memory_adapter,
             self.p2p_command_sender_channel.clone(),
-        ))?;
+        ));
         // TODO maybe set up a prettier log format rather than debug of this type?
 
         info!(vm_result = ?res);
