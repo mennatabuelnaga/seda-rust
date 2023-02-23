@@ -17,6 +17,7 @@ pub enum PromiseStatus {
 
     /// There was an error executing this promise
     // TODO: Is there ever a case where Rejected isn't a string?
+    // HTTP rejections could be an object(but encoded in a string).
     // Could private the type and then have methods or something.
     Rejected(Vec<u8>),
 }

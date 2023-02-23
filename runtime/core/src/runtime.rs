@@ -27,13 +27,6 @@ pub struct VmResult {
     pub exit_code: u8,
 }
 
-// TODO: can I move this trait to the sdk?
-// only expose during non wasm compilation.
-// purely allows for clean up of implementations of said trait.
-// Ah but then the HostAdapter stuff all needs to be folded into this trait, or
-// something similar.
-// Probably should be done but in another PR.
-// PS> CallSelf would be a pain >.<
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
     async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self>
@@ -222,7 +215,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                             .into();
                     }
                     PromiseAction::P2PBroadcast(p2p_broadcast_action) => {
-                        // TODO we need to figure this out at some point.
+                        // TODO we need to figure out how to handle success and errors using channels.
                         p2p_command_sender_channel
                             .send(P2PCommand::Broadcast(p2p_broadcast_action.data.clone()))
                             .await?;
