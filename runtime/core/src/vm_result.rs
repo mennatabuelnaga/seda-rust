@@ -1,72 +1,72 @@
 use serde::{Deserialize, Serialize};
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ExitInfo {
+    pub exit_message: String,
+    pub exit_code:    u8,
+}
+
+impl From<(String, u8)> for ExitInfo {
+    fn from((exit_message, exit_code): (String, u8)) -> Self {
+        Self {
+            exit_message,
+            exit_code,
+        }
+    }
+}
 
 /// Represents the result of a Vm instance
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VmResult {
     pub stdout:    Vec<String>,
     pub stderr:    Vec<String>,
     pub result:    Option<Vec<u8>>,
-    pub exit_code: u8,
+    pub exit_info: ExitInfo,
 }
 
+// TODO create a readme of all these once its better established
 /// The possible statuses of a [VmResult]
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum VmResultStatus {
     /// When the Vm has nothing in the promise queue to run
     EmptyQueue,
     /// When the Vm runs and exits successfully
-    OK,
+    Ok(String),
+    /// When the config could not be set into the VM env variables
     FailedToSetConfig,
+    /// When the WASI environment variables could not be initialized
     WasiEnvInitializeFailure,
+    /// When the host functions could not be exported to the VM
     FailedToCreateVMImports,
+    /// When the WASMER instance could not be created
     FailedToCreateWasmerInstance,
+    /// When a function from the WASM VM does not exist
     FailedToGetWASMFn,
+    /// When we fail to fetch the WASM VM stdout
     FailedToGetWASMStdout,
+    /// When we fail to fetch the WASM VM stderr
     FailedToGetWASMStderr,
+    // TODO @gluax is this necessary?
+    /// An execution error from the WASM Runtime
     ExecutionError(String),
 }
 
-macro_rules! vm_result_status {
-    ($stdout:expr, $stderr:expr, $res:expr, $exit_code:expr) => {
-        (
-            vec![$stdout.to_string()],
-            vec![$stderr.to_string()],
-            Some($res),
-            $exit_code,
-        )
-    };
-    ($stdout:expr, $stderr:expr, $exit_code:expr) => {
-        (vec![$stdout.to_string()], vec![$stderr.to_string()], None, $exit_code)
-    };
-    (@o $stdout:expr, $res:expr, $exit_code:expr) => {
-        (vec![$stdout.to_string()], Vec::new(), Some($res), $exit_code)
-    };
-    (@o $stdout:expr, $exit_code:expr) => {
-        (vec![$stdout.to_string()], Vec::new(), None, $exit_code)
-    };
-    (@e $stderr:expr, $res:expr, $exit_code:expr) => {
-        (Vec::new(), vec![$stderr.to_string()], Some($res), $exit_code)
-    };
-    (@e $stderr:expr, $exit_code:expr) => {
-        (Vec::new(), vec![$stderr.to_string()], None, $exit_code)
-    };
-}
-
-impl From<VmResultStatus> for VmResult {
+impl From<VmResultStatus> for ExitInfo {
     fn from(value: VmResultStatus) -> Self {
-        let (stdout, stderr, result, exit_code) = match value {
-            VmResultStatus::EmptyQueue => vm_result_status!(@o "Success(Empty Promise Queue)", 0),
-            VmResultStatus::OK => vm_result_status!(@o "Success", 0),
-            VmResultStatus::FailedToSetConfig => vm_result_status!(@e "Failed to set VM Config", 1),
-            VmResultStatus::WasiEnvInitializeFailure => vm_result_status!(@e "Failed to initialize Wasi Env", 2),
-            _ => todo!(),
-        };
-
-        VmResult {
-            stdout,
-            stderr,
-            result,
-            exit_code,
+        match value {
+            VmResultStatus::EmptyQueue => ("Success: Empty Promise Queue".into(), 0).into(),
+            VmResultStatus::Ok(msg) => (format!("Success: {msg}"), 0).into(),
+            VmResultStatus::FailedToSetConfig => ("Error: Failed to set VM Config".into(), 1).into(),
+            VmResultStatus::WasiEnvInitializeFailure => ("Error: Failed to initialize Wasi Env".into(), 2).into(),
+            VmResultStatus::FailedToCreateVMImports => ("Error: Failed to create host imports for VM".into(), 3).into(),
+            VmResultStatus::FailedToCreateWasmerInstance => {
+                ("Error: Failed to create WASMER instance".into(), 4).into()
+            }
+            VmResultStatus::FailedToGetWASMFn => {
+                ("Error: Failed to find specified function in WASM binary".into(), 5).into()
+            }
+            VmResultStatus::FailedToGetWASMStdout => ("Error: Failed to get STDOUT of VM".into(), 6).into(),
+            VmResultStatus::FailedToGetWASMStderr => ("Error: Failed to get STDERR of VM".into(), 7).into(),
+            VmResultStatus::ExecutionError(err) => (format!("Error: {err}"), 8).into(),
         }
     }
 }
@@ -79,7 +79,7 @@ impl From<VmResultStatus> for ExecutionResult {
 
 pub type ExecutionResult<T = VmResultStatus, E = VmResultStatus> = core::result::Result<T, E>;
 
-impl From<ExecutionResult> for VmResult {
+impl From<ExecutionResult> for ExitInfo {
     fn from(value: ExecutionResult) -> Self {
         match value {
             Ok(ok) => ok.into(),

@@ -49,7 +49,7 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     );
 
     let vm_result = runtime_execution_result.await;
-    assert_eq!(vm_result.exit_code, 0);
+    assert_eq!(vm_result.exit_info.exit_code, 0);
     let value = runtime.host_adapter.db_get("test_value").await.unwrap();
 
     assert!(value.is_some());
@@ -70,7 +70,6 @@ async fn test_bad_wasm_file() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-// #[should_panic(expected = "non_existing_function")]
 async fn test_non_existing_function() {
     set_env_vars();
     let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
@@ -95,7 +94,7 @@ async fn test_non_existing_function() {
         )
         .await;
 
-    assert_ne!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 5);
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -125,7 +124,7 @@ async fn test_promise_queue_http_fetch() {
         )
         .await;
 
-    assert_eq!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
     let db_result = runtime.host_adapter.db_get("http_fetch_result").await.unwrap();
 
@@ -164,7 +163,7 @@ async fn test_memory_adapter() {
         )
         .await;
 
-    assert_eq!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
     let memory_adapter_ref = memory_adapter.lock();
     let read_value: Result<Option<Vec<u8>>, _> = memory_adapter_ref.get("u8");
@@ -218,7 +217,7 @@ async fn test_cli_demo_view_another_chain() {
             p2p_command_sender,
         )
         .await;
-    assert_eq!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
     let db_result = runtime.host_adapter.db_get("chain_view_result").await.unwrap();
     assert!(db_result.is_some());
@@ -251,7 +250,7 @@ async fn test_limited_runtime() {
     );
 
     let vm_result = runtime_execution_result.await;
-    assert_eq!(vm_result.exit_code, 0);
+    assert_eq!(vm_result.exit_info.exit_code, 0);
 
     assert_eq!(vm_result.stdout.len(), 1);
     assert!(
@@ -292,7 +291,7 @@ async fn test_limited_runtime() {
 //             memory_adapter.clone(),
 //         )
 //         .await;
-//     assert_eq!(runtime_execution_result.exit_code, 0);
+//     assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
 //     let db_result =
 // runtime.host_adapter.db_get("chain_view_result").await.unwrap();     assert!
@@ -334,7 +333,7 @@ async fn test_bn254_verify_valid() {
         )
         .await;
 
-    assert_eq!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
     // Fetch bn254 verify result from DB
     let db_result = runtime.host_adapter.db_get("bn254_verify_result").await.unwrap();
@@ -378,7 +377,7 @@ async fn test_bn254_verify_invalid() {
         )
         .await;
 
-    assert_eq!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
     // Fetch bn254 verify result from DB
     let db_result = runtime.host_adapter.db_get("bn254_verify_result").await.unwrap();
@@ -420,7 +419,7 @@ async fn test_bn254_signature() {
         )
         .await;
 
-    assert_eq!(runtime_execution_result.exit_code, 0);
+    assert_eq!(runtime_execution_result.exit_info.exit_code, 0);
 
     // Fetch bn254 sign result from DB
     let db_result = runtime.host_adapter.db_get("bn254_sign_result").await.unwrap();
@@ -457,7 +456,7 @@ async fn test_error_turns_into_rejection() {
     );
 
     let vm_result = runtime_execution_result.await;
-    assert_eq!(vm_result.exit_code, 0);
+    assert_eq!(vm_result.exit_info.exit_code, 0);
 
     assert_eq!(vm_result.stdout.len(), 1);
     assert!(

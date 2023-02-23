@@ -10,7 +10,7 @@ use wasmer_wasi::{Pipe, WasiState};
 
 use super::{imports::create_wasm_imports, PromiseQueue, Result, VmConfig, VmContext};
 use crate::{
-    vm_result::{ExecutionResult, VmResult, VmResultStatus},
+    vm_result::{ExecutionResult, ExitInfo, VmResult, VmResultStatus},
     HostAdapter,
     InMemory,
     RuntimeError,
@@ -293,7 +293,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
         let mut stdout: Vec<String> = vec![];
         let mut stderr: Vec<String> = vec![];
 
-        let mut vm_result: VmResult = self
+        let exit_info: ExitInfo = self
             .execute_promise_queue(
                 wasm_module,
                 memory_adapter,
@@ -305,29 +305,37 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             )
             .await
             .into();
+        dbg!(&exit_info);
 
         // There is always 1 queue with 1 promise in the trace (due to this func adding
-        // the entrypoint)
-        let mut last_queue = promise_queue_trace
-            .pop()
-            .ok_or("Failed to get last promise queue")
-            .unwrap();
-        let last_promise_status = last_queue
-            .queue
-            .pop()
-            .ok_or("Failed to get last promise in promise queue")
-            .unwrap()
-            .status;
+        // the entrypoint). Only if we haven't hit exit codes, since we no longer return
+        // early.
+        let result = if !promise_queue_trace.is_empty() {
+            let mut last_queue = promise_queue_trace
+                .pop()
+                .ok_or("Failed to get last promise queue")
+                .unwrap();
+            let last_promise_status = last_queue
+                .queue
+                .pop()
+                .ok_or("Failed to get last promise in promise queue")
+                .unwrap()
+                .status;
 
-        let result_data = match last_promise_status {
-            PromiseStatus::Fulfilled(Some(data)) => Some(data),
-            PromiseStatus::Rejected(data) => Some(data),
-            _ => None,
+            match last_promise_status {
+                PromiseStatus::Fulfilled(Some(data)) => Some(data),
+                PromiseStatus::Rejected(data) => Some(data),
+                _ => None,
+            }
+        } else {
+            None
         };
 
-        vm_result.stdout = stdout;
-        vm_result.stderr = stderr;
-        vm_result.result = result_data;
-        vm_result
+        VmResult {
+            stdout,
+            stderr,
+            result,
+            exit_info,
+        }
     }
 }

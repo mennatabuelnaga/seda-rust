@@ -24,7 +24,7 @@ mod storage;
 pub use storage::*;
 
 mod vm_result;
-pub use vm_result::VmResult;
+pub use vm_result::*;
 
 #[cfg(test)]
 #[path = ""]
