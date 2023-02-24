@@ -62,7 +62,7 @@ impl<HA: HostAdapter> RpcServer for CliServer<HA> {
             .await
             .map_err(|err| Error::Custom(err.to_string()))?;
 
-        Ok(result.map_err(|err| Error::Custom(err.to_string()))?.vm_result.output)
+        Ok(result.map_err(|err| Error::Custom(err.to_string()))?.vm_result.stderr)
     }
 
     async fn add_peer(&self, multi_addr: String) -> Result<(), Error> {

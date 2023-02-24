@@ -126,9 +126,12 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let mut wasi_env = WasiState::new(&call_action.function_name)
                             .env(
                                 "WASM_NODE_CONFIG",
-                                serde_json::to_string(&self.node_config)
-                                    .map_err(|_| VmResultStatus::FailedToSetConfig)?,
+                                dbg!(
+                                    serde_json::to_string(&self.node_config)
+                                        .map_err(|_| VmResultStatus::FailedToSetConfig)?
+                                ),
                             )
+                            .env("FOO", "bar")
                             .args(call_action.args.clone())
                             .stdout(Box::new(stdout_pipe))
                             .stderr(Box::new(stderr_pipe))
@@ -185,10 +188,6 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         if let Err(err) = runtime_result {
                             info!("WASM Error output: {:?}", &stderr);
-                            // promise_queue_mut.queue[index].status =
-                            // PromiseStatus::Rejected(err.to_string().to_bytes().eject());
-                            // TODO I think this means it didn't run?
-                            // or does this mean it had an error in the WASM?
                             return VmResultStatus::ExecutionError(err.to_string()).into();
                         }
 
@@ -310,7 +309,6 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
             )
             .await
             .into();
-        dbg!(&exit_info);
 
         // There is always 1 queue with 1 promise in the trace (due to this func adding
         // the entrypoint). Only if we haven't hit exit codes, since we no longer return

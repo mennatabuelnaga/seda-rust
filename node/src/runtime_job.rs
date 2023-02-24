@@ -38,7 +38,7 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
         #[cfg(debug_assertions)]
         path_prefix.push("../target/wasm32-wasi/debug/consensus.wasm");
         #[cfg(not(debug_assertions))]
-        path_prefix.push("../target/wasm32-wasi/release/cli.wasm");
+        path_prefix.push("../target/wasm32-wasi/release/consensus.wasm");
 
         let node_config = self.node_config.clone();
         let chain_configs = self.chain_configs.clone();
