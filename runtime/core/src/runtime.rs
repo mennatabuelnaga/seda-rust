@@ -24,13 +24,6 @@ pub struct Runtime<HA: HostAdapter> {
     pub node_config:  NodeConfig,
 }
 
-// TODO: can I move this trait to the sdk?
-// only expose during non wasm compilation.
-// purely allows for clean up of implementations of said trait.
-// Ah but then the HostAdapter stuff all needs to be folded into this trait, or
-// something similar.
-// Probably should be done but in another PR.
-// PS> CallSelf would be a pain >.<
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
     async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self>
