@@ -126,12 +126,9 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                         let mut wasi_env = WasiState::new(&call_action.function_name)
                             .env(
                                 "WASM_NODE_CONFIG",
-                                dbg!(
-                                    serde_json::to_string(&self.node_config)
-                                        .map_err(|_| VmResultStatus::FailedToSetConfig)?
-                                ),
+                                serde_json::to_string(&self.node_config)
+                                    .map_err(|_| VmResultStatus::FailedToSetConfig)?,
                             )
-                            .env("FOO", "bar")
                             .args(call_action.args.clone())
                             .stdout(Box::new(stdout_pipe))
                             .stderr(Box::new(stderr_pipe))
@@ -263,7 +260,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
         let res = self.execute_promise_queue(
             wasm_module,
-            memory_adapter.clone(),
+            memory_adapter,
             next_promise_queue,
             stdout,
             stderr,

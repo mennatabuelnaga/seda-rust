@@ -20,7 +20,7 @@ pub struct Bridge {
 
 impl Bridge {
     pub fn handle(self) {
-        log!(Level::Debug, "Bridge Handle {:?}", CONFIG.contract_account_id);
+        log!(Level::Debug, "Bridge Handle");
         // we have a method to auto convert to bytes in a trait in runtime.
         // it should be moved to the sdk
         // TODO: SEDA-188 will make it so we can pass these instead of a vec of strings
@@ -44,14 +44,9 @@ fn bridge_step_1() {
             let data = String::from_bytes_vec(data).expect("chain_view resulted in a invalid string");
             let args_string = serde_json::json!({ "data_request": data }).to_string();
             log!(Level::Debug, "Posting args: {args_string}");
-            log!(
-                Level::Debug,
-                "WHHHYYYYY AAGGAGAGAGA {:?}",
-                std::env::var("WASM_NODE_CONFIG")
-            );
             chain_call(
                 Chain::Near,
-                CONFIG.contract_account_id.as_str(),
+                CONFIG.contract_account_id.as_str(), // TODO: Currently panics
                 "post_data_request",
                 args_string.into_bytes(),
                 deposit,

@@ -21,7 +21,7 @@ macro_rules! log {
     ($level:expr, $($arg:tt)*) => {{
 				let _msg = format!($($arg)*);
 				let _line_info = format!("{}:{}", file!(), line!());
-				seda_runtime_sdk::wasm::_log($level, &_msg, &_line_info)
+				$crate::wasm::_log($level, &_msg, &_line_info)
     }};
 }
 
