@@ -9,9 +9,11 @@ rust-version.workspace = true
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-# Not sure why `unit-testing` feature doesn't work when it's only a dev dep.
+bn254 = { workspace = true }
+hex = "0.4"
 near-contract-standards = { workspace = true }
 near-sdk = { workspace = true, features = ["legacy", "unit-testing"] }
+near-sys = "0.2.0"
 serde = { workspace = true }
 sha2 = { workspace = true, features = ["std"] }
 uint = { workspace = true }

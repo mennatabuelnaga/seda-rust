@@ -8,6 +8,7 @@ pub mod merkle;
 pub mod node_registry;
 pub mod slot;
 pub mod storage;
+pub mod verify;
 use near_sdk::{
     borsh::{self, BorshDeserialize, BorshSerialize},
     collections::{LookupMap, UnorderedMap, Vector},
@@ -80,4 +81,5 @@ mod tests {
     mod data_request_test;
     mod node_registry_test;
     mod slot_test;
+    mod verify_test;
 }
