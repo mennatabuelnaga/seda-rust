@@ -1,6 +1,6 @@
 use std::{env, fs, path::PathBuf, sync::Arc};
 
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use seda_config::{ChainConfigsInner, NodeConfigInner};
 use seda_runtime_sdk::p2p::P2PCommand;
 use serde_json::json;
@@ -24,6 +24,10 @@ fn memory_adapter() -> Arc<Mutex<InMemory>> {
     Arc::new(Mutex::new(InMemory::default()))
 }
 
+fn shared_memory() -> Arc<RwLock<InMemory>> {
+    Arc::new(RwLock::new(InMemory::default()))
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn test_promise_queue_multiple_calls_with_external_traits() {
     set_env_vars();
@@ -31,9 +35,11 @@ async fn test_promise_queue_multiple_calls_with_external_traits() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
 
     runtime.init(wasm_binary).unwrap();
 
@@ -62,9 +68,10 @@ async fn test_bad_wasm_file() {
     set_env_vars();
 
     let node_config = NodeConfigInner::test_config();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory(), false)
+            .await
+            .unwrap();
 
     runtime.init(vec![203]).unwrap();
 }
@@ -76,9 +83,11 @@ async fn test_non_existing_function() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -106,9 +115,11 @@ async fn test_promise_queue_http_fetch() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -138,15 +149,18 @@ async fn test_promise_queue_http_fetch() {
     assert_eq!(result, expected_result);
 }
 
+#[allow(clippy::await_holding_lock)]
 #[tokio::test(flavor = "multi_thread")]
 async fn test_memory_adapter() {
     set_env_vars();
     let node_config = NodeConfigInner::test_config();
     let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     runtime.init(wasm_binary).unwrap();
 
@@ -190,9 +204,11 @@ async fn test_cli_demo_view_another_chain() {
     let wasm_binary = read_wasm_target("demo-cli");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
 
     runtime.init(wasm_binary).unwrap();
     let contract_id = "mc.mennat0.testnet".to_string();
@@ -232,9 +248,11 @@ async fn test_limited_runtime() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), true)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, true)
+            .await
+            .unwrap();
 
     runtime.init(wasm_binary).unwrap();
 
@@ -272,9 +290,10 @@ async fn test_limited_runtime() {
 
 //     let mut runtime =
 //         Runtime::<RuntimeTestAdapter>::new(NodeConfigInner::test_config(),
-// ChainConfigsInner::test_config(), false)             .await
+// ChainConfigsInner:shared_memory, :test_config(), false)             .await
 //             .unwrap();
 //     let memory_adapter = memory_adapter();
+//     let shared_memory = shared_memory();
 //     runtime.init(wasm_binary).unwrap();
 //     let contract_id = "mc.mennat0.testnet".to_string();
 //     let method_name = "get_node_socket_address".to_string();
@@ -308,9 +327,11 @@ async fn test_bn254_verify_valid() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -352,9 +373,11 @@ async fn test_bn254_verify_invalid() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -396,9 +419,11 @@ async fn test_bn254_signature() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
     runtime.init(wasm_binary).unwrap();
 
     let runtime_execution_result = runtime
@@ -438,9 +463,11 @@ async fn test_error_turns_into_rejection() {
     let wasm_binary = read_wasm_target("promise-wasm-bin");
     let node_config = NodeConfigInner::test_config();
     let memory_adapter = memory_adapter();
-    let mut runtime = Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), false)
-        .await
-        .unwrap();
+    let shared_memory = shared_memory();
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
 
     runtime.init(wasm_binary).unwrap();
 

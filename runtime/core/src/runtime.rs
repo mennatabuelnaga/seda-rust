@@ -1,6 +1,6 @@
 use std::{io::Read, sync::Arc};
 
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime_sdk::{p2p::P2PCommand, CallSelfAction, FromBytes, Promise, PromiseAction, PromiseStatus};
 use tokio::sync::mpsc::Sender;
@@ -18,15 +18,21 @@ use crate::{
 
 #[derive(Clone)]
 pub struct Runtime<HA: HostAdapter> {
-    wasm_module:      Option<Module>,
-    limited:          bool,
-    pub host_adapter: HA,
-    pub node_config:  NodeConfig,
+    wasm_module:       Option<Module>,
+    limited:           bool,
+    pub host_adapter:  HA,
+    pub node_config:   NodeConfig,
+    pub shared_memory: Arc<RwLock<InMemory>>,
 }
 
 #[async_trait::async_trait]
 pub trait RunnableRuntime {
-    async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self>
+    async fn new(
+        node_config: NodeConfig,
+        chains_config: ChainConfigs,
+        shared_memory: Arc<RwLock<InMemory>>,
+        limited: bool,
+    ) -> Result<Self>
     where
         Self: Sized;
     fn init(&mut self, wasm_binary: Vec<u8>) -> Result<()>;
@@ -56,7 +62,12 @@ pub trait RunnableRuntime {
 
 #[async_trait::async_trait]
 impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
-    async fn new(node_config: NodeConfig, chains_config: ChainConfigs, limited: bool) -> Result<Self> {
+    async fn new(
+        node_config: NodeConfig,
+        chains_config: ChainConfigs,
+        shared_memory: Arc<RwLock<InMemory>>,
+        limited: bool,
+    ) -> Result<Self> {
         Ok(Self {
             wasm_module: None,
             limited,
@@ -64,6 +75,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
                 .await
                 .map_err(|e| RuntimeError::NodeError(e.to_string()))?,
             node_config,
+            shared_memory,
         })
     }
 

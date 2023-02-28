@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use actix::{prelude::*, Handler, Message};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_runtime::{HostAdapter, InMemory, Result, RunnableRuntime, Runtime, VmConfig, VmResult};
 use seda_runtime_sdk::{
@@ -27,6 +27,7 @@ pub struct RuntimeWorker<HA: HostAdapter> {
     pub node_config:                NodeConfig,
     pub chain_configs:              ChainConfigs,
     pub p2p_command_sender_channel: Sender<P2PCommand>,
+    pub shared_memory:              Arc<RwLock<InMemory>>,
 }
 
 impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
@@ -42,12 +43,14 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
 
         let node_config = self.node_config.clone();
         let chain_configs = self.chain_configs.clone();
+        let shared_memory = self.shared_memory.clone();
         // TODO: when conditionally loading the consensus binary see if it allows full
         // or limited features
-        let mut runtime =
-            futures::executor::block_on(
-                async move { Runtime::new(node_config, chain_configs, false).await.expect("TODO") },
-            );
+        let mut runtime = futures::executor::block_on(async move {
+            Runtime::new(node_config, chain_configs, shared_memory, false)
+                .await
+                .expect("TODO")
+        });
 
         runtime.init(fs::read(path_prefix).unwrap()).unwrap();
 

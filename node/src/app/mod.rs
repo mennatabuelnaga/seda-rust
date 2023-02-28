@@ -4,7 +4,7 @@ use actix::prelude::*;
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig};
 use seda_p2p::DiscoveryStatus;
-use seda_runtime::HostAdapter;
+use seda_runtime::{HostAdapter, InMemory};
 use seda_runtime_sdk::{events::EventId, p2p::P2PCommand};
 use tokio::sync::mpsc::Sender;
 use tracing::info;
@@ -26,6 +26,7 @@ pub struct App<HA: HostAdapter> {
     pub running_event_ids: Arc<RwLock<Vec<EventId>>>,
     pub runtime_worker:    Addr<RuntimeWorker<HA>>,
     pub rpc_server:        JsonRpcServer,
+    pub shared_memory:     Arc<RwLock<InMemory>>,
 }
 
 impl<HA: HostAdapter> App<HA> {
@@ -40,11 +41,15 @@ impl<HA: HostAdapter> App<HA> {
         // the same sender for the RPC)
         let p2p_command_sender_channel_clone = p2p_command_sender_channel.clone();
 
+        let shared_memory = Arc::new(RwLock::new(InMemory::default()));
+        // Hack to get around Copy requirement for move closure.
+        let sm_clone = shared_memory.clone();
         let runtime_worker = SyncArbiter::start(node_config.runtime_worker_threads, move || RuntimeWorker {
             runtime:                    None,
             node_config:                node_config.clone(),
             chain_configs:              chain_configs.clone(),
             p2p_command_sender_channel: p2p_command_sender_channel_clone.clone(),
+            shared_memory:              sm_clone.clone(),
         });
 
         let rpc_server = JsonRpcServer::start(
@@ -61,6 +66,7 @@ impl<HA: HostAdapter> App<HA> {
             running_event_ids: Default::default(),
             runtime_worker,
             rpc_server,
+            shared_memory,
         }
     }
 }
