@@ -37,7 +37,7 @@ fn test_verify_signed_msg() {
 
     // Verify signature
     assert!(
-        contract.bn254_verify(msg, signature_vec, public_key) == true,
+        contract.bn254_verify(msg, signature_vec, public_key),
         "Verification failed"
     );
 }
@@ -76,17 +76,17 @@ fn test_verify_aggregate_signatures() {
 
     // Verification single signatures
     assert!(
-        contract.bn254_verify(msg.clone(), sign_1_bytes, public_key_1_bytes) == true,
+        contract.bn254_verify(msg.clone(), sign_1_bytes, public_key_1_bytes),
         "Signature 1 verification failed"
     );
     assert!(
-        contract.bn254_verify(msg.clone(), sign_2_bytes, public_key_2_bytes) == true,
+        contract.bn254_verify(msg.clone(), sign_2_bytes, public_key_2_bytes),
         "Signature 2 signature verification failed"
     );
 
     // Aggregate signature verification
     assert!(
-        contract.bn254_verify(msg, agg_signature, agg_public_key) == true,
+        contract.bn254_verify(msg, agg_signature, agg_public_key),
         "Aggregated signature verification failed"
     );
 }

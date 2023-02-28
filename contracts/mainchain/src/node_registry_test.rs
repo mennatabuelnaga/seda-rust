@@ -40,7 +40,7 @@ fn get_bob_key_and_signature() -> (Vec<u8>, Vec<u8>) {
     let bob_public_key = PublicKey::from_private_key(&bob_private_key).to_compressed().unwrap();
 
     let msg = "bob_near".as_bytes();
-    let bob_signature = ECDSA::sign(&msg, &bob_private_key).unwrap().to_compressed().unwrap();
+    let bob_signature = ECDSA::sign(msg, &bob_private_key).unwrap().to_compressed().unwrap();
     (bob_public_key, bob_signature)
 }
 
@@ -51,7 +51,7 @@ fn get_alice_duplicated_key() -> (Vec<u8>, Vec<u8>) {
     let bob_public_key = PublicKey::from_private_key(&bob_private_key).to_compressed().unwrap();
 
     let msg = "alice_near".as_bytes();
-    let alice_signature = ECDSA::sign(&msg, &bob_private_key).unwrap().to_compressed().unwrap();
+    let alice_signature = ECDSA::sign(msg, &bob_private_key).unwrap().to_compressed().unwrap();
     (bob_public_key, alice_signature)
 }
 
@@ -62,7 +62,7 @@ fn get_alice_key_and_signature() -> (Vec<u8>, Vec<u8>) {
     let alice_public_key = PublicKey::from_private_key(&alice_private_key).to_compressed().unwrap();
 
     let msg = "alice_near".as_bytes();
-    let alice_signature = ECDSA::sign(&msg, &alice_private_key).unwrap().to_compressed().unwrap();
+    let alice_signature = ECDSA::sign(msg, &alice_private_key).unwrap().to_compressed().unwrap();
     (alice_public_key, alice_signature)
 }
 
@@ -73,7 +73,7 @@ fn get_carol_key_and_signature() -> (Vec<u8>, Vec<u8>) {
     let carol_public_key = PublicKey::from_private_key(&carol_private_key).to_compressed().unwrap();
 
     let msg = "carol_near".as_bytes();
-    let carol_signature = ECDSA::sign(&msg, &carol_private_key).unwrap().to_compressed().unwrap();
+    let carol_signature = ECDSA::sign(msg, &carol_private_key).unwrap().to_compressed().unwrap();
     (carol_public_key, carol_signature)
 }
 
@@ -200,7 +200,7 @@ fn duplicated_key() {
 
     // bob registers node
     testing_env!(get_context_with_deposit("bob_near".to_string()));
-    contract.register_node("0.0.0.0:8080".to_string(), bob_public_key.clone(), bob_signature);
+    contract.register_node("0.0.0.0:8080".to_string(), bob_public_key, bob_signature);
 
     // alice registers node with duplicated key
     testing_env!(get_context_with_deposit("alice_near".to_string()));
