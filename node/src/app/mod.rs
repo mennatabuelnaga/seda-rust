@@ -34,7 +34,7 @@ impl<HA: HostAdapter> App<HA> {
         rpc_server_address: &str,
         chain_configs: ChainConfigs,
         p2p_command_sender_channel: Sender<P2PCommand>,
-        disocvery_status: Arc<RwLock<DiscoveryStatus>>,
+        disocvery_status: DiscoveryStatus,
     ) -> Self {
         // Have to clone beforehand in order for the variable to be moved. (We also need
         // the same sender for the RPC)

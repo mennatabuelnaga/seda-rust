@@ -7,7 +7,7 @@ use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::channel;
 
 use super::P2PServer;
-use crate::{libp2p::peer_list::PeerList, DiscoveryStatus};
+use crate::{libp2p::peer_list::PeerList, DiscoveryStatusInner};
 
 #[tokio::test]
 async fn p2p_service_works() {
@@ -15,7 +15,7 @@ async fn p2p_service_works() {
     let (_p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);
 
     let p2p_config = P2PConfigInner::test_config();
-    let discovery_status = Arc::new(RwLock::new(DiscoveryStatus::new(
+    let discovery_status = Arc::new(RwLock::new(DiscoveryStatusInner::new(
         p2p_config.clone(),
         PeerList::from_vec(&p2p_config.p2p_known_peers),
     )));

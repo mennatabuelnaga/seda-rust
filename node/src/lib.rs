@@ -16,7 +16,7 @@ pub(crate) use host::*;
 pub use host::{ChainCall, ChainView};
 use parking_lot::RwLock;
 use seda_config::{ChainConfigs, NodeConfig, P2PConfig};
-use seda_p2p::{libp2p::P2PServer, DiscoveryStatus, PeerList};
+use seda_p2p::{libp2p::P2PServer, DiscoveryStatusInner, PeerList};
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
 use tokio::sync::mpsc::channel;
 use tracing::info;
@@ -37,7 +37,7 @@ pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig,
         let (p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);
 
         let known_peers = PeerList::from_vec(&p2p_config.p2p_known_peers);
-        let discovery_status = Arc::new(RwLock::new(DiscoveryStatus::new(p2p_config.clone(), known_peers)));
+        let discovery_status = Arc::new(RwLock::new(DiscoveryStatusInner::new(p2p_config.clone(), known_peers)));
 
         // TODO: add number of workers as config with default value
         let app = App::<RuntimeAdapter>::new(

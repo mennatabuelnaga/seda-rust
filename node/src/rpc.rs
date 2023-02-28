@@ -1,4 +1,4 @@
-use std::{str::FromStr, sync::Arc};
+use std::str::FromStr;
 
 use actix::prelude::*;
 use jsonrpsee::{
@@ -6,7 +6,6 @@ use jsonrpsee::{
     proc_macros::rpc,
     server::{ServerBuilder, ServerHandle},
 };
-use parking_lot::RwLock;
 use seda_p2p::{
     libp2p::{Multiaddr, PeerId},
     DiscoveryStatus,
@@ -43,7 +42,7 @@ pub trait Rpc {
 pub struct CliServer<HA: HostAdapter> {
     runtime_worker:             Addr<RuntimeWorker<HA>>,
     p2p_command_sender_channel: Sender<P2PCommand>,
-    discovery_status:           Arc<RwLock<DiscoveryStatus>>,
+    discovery_status:           DiscoveryStatus,
 }
 
 #[async_trait]
@@ -117,7 +116,7 @@ impl JsonRpcServer {
         runtime_worker: Addr<RuntimeWorker<HA>>,
         addrs: &str,
         p2p_command_sender_channel: Sender<P2PCommand>,
-        discovery_status: Arc<RwLock<DiscoveryStatus>>,
+        discovery_status: DiscoveryStatus,
     ) -> Result<Self, Error> {
         let server = ServerBuilder::default().build(addrs).await?;
         let rpc = CliServer {

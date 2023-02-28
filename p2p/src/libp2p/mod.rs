@@ -6,7 +6,7 @@ pub mod discovery_status;
 #[cfg(test)]
 mod libp2p_test;
 
-use std::{str::FromStr, sync::Arc, time::Duration};
+use std::{str::FromStr, time::Duration};
 
 use behaviour::SedaBehaviour;
 use discovery_status::DiscoveryStatus;
@@ -21,7 +21,6 @@ use libp2p::{
     Swarm,
 };
 pub use libp2p::{Multiaddr, PeerId};
-use parking_lot::RwLock;
 use peer_list::{ConnectionType, PeerInfo};
 use seda_config::P2PConfig;
 use seda_runtime_sdk::p2p::{P2PCommand, P2PMessage};
@@ -38,7 +37,7 @@ pub const SEARCH_PEER_INTERVAL: u64 = 10_000;
 
 pub struct P2PServer {
     swarm:            Swarm<SedaBehaviour>,
-    discovery_status: Arc<RwLock<DiscoveryStatus>>,
+    discovery_status: DiscoveryStatus,
     local_peer_id:    PeerId,
 
     message_sender_channel:   Sender<P2PMessage>,
@@ -47,7 +46,7 @@ pub struct P2PServer {
 
 impl P2PServer {
     pub async fn new(
-        discovery_status: Arc<RwLock<DiscoveryStatus>>,
+        discovery_status: DiscoveryStatus,
         p2p_config: P2PConfig,
         message_sender_channel: Sender<P2PMessage>,
         command_receiver_channel: Receiver<P2PCommand>,
@@ -95,7 +94,7 @@ impl P2PServer {
             }
             ConnectionType::Kademlia => self.search_kademlia_peers(),
             ConnectionType::None => {
-                tracing::debug!("No new peers found");
+                tracing::debug!("No new peers found/needed");
             }
         }
     }

@@ -1,6 +1,7 @@
-use std::{collections::HashMap, ops::Add, time::SystemTime};
+use std::{collections::HashMap, sync::Arc, time::SystemTime};
 
 use libp2p::{Multiaddr, PeerId};
+use parking_lot::RwLock;
 use seda_config::P2PConfig;
 
 use super::peer_list::{ConnectionType, PeerInfo};
@@ -11,7 +12,7 @@ use crate::PeerList;
 /// This struct will check all connections and config which discovery method
 /// should be used
 
-pub struct DiscoveryStatus {
+pub struct DiscoveryStatusInner {
     p2p_config: P2PConfig,
 
     pub connected_peers: PeerList,
@@ -28,7 +29,7 @@ pub struct DiscoveryStatus {
     found_kademlia_peers: PeerList,
 }
 
-impl DiscoveryStatus {
+impl DiscoveryStatusInner {
     pub fn new(p2p_config: P2PConfig, inital_manual_peers: PeerList) -> Self {
         Self {
             p2p_config,
@@ -41,22 +42,15 @@ impl DiscoveryStatus {
         }
     }
 
-    fn get_connected_len_by_type(&self, connection_type: ConnectionType) -> i32 {
-        let mut len: i32 = 0;
-
-        for (_addr, info) in self.connected_peers.get_all_info().iter() {
-            if info.conn_type == connection_type {
-                len += 1;
-            }
-        }
-
-        len
+    fn get_connected_len_by_type(&self, connection_type: ConnectionType) -> usize {
+        self.connected_peers
+            .get_all_info()
+            .iter()
+            .filter(|(_addr, info)| info.conn_type == connection_type)
+            .count()
     }
 
     pub fn get_connected_list(&self) -> PeerList {
-        println!("Kademlia: {:?}", self.found_kademlia_peers);
-        println!("mDNS: {:?}", self.found_mdns_peers);
-
         self.connected_peers.clone()
     }
 
@@ -70,11 +64,8 @@ impl DiscoveryStatus {
         if let Some(peer_cooldowned_time) = self.cooldown_addrs.get(addr) {
             let now = SystemTime::now();
 
-            println!("Peer {addr} still in cooldown");
-
             // When the cooldown period has exceeded
-            if now > peer_cooldowned_time.add(self.p2p_config.cooldown_duration) {
-                println!("Release peer {addr} from cooldown");
+            if now > (*peer_cooldowned_time + self.p2p_config.cooldown_duration) {
                 self.cooldown_addrs.remove(addr);
                 return true;
             }
@@ -88,8 +79,8 @@ impl DiscoveryStatus {
     /// Gets the discovery method the manager should use
     /// Based on priority and maximum allowed peers from that specific discovery
     /// method
-    /// * `skip` - Allows to skip any higher priorty then the one given (if for
-    ///   example we already exhausted that source)
+    /// * `skip` - Allows to skip any higher or equal priority then the one
+    ///   given (if for example we already exhausted that source)
     pub fn get_current_discovery_method(&self, skip: Option<ConnectionType>) -> ConnectionType {
         // We already reached the maximum required peers, we don't need more
         if self.connected_peers.len() as i32 >= self.p2p_config.out_peers {
@@ -99,21 +90,21 @@ impl DiscoveryStatus {
         let skip = skip.unwrap_or(ConnectionType::None);
 
         if !self.p2p_config.disable_manual_peers
-            && self.get_connected_len_by_type(ConnectionType::Manual) < self.p2p_config.max_manual_peers
+            && self.get_connected_len_by_type(ConnectionType::Manual) < (self.p2p_config.max_manual_peers as usize)
             && skip < ConnectionType::Manual
         {
             return ConnectionType::Manual;
         }
 
         if !self.p2p_config.disable_mdns
-            && self.get_connected_len_by_type(ConnectionType::MDns) < self.p2p_config.max_mdns_peers
+            && self.get_connected_len_by_type(ConnectionType::MDns) < (self.p2p_config.max_mdns_peers as usize)
             && skip < ConnectionType::MDns
         {
             return ConnectionType::MDns;
         }
 
         if !self.p2p_config.disable_kademlia_peers
-            && self.get_connected_len_by_type(ConnectionType::Kademlia) < self.p2p_config.max_kademlia_peers
+            && self.get_connected_len_by_type(ConnectionType::Kademlia) < (self.p2p_config.max_kademlia_peers as usize)
             && skip < ConnectionType::Kademlia
         {
             return ConnectionType::Kademlia;
@@ -217,3 +208,5 @@ impl DiscoveryStatus {
             .add_peer(addr, peer_id, ConnectionType::Kademlia);
     }
 }
+
+pub type DiscoveryStatus = Arc<RwLock<DiscoveryStatusInner>>;
