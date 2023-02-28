@@ -32,21 +32,23 @@ enum MainchainStorageKeys {
     DataRequestAccumulator,
     BlockIdsByHeight,
     BlocksById,
+    NodesByBn254PublicKey,
 }
 
 /// Contract global state
 #[near_bindgen]
 #[derive(PanicOnDefault, BorshDeserialize, BorshSerialize)]
 pub struct MainchainContract {
-    dao:                      AccountId,
-    config:                   dao::Config,
-    seda_token:               AccountId,
-    nodes:                    UnorderedMap<AccountId, Node>,
-    data_request_accumulator: Vector<String>,
-    num_blocks:               BlockHeight,
-    block_ids_by_height:      LookupMap<BlockHeight, BlockId>,
-    blocks_by_id:             LookupMap<BlockId, Block>,
-    last_total_balance:       Balance,
+    dao:                       AccountId,
+    config:                    dao::Config,
+    seda_token:                AccountId,
+    nodes:                     UnorderedMap<AccountId, Node>,
+    data_request_accumulator:  Vector<String>,
+    num_blocks:                BlockHeight,
+    block_ids_by_height:       LookupMap<BlockHeight, BlockId>,
+    blocks_by_id:              LookupMap<BlockId, Block>,
+    last_total_balance:        Balance,
+    nodes_by_bn254_public_key: LookupMap<Vec<u8>, AccountId>,
 }
 
 /// Contract public methods
@@ -69,6 +71,7 @@ impl MainchainContract {
             block_ids_by_height: LookupMap::new(MainchainStorageKeys::BlockIdsByHeight),
             blocks_by_id: LookupMap::new(MainchainStorageKeys::BlocksById),
             last_total_balance: 0,
+            nodes_by_bn254_public_key: LookupMap::new(MainchainStorageKeys::NodesByBn254PublicKey),
         }
     }
 }

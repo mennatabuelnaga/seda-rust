@@ -9,7 +9,7 @@ use near_sdk::{
 use near_units::parse_near;
 use seda_mainchain::node_registry::HumanReadableNode;
 
-use crate::utils::init;
+use crate::utils::{get_public_key_and_signature, init};
 
 #[tokio::test]
 async fn test_deposit_withdraw() {
@@ -37,9 +37,10 @@ async fn test_deposit_withdraw() {
         .json::<U128>()
         .unwrap();
     // alice registers node
+    let (alice_public_key, alice_signature) = get_public_key_and_signature(alice.id());
     let res = alice
         .call(mainchain.id(), "register_node")
-        .args_json(("0.0.0.0:8080".to_string(),))
+        .args_json(("0.0.0.0:8080".to_string(), alice_public_key, alice_signature))
         .max_gas()
         .deposit(5_000_000_000_000_000_000_000) // doesnt work with empty fn
         .transact()
@@ -132,9 +133,10 @@ async fn test_deposit_withdraw_all() {
         .json::<U128>()
         .unwrap();
     // alice registers node
+    let (alice_public_key, alice_signature) = get_public_key_and_signature(alice.id());
     let res = alice
         .call(mainchain.id(), "register_node")
-        .args_json(("0.0.0.0:8080".to_string(),))
+        .args_json(("0.0.0.0:8080".to_string(), alice_public_key, alice_signature))
         .max_gas()
         .deposit(5_000_000_000_000_000_000_000) // doesnt work with empty fn
         .transact()
@@ -208,9 +210,10 @@ async fn test_is_node_active() {
     assert!(res.is_success());
 
     // alice registers node
+    let (alice_public_key, alice_signature) = get_public_key_and_signature(alice.id());
     let res = alice
         .call(mainchain.id(), "register_node")
-        .args_json(("0.0.0.0:8080".to_string(),))
+        .args_json(("0.0.0.0:8080".to_string(), alice_public_key, alice_signature))
         .max_gas()
         .deposit(5_000_000_000_000_000_000_000)
         .transact()

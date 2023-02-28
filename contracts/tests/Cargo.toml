@@ -8,6 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 base64 = { workspace = true }
+bn254 = { workspace = true }
+hex = { workspace = true }
 near-sdk = { workspace = true }
 near-contract-standards = { workspace = true }
 near-units = { workspace = true }

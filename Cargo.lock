@@ -4983,6 +4983,8 @@ name = "seda-contract-tests"
 version = "1.1.0"
 dependencies = [
  "base64 0.13.1",
+ "bn254",
+ "hex 0.4.3",
  "near-contract-standards",
  "near-sdk",
  "near-units",

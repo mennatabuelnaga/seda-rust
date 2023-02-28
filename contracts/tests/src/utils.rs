@@ -1,3 +1,4 @@
+use bn254::{PrivateKey, PublicKey, ECDSA};
 use near_sdk::json_types::U128;
 use near_units::parse_near;
 use workspaces::{Account, AccountId, Contract, DevNetwork, Worker};
@@ -76,4 +77,16 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
     register_user(&token_contract, mainchain_contract.id()).await;
 
     (token_contract, alice, mainchain_contract)
+}
+
+pub fn get_public_key_and_signature(account_id: &AccountId) -> (Vec<u8>, Vec<u8>) {
+    let private_key_bytes = hex::decode("471b2d4f8a717f6fee84402d209ee1d4dc15ec087b8f78322f3c24d43402669b").unwrap();
+    let private_key = PrivateKey::try_from(private_key_bytes.as_ref()).unwrap();
+    let public_key = PublicKey::from_private_key(&private_key).to_compressed().unwrap();
+
+    let signature = ECDSA::sign(account_id.as_bytes(), &private_key)
+        .unwrap()
+        .to_compressed()
+        .unwrap();
+    (public_key, signature)
 }

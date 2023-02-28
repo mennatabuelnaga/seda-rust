@@ -26,6 +26,7 @@ pub struct Node {
     pub multi_addr:          String,
     pub balance:             Balance,
     pub epoch_when_eligible: u64,
+    pub bn254_public_key:    Vec<u8>,
 }
 
 /// Human-readable node information
@@ -37,6 +38,7 @@ pub struct HumanReadableNode {
     pub multi_addr:          String,
     pub balance:             Balance,
     pub epoch_when_eligible: U64,
+    pub bn254_public_key:    Vec<u8>,
 }
 
 /// Update node commands
@@ -122,17 +124,36 @@ impl MainchainContract {
 impl MainchainContract {
     /// Registers a new node while charging for storage usage
     #[payable]
-    pub fn register_node(&mut self, multi_addr: String) {
-        // create a new node
+    pub fn register_node(&mut self, multi_addr: String, bn254_public_key: Vec<u8>, signature: Vec<u8>) {
         let account_id = env::signer_account_id();
+
+        // assert unique bn254_public_key
+        assert!(
+            !self.nodes_by_bn254_public_key.contains_key(&bn254_public_key.clone()),
+            "bn254_public_key already exists"
+        );
+
+        // verify the signature
+        assert!(
+            self.bn254_verify(account_id.as_bytes().to_vec(), signature, bn254_public_key.clone()),
+            "Invalid signature"
+        );
+
+        // create a new node
         log!("{} registered node", account_id);
         let node = Node {
             multi_addr,
             balance: 0,
             epoch_when_eligible: 0,
+            bn254_public_key: bn254_public_key.clone(),
         };
+
         manage_storage_deposit!(self, "require", {
+            // insert in nodes
             self.nodes.insert(&account_id, &node);
+
+            // insert in nodes_by_bn254_public_key
+            self.nodes_by_bn254_public_key.insert(&bn254_public_key, &account_id);
         });
     }
 
@@ -224,6 +245,7 @@ impl MainchainContract {
                 multi_addr:          node.multi_addr,
                 balance:             node.balance,
                 epoch_when_eligible: node.epoch_when_eligible.into(),
+                bn254_public_key:    node.bn254_public_key,
             })
         } else {
             None
@@ -242,6 +264,7 @@ impl MainchainContract {
                     multi_addr:          node.multi_addr,
                     balance:             node.balance,
                     epoch_when_eligible: node.epoch_when_eligible.into(),
+                    bn254_public_key:    node.bn254_public_key,
                 };
                 nodes.push(human_readable_node);
             }
