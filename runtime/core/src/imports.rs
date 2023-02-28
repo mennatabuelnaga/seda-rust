@@ -166,6 +166,88 @@ pub fn memory_write_import_obj(store: &Store, vm_context: VmContext) -> Function
     Function::new_native_with_env(store, vm_context, memory_write)
 }
 
+/// Reads the value from memory as byte array to the wasm result pointer.
+pub fn shared_memory_read_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn shared_memory_read(
+        env: &VmContext,
+        key: WasmPtr<u8, Array>,
+        key_length: i64,
+        result_data_ptr: WasmPtr<u8, Array>,
+        result_data_length: i64,
+    ) -> Result<()> {
+        let memory_ref = get_memory(env)?;
+        let key = key
+            .get_utf8_string(memory_ref, key_length as u32)
+            .ok_or("Error getting promise data")?;
+
+        let memory_adapter = env.shared_memory.read();
+        let read_value: Vec<u8> = memory_adapter.get(&key)?.unwrap_or_default();
+        if result_data_length as usize != read_value.len() {
+            Err(format!(
+                "The result data length `{result_data_length}` is not the same length for the value `{}`",
+                read_value.len()
+            ))?;
+        }
+
+        let derefed_ptr = result_data_ptr
+            .deref(memory_ref, 0, result_data_length as u32)
+            .ok_or("Invalid pointer")?;
+        for (index, byte) in read_value.iter().enumerate().take(result_data_length as usize) {
+            derefed_ptr
+                .get(index)
+                .ok_or("Writing out of bounds to memory")?
+                .set(*byte);
+        }
+
+        Ok(())
+    }
+
+    Function::new_native_with_env(store, vm_context, shared_memory_read)
+}
+
+/// Reads the value from memory as byte array and sends the number of bytes to
+/// WASM.
+pub fn shared_memory_read_length_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn shared_memory_read_length(env: &VmContext, key: WasmPtr<u8, Array>, key_length: i64) -> Result<i64> {
+        let memory_ref = get_memory(env)?;
+        let key = key
+            .get_utf8_string(memory_ref, key_length as u32)
+            .ok_or("Error getting promise data")?;
+
+        let memory_adapter = env.shared_memory.read();
+        let read_value: Vec<u8> = memory_adapter.get(&key)?.unwrap_or_default();
+
+        Ok(read_value.len() as i64)
+    }
+
+    Function::new_native_with_env(store, vm_context, shared_memory_read_length)
+}
+
+/// Writes the value from WASM to the memory storage object.
+pub fn shared_memory_write_import_obj(store: &Store, vm_context: VmContext) -> Function {
+    fn shared_memory_write(
+        env: &VmContext,
+        key: WasmPtr<u8, Array>,
+        key_length: i64,
+        value: WasmPtr<u8, Array>,
+        value_len: i64,
+    ) -> Result<()> {
+        let memory_ref = get_memory(env)?;
+        let key = key
+            .get_utf8_string(memory_ref, key_length as u32)
+            .ok_or("Error getting promise data")?;
+        let value = value.deref(memory_ref, 0, value_len as u32).ok_or("Invalid pointer")?;
+        let value_bytes: Vec<u8> = value.into_iter().map(|wc| wc.get()).collect();
+
+        let mut memory_adapter = env.shared_memory.write();
+        memory_adapter.put(&key, value_bytes);
+
+        Ok(())
+    }
+
+    Function::new_native_with_env(store, vm_context, shared_memory_write)
+}
+
 fn execution_result_import_obj(store: &Store, vm_context: VmContext) -> Function {
     fn execution_result(env: &VmContext, result_ptr: WasmPtr<u8, Array>, result_length: i32) -> Result<()> {
         let memory_ref = get_memory(env)?;
@@ -340,6 +422,9 @@ pub fn create_wasm_imports(
             "memory_read" => memory_read_import_obj(store, vm_context.clone()),
             "memory_read_length" => memory_read_length_import_obj(store, vm_context.clone()),
             "memory_write" => memory_write_import_obj(store, vm_context.clone()),
+            "shared_memory_read" => shared_memory_read_import_obj(store, vm_context.clone()),
+            "shared_memory_read_length" => shared_memory_read_length_import_obj(store, vm_context.clone()),
+            "shared_memory_write" => shared_memory_write_import_obj(store, vm_context.clone()),
             "execution_result" => execution_result_import_obj(store, vm_context.clone()),
             "_log" => log_import_obj(store, vm_context.clone()),
             "bn254_verify" => bn254_verify_import_obj(store, vm_context.clone()),

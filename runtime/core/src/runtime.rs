@@ -145,6 +145,7 @@ impl<HA: HostAdapter> RunnableRuntime for Runtime<HA> {
 
                         let vm_context = VmContext::create_vm_context(
                             memory_adapter.clone(),
+                            self.shared_memory.clone(),
                             current_promise_queue,
                             next_queue.clone(),
                         );
