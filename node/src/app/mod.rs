@@ -42,6 +42,7 @@ impl<HA: HostAdapter> App<HA> {
         let p2p_command_sender_channel_clone = p2p_command_sender_channel.clone();
 
         let shared_memory = Arc::new(RwLock::new(InMemory::default()));
+        dbg!(&shared_memory);
         // Hack to get around Copy requirement for move closure.
         let sm_clone = shared_memory.clone();
         let runtime_worker = SyncArbiter::start(node_config.runtime_worker_threads, move || RuntimeWorker {
@@ -95,5 +96,24 @@ impl<HA: HostAdapter> Actor for App<HA> {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("Node stopped");
+    }
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct DebugStop;
+
+impl<HA: HostAdapter> Handler<DebugStop> for App<HA> {
+    type Result = ();
+
+    fn handle(&mut self, _: DebugStop, ctx: &mut Self::Context) -> Self::Result {
+        use seda_runtime::MemoryAdapter;
+        let mem = self.shared_memory.read();
+        // dbg!(mem.get::<bool>("done"));
+        if matches!(mem.get("done"), Ok(Some(true))) {
+            ctx.stop();
+
+            System::current().stop();
+        }
     }
 }

@@ -51,6 +51,12 @@ impl ToBytes for &str {
     }
 }
 
+impl ToBytes for bool {
+    fn to_bytes(self) -> Bytes {
+        Bytes(vec![self as u8])
+    }
+}
+
 /// For functions that return an `()` to be converted to a
 /// [crate::PromiseStatus]
 impl ToBytes for () {
@@ -81,6 +87,16 @@ impl FromBytes for Vec<u8> {
 impl FromBytes for String {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
         Ok(std::str::from_utf8(bytes)?.into())
+    }
+
+    fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self> {
+        Self::from_bytes(bytes.as_slice())
+    }
+}
+
+impl FromBytes for bool {
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        Ok(bytes[0] > 0)
     }
 
     fn from_bytes_vec(bytes: Vec<u8>) -> Result<Self> {

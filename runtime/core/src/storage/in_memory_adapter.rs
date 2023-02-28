@@ -3,7 +3,7 @@ use std::{collections::HashMap, ops::Deref};
 use super::{Bytes, FromBytes, MemoryAdapter, ToBytes};
 use crate::Result;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct InMemory {
     memory: HashMap<String, Bytes>,
 }

@@ -30,6 +30,7 @@ use generate_sk::generate_secret_key;
 #[path = ""]
 pub mod test {
     mod event_queue_test;
+    mod run_test;
 }
 pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig, chain_configs: ChainConfigs) {
     let system = System::new();

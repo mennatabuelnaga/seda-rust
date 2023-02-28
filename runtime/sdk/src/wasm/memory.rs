@@ -22,7 +22,7 @@ pub fn memory_write(key: &str, mut value: Vec<u8>) {
     }
 }
 
-pub fn shared_memory_set(key: &str) -> Vec<u8> {
+pub fn shared_memory_get(key: &str) -> Vec<u8> {
     let key_len = key.len() as i64;
     let mut key = key.to_string().into_bytes();
     let value_len = unsafe { raw::shared_memory_read_length(key.as_mut_ptr(), key_len) };
@@ -35,7 +35,7 @@ pub fn shared_memory_set(key: &str) -> Vec<u8> {
 
 // TODO: Value could be cleaned up to a generic that implements our ToBytes
 // trait :)
-pub fn shared_memory_get(key: &str, mut value: Vec<u8>) {
+pub fn shared_memory_set(key: &str, mut value: Vec<u8>) {
     let key_len = key.len() as i64;
     let mut key = key.to_string().into_bytes();
     let value_len = value.len() as i64;

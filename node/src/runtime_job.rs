@@ -36,10 +36,15 @@ impl<HA: HostAdapter> Actor for RuntimeWorker<HA> {
     fn started(&mut self, _ctx: &mut Self::Context) {
         // TODO: Replace the binary conditionally with the consensus binary
         let mut path_prefix = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        #[cfg(debug_assertions)]
+        #[cfg(all(debug_assertions, not(test)))]
         path_prefix.push("../target/wasm32-wasi/debug/consensus.wasm");
         #[cfg(not(debug_assertions))]
         path_prefix.push("../target/wasm32-wasi/release/consensus.wasm");
+        #[cfg(test)]
+        path_prefix.push(format!(
+            "../target/wasm32-wasi/debug/{}.wasm",
+            std::env::var("SEDA_TEST_WASM").unwrap_or("node".to_string())
+        ));
 
         let node_config = self.node_config.clone();
         let chain_configs = self.chain_configs.clone();
@@ -86,7 +91,7 @@ impl<HA: HostAdapter> Handler<RuntimeJob> for RuntimeWorker<HA> {
             self.p2p_command_sender_channel.clone(),
         ));
         // TODO maybe set up a prettier log format rather than debug of this type?
-
+        dbg!(&res);
         info!(vm_result = ?res);
 
         Ok(RuntimeJobResult { vm_result: res })

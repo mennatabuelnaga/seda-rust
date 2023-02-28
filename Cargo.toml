@@ -16,6 +16,7 @@ members = [
 	"wasm/cli",
 	"wasm/consensus",
 	"wasm/test/demo-cli",
+	"wasm/test/node",
 	"wasm/test/promise-wasm-bin",
 ]
 

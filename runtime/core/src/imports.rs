@@ -182,6 +182,7 @@ pub fn shared_memory_read_import_obj(store: &Store, vm_context: VmContext) -> Fu
 
         let memory_adapter = env.shared_memory.read();
         let read_value: Vec<u8> = memory_adapter.get(&key)?.unwrap_or_default();
+        dbg!(&read_value);
         if result_data_length as usize != read_value.len() {
             Err(format!(
                 "The result data length `{result_data_length}` is not the same length for the value `{}`",
