@@ -18,7 +18,7 @@ async fn test_simple_transfer() {
     let initial_balance = U128::from(parse_near!("10000 N"));
     let transfer_amount = U128::from(parse_near!("100 N"));
     let worker = workspaces::sandbox().await.unwrap();
-    let (contract, alice, _) = init(&worker, initial_balance).await;
+    let (contract, alice, ..) = init(&worker, initial_balance).await;
 
     let res = contract
         .call("ft_transfer")
@@ -54,7 +54,7 @@ async fn test_simple_transfer() {
 async fn test_close_account_empty_balance() {
     let initial_balance = U128::from(parse_near!("10000 N"));
     let worker = workspaces::sandbox().await.unwrap();
-    let (contract, alice, _) = init(&worker, initial_balance).await;
+    let (contract, alice, ..) = init(&worker, initial_balance).await;
 
     let res = alice
         .call(contract.id(), "storage_unregister")

@@ -1,6 +1,7 @@
-use bn254::{PrivateKey, PublicKey, ECDSA};
+use bn254::{PrivateKey, PublicKey, Signature, ECDSA};
 use near_sdk::json_types::U128;
 use near_units::parse_near;
+use rand::distributions::{Alphanumeric, DistString};
 use workspaces::{Account, AccountId, Contract, DevNetwork, Worker};
 
 pub async fn register_user(contract: &Contract, account_id: &AccountId) {
@@ -15,7 +16,7 @@ pub async fn register_user(contract: &Contract, account_id: &AccountId) {
     assert!(res.is_success());
 }
 
-pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (Contract, Account, Contract) {
+pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (Contract, Account, Account, Contract) {
     // deploy and initialize token contract
     let token_contract = worker
         .dev_deploy(include_bytes!(
@@ -43,6 +44,17 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .into_result()
         .unwrap();
 
+    // create bob account
+    let bob = token_contract
+        .as_account()
+        .create_subaccount("bob")
+        .initial_balance(parse_near!("10 N"))
+        .transact()
+        .await
+        .unwrap()
+        .into_result()
+        .unwrap();
+
     // create dap account
     let dao = token_contract
         .as_account()
@@ -54,8 +66,9 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
         .into_result()
         .unwrap();
 
-    // alice storage deposits into token contract
+    // alice and bob storage deposits into token contract
     register_user(&token_contract, alice.id()).await;
+    register_user(&token_contract, bob.id()).await;
 
     // deploy and initialize mainchain contract
     let mainchain_contract = worker
@@ -76,17 +89,19 @@ pub async fn init(worker: &Worker<impl DevNetwork>, initial_balance: U128) -> (C
     // mainchain contract storage deposits into token contract
     register_user(&token_contract, mainchain_contract.id()).await;
 
-    (token_contract, alice, mainchain_contract)
+    (token_contract, alice, bob, mainchain_contract)
 }
 
-pub fn get_public_key_and_signature(account_id: &AccountId) -> (Vec<u8>, Vec<u8>) {
-    let private_key_bytes = hex::decode("471b2d4f8a717f6fee84402d209ee1d4dc15ec087b8f78322f3c24d43402669b").unwrap();
-    let private_key = PrivateKey::try_from(private_key_bytes.as_ref()).unwrap();
-    let public_key = PublicKey::from_private_key(&private_key).to_compressed().unwrap();
+pub fn generate_bn254_key() -> (PublicKey, PrivateKey) {
+    let random_hex_string = hex::encode(Alphanumeric.sample_string(&mut rand::thread_rng(), 32));
+    let private_key_bytes = hex::decode(random_hex_string).unwrap();
 
-    let signature = ECDSA::sign(account_id.as_bytes(), &private_key)
-        .unwrap()
-        .to_compressed()
-        .unwrap();
-    (public_key, signature)
+    let private_key = PrivateKey::try_from(private_key_bytes.as_ref()).unwrap();
+    let public_key = PublicKey::from_private_key(&private_key);
+
+    (public_key, private_key)
+}
+
+pub fn bn254_sign(private_key: &PrivateKey, message: &[u8]) -> Signature {
+    ECDSA::sign(message, private_key).unwrap()
 }

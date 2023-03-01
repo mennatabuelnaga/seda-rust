@@ -4917,6 +4917,7 @@ dependencies = [
  "near-contract-standards",
  "near-sdk",
  "near-units",
+ "rand 0.8.5",
  "schemars",
  "seda-mainchain",
  "serde",

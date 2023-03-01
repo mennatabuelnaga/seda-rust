@@ -1,4 +1,4 @@
-pub mod block;
+pub mod batch;
 pub mod consts;
 pub mod dao;
 pub mod data_request;
@@ -21,7 +21,7 @@ use near_sdk::{
 };
 
 use crate::{
-    block::{Block, BlockHeight, BlockId},
+    batch::{Batch, BatchHeight, BatchId},
     node_registry::Node,
 };
 
@@ -30,8 +30,8 @@ use crate::{
 enum MainchainStorageKeys {
     Nodes,
     DataRequestAccumulator,
-    BlockIdsByHeight,
-    BlocksById,
+    BatchIdsByHeight,
+    BatchById,
     NodesByBn254PublicKey,
 }
 
@@ -44,9 +44,9 @@ pub struct MainchainContract {
     seda_token:                AccountId,
     nodes:                     UnorderedMap<AccountId, Node>,
     data_request_accumulator:  Vector<String>,
-    num_blocks:                BlockHeight,
-    block_ids_by_height:       LookupMap<BlockHeight, BlockId>,
-    blocks_by_id:              LookupMap<BlockId, Block>,
+    num_batches:               BatchHeight,
+    batch_ids_by_height:       LookupMap<BatchHeight, BatchId>,
+    batch_by_id:               LookupMap<BatchId, Batch>,
     last_total_balance:        Balance,
     nodes_by_bn254_public_key: LookupMap<Vec<u8>, AccountId>,
 }
@@ -67,9 +67,9 @@ impl MainchainContract {
             seda_token,
             nodes: UnorderedMap::new(MainchainStorageKeys::Nodes),
             data_request_accumulator: Vector::<String>::new(MainchainStorageKeys::DataRequestAccumulator),
-            num_blocks: 0,
-            block_ids_by_height: LookupMap::new(MainchainStorageKeys::BlockIdsByHeight),
-            blocks_by_id: LookupMap::new(MainchainStorageKeys::BlocksById),
+            num_batches: 0,
+            batch_ids_by_height: LookupMap::new(MainchainStorageKeys::BatchIdsByHeight),
+            batch_by_id: LookupMap::new(MainchainStorageKeys::BatchById),
             last_total_balance: 0,
             nodes_by_bn254_public_key: LookupMap::new(MainchainStorageKeys::NodesByBn254PublicKey),
         }
