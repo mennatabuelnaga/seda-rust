@@ -334,7 +334,7 @@ pub fn create_wasm_imports(
 ) -> Result<ImportObject> {
     let host_import_obj = imports! {
         "env" => {
-            "_promise_then" => promise_then_import_obj(store, vm_context.clone()),
+            "promise_then" => promise_then_import_obj(store, vm_context.clone()),
             "promise_status_length" => promise_status_length_import_obj(store, vm_context.clone()),
             "promise_status_write" => promise_status_write_import_obj(store, vm_context.clone()),
             "memory_read" => memory_read_import_obj(store, vm_context.clone()),

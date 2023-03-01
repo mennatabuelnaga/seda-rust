@@ -2,7 +2,7 @@ use std::str;
 
 use serde::{Deserialize, Serialize};
 
-use super::raw::_promise_then;
+use super::raw::promise_then;
 use crate::{wasm::raw, PromiseAction, PromiseStatus};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,7 +32,7 @@ impl Promise {
         let promise_data = serde_json::to_string(&promise).expect("Shouldn't ever fail.");
 
         unsafe {
-            _promise_then(promise_data.as_ptr(), promise_data.len() as i32);
+            promise_then(promise_data.as_ptr(), promise_data.len() as i32);
         }
     }
 
