@@ -7,7 +7,6 @@ rust-version.workspace = true
 [dependencies]
 actix = { workspace = true }
 async-trait = { workspace = true }
-bn254 = { workspace = true }
 borsh = { workspace = true }
 futures = { workspace = true }
 jsonrpsee = { workspace = true, features = ["macros", "server"] }
@@ -23,6 +22,7 @@ seda-runtime-sdk = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+tiny-bip39 = { workspace = true }
 tokio = { workspace = true }
 tokio-rusqlite = { workspace = true }
 tracing = { workspace = true }

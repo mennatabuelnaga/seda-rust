@@ -10,8 +10,8 @@ chain_rpc_url = 'https://rpc.testnet.near.org'
 contract_account_id = 'fill this in'
 public_key = 'fill this in'
 seda_chain_secret_key = 'fill this in'
-seda_secret_key = 'fill this in'
-seda_secret_key_file_path = 'fill this in'
+seda_mnemonic = 'fill this in'
+seda_mnemonic_file_path = 'fill this in'
 
 signer_account_id = 'fill this in'
 

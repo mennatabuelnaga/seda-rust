@@ -23,8 +23,8 @@ use tokio::sync::mpsc::channel;
 use tracing::info;
 
 use crate::app::Shutdown;
-mod generate_sk;
-use generate_sk::generate_secret_key;
+mod generate_mnemonic;
+use generate_mnemonic::generate_mnemonic;
 
 #[cfg(test)]
 #[path = ""]
@@ -35,7 +35,7 @@ pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig,
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
-        generate_secret_key(config.clone());
+        generate_mnemonic(config.clone());
         let (p2p_message_sender, p2p_message_receiver) = channel::<P2PMessage>(100);
         let (p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);
 
