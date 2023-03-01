@@ -496,3 +496,58 @@ async fn test_error_turns_into_rejection() {
     let value = runtime.host_adapter.db_get("foo").await.unwrap();
     assert!(value.is_none());
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_shared_memory() {
+    set_env_vars();
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
+    let wasm_binary = read_wasm_target("promise-wasm-bin");
+    let node_config = NodeConfigInner::test_config();
+    let shared_memory = shared_memory();
+    let mut runtime = Runtime::<RuntimeTestAdapter>::new(
+        node_config.clone(),
+        ChainConfigsInner::test_config(),
+        shared_memory.clone(),
+        false,
+    )
+    .await
+    .unwrap();
+
+    runtime.init(wasm_binary.clone()).unwrap();
+
+    let runtime_execution_result = runtime.start_runtime(
+        VmConfig {
+            args:         vec![],
+            program_name: "consensus".to_string(),
+            start_func:   Some("shared_memory_test".to_string()),
+            debug:        true,
+        },
+        memory_adapter(),
+        p2p_command_sender,
+    );
+
+    let vm_result = runtime_execution_result.await;
+    assert_eq!(vm_result.exit_info.exit_code, 0);
+
+    let mut runtime =
+        Runtime::<RuntimeTestAdapter>::new(node_config, ChainConfigsInner::test_config(), shared_memory, false)
+            .await
+            .unwrap();
+
+    runtime.init(wasm_binary).unwrap();
+
+    let (p2p_command_sender, _p2p_command_receiver) = mpsc::channel::<P2PCommand>(100);
+    let runtime_execution_result = runtime.start_runtime(
+        VmConfig {
+            args:         vec![],
+            program_name: "consensus".to_string(),
+            start_func:   Some("shared_memory_success".to_string()),
+            debug:        true,
+        },
+        memory_adapter(),
+        p2p_command_sender,
+    );
+
+    let vm_result = runtime_execution_result.await;
+    assert_eq!(vm_result.exit_info.exit_code, 0);
+}

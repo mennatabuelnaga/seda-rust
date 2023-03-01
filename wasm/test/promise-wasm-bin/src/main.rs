@@ -11,6 +11,8 @@ use seda_runtime_sdk::{
         http_fetch,
         memory_read,
         memory_write,
+        shared_memory_get,
+        shared_memory_set,
         Bn254PrivateKey,
         Bn254PublicKey,
         Bn254Signature,
@@ -191,4 +193,16 @@ fn test_rejected() {
     } else {
         panic!("didn't reject");
     }
+}
+
+#[no_mangle]
+fn shared_memory_test() {
+    shared_memory_set("foo", "bar".to_bytes().eject());
+}
+
+#[no_mangle]
+fn shared_memory_success() {
+    let foo_get = shared_memory_get("foo");
+    let bar = String::from_bytes_vec(foo_get).unwrap();
+    assert_eq!("bar", bar);
 }
