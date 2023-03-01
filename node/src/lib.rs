@@ -1,6 +1,6 @@
 mod app;
 
-use std::{fs::File, sync::Arc};
+use std::sync::Arc;
 
 use app::{p2p_message_handler::P2PMessageHandler, App};
 mod errors;
@@ -11,10 +11,8 @@ mod rpc;
 mod runtime_job;
 
 mod host;
-use std::io::Write;
 
 use actix::prelude::*;
-use bn254::PrivateKey;
 pub(crate) use host::*;
 pub use host::{ChainCall, ChainView};
 use parking_lot::RwLock;
@@ -25,6 +23,8 @@ use tokio::sync::mpsc::channel;
 use tracing::info;
 
 use crate::app::Shutdown;
+mod generate_sk;
+use generate_sk::generate_secret_key;
 
 #[cfg(test)]
 #[path = ""]
@@ -36,14 +36,7 @@ pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig,
     let system = System::new();
     // Initialize actors inside system context
     system.block_on(async {
-        // Checks if there is a SEDA_SECRET_KEY env variable
-        // If not, it generates a new random one and saves it into a file
-        if std::env::var("SEDA_SECRET_KEY").is_err() {
-            let rng = &mut rand::thread_rng();
-            let sk = PrivateKey::random(rng);
-            let mut file = File::create(SK_PATH).expect("Unable to create file");
-            writeln!(file, "{:?}", sk.to_bytes().expect("couldn't serialize sk")).expect("Unable to write secret key");
-        }
+        generate_secret_key(config.clone());
         let (p2p_message_sender, p2p_message_receiver) = channel::<P2PMessage>(100);
         let (p2p_command_sender, p2p_command_receiver) = channel::<P2PCommand>(100);
 
