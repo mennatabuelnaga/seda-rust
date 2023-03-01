@@ -31,7 +31,6 @@ use generate_sk::generate_secret_key;
 pub mod test {
     mod event_queue_test;
 }
-const SK_PATH: &str = "./seda_key";
 pub fn run(seda_server_address: &str, config: NodeConfig, p2p_config: P2PConfig, chain_configs: ChainConfigs) {
     let system = System::new();
     // Initialize actors inside system context

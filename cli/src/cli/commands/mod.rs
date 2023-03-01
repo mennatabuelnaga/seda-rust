@@ -32,7 +32,7 @@ pub(crate) async fn call<T: DeserializeOwned + Serialize>(
     let signed_txn = chain::construct_signed_tx(
         chain,
         &node_config.signer_account_id,
-        &node_config.secret_key,
+        &node_config.seda_chain_secret_key,
         contract_id,
         method_name,
         args.into_bytes(),

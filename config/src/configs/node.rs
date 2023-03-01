@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 
@@ -12,28 +12,34 @@ use crate::{env_overwrite, merge_config_cli, Config, ConfigError, Result};
 pub struct PartialNodeConfig {
     /// An option to override the node deposit config value.
     #[arg(short, long)]
-    pub deposit:                 Option<String>,
+    pub deposit:                   Option<String>,
     /// An option to override the node gas config value.
     #[arg(short, long)]
-    pub gas:                     Option<u64>,
+    pub gas:                       Option<u64>,
+    /// An option to override the node chain secret key config value.
+    #[arg(long)]
+    pub seda_chain_secret_key:     Option<String>,
     /// An option to override the node secret key config value.
     #[arg(long)]
-    pub secret_key:              Option<String>,
+    pub seda_secret_key:           Option<String>,
+    /// The path where you want to write to the generated secret key.
+    #[arg(long)]
+    pub seda_secret_key_file_path: Option<PathBuf>,
     /// An option to override the node signer account ID config value.
     #[arg(long)]
-    pub signer_account_id:       Option<String>,
+    pub signer_account_id:         Option<String>,
     /// An option to override the node contract account ID config value.
     #[arg(long)]
-    pub contract_account_id:     Option<String>,
+    pub contract_account_id:       Option<String>,
     /// An option to override the node public key config value.
     #[arg(long)]
-    pub public_key:              Option<String>,
+    pub public_key:                Option<String>,
     /// An option to override the node job manager interval(ms) config value.
     #[arg(long)]
-    pub job_manager_interval_ms: Option<u64>,
+    pub job_manager_interval_ms:   Option<u64>,
     /// An option to override the node runtime worker threads config value.
     #[arg(long)]
-    pub runtime_worker_threads:  Option<u8>,
+    pub runtime_worker_threads:    Option<u8>,
 }
 #[cfg(feature = "cli")]
 impl PartialNodeConfig {
@@ -49,7 +55,25 @@ impl PartialNodeConfig {
             .parse()
             .unwrap())?;
         let gas = merge_config_cli!(self, cli_options, gas, Ok(NodeConfigInner::GAS))?;
-        let secret_key = merge_config_cli!(self, cli_options, secret_key, Err(ConfigError::from("node.secret_key")))?;
+        let seda_chain_secret_key = merge_config_cli!(
+            self,
+            cli_options,
+            seda_chain_secret_key,
+            Err(ConfigError::from("node.seda_chain_secret_key"))
+        )?;
+        let seda_secret_key = merge_config_cli!(
+            self,
+            cli_options,
+            seda_secret_key,
+            Err(ConfigError::from("node.seda_secret_key"))
+        )?;
+        let seda_secret_key_file_path = merge_config_cli!(
+            self,
+            cli_options,
+            seda_secret_key_file_path,
+            Err(ConfigError::from("node.seda_secret_key_file_path"))
+        )?;
+
         // TODO this should be derived from the secret key
         let public_key = merge_config_cli!(self, cli_options, public_key, Err(ConfigError::from("node.public_key")))?;
         let signer_account_id = merge_config_cli!(
@@ -81,7 +105,9 @@ impl PartialNodeConfig {
         Ok(Arc::new(NodeConfigInner {
             deposit,
             gas,
-            secret_key,
+            seda_chain_secret_key,
+            seda_secret_key,
+            seda_secret_key_file_path,
             signer_account_id,
             contract_account_id,
             public_key,
@@ -95,46 +121,53 @@ impl PartialNodeConfig {
 impl Config for PartialNodeConfig {
     fn template() -> Self {
         Self {
-            deposit:                 None,
-            gas:                     None,
-            secret_key:              None,
-            signer_account_id:       None,
-            contract_account_id:     None,
-            public_key:              None,
-            job_manager_interval_ms: None,
-            runtime_worker_threads:  None,
+            deposit:                   None,
+            gas:                       None,
+            seda_chain_secret_key:     None,
+            seda_secret_key:           Some("".to_string()),
+            seda_secret_key_file_path: Some("./seda_key".into()),
+            signer_account_id:         None,
+            contract_account_id:       None,
+            public_key:                None,
+            job_manager_interval_ms:   None,
+            runtime_worker_threads:    None,
         }
     }
 
     fn overwrite_from_env(&mut self) {
-        env_overwrite!(self.secret_key, "CHAIN_SECRET_KEY");
+        env_overwrite!(self.seda_chain_secret_key, "SEDA_CHAIN_SECRET_KEY");
+        env_overwrite!(self.seda_secret_key, "SEDA_SECRET_KEY");
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConfigInner {
-    pub deposit:                 u128,
-    pub gas:                     u64,
-    pub secret_key:              String,
-    pub signer_account_id:       String,
-    pub contract_account_id:     String,
-    pub public_key:              String,
-    pub job_manager_interval_ms: u64,
-    pub runtime_worker_threads:  usize,
+    pub deposit:                   u128,
+    pub gas:                       u64,
+    pub seda_chain_secret_key:     String,
+    pub seda_secret_key:           String,
+    pub seda_secret_key_file_path: PathBuf,
+    pub signer_account_id:         String,
+    pub contract_account_id:       String,
+    pub public_key:                String,
+    pub job_manager_interval_ms:   u64,
+    pub runtime_worker_threads:    usize,
 }
 
 impl NodeConfigInner {
     // TODO cfg this
     pub fn test_config() -> NodeConfig {
         Arc::new(Self {
-            deposit:                 Self::DEPOSIT,
-            gas:                     Self::GAS,
-            secret_key:              String::new(),
-            signer_account_id:       String::new(),
-            contract_account_id:     String::new(),
-            public_key:              String::new(),
-            job_manager_interval_ms: Self::JOB_MANAGER_INTERVAL_MS,
-            runtime_worker_threads:  Self::RUNTIME_WORKER_THREADS,
+            deposit:                   Self::DEPOSIT,
+            gas:                       Self::GAS,
+            seda_chain_secret_key:     String::new(),
+            seda_secret_key:           "".to_string(),
+            seda_secret_key_file_path: "./seda_key".into(),
+            signer_account_id:         String::new(),
+            contract_account_id:       String::new(),
+            public_key:                String::new(),
+            job_manager_interval_ms:   Self::JOB_MANAGER_INTERVAL_MS,
+            runtime_worker_threads:    Self::RUNTIME_WORKER_THREADS,
         })
     }
 

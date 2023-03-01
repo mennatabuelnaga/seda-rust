@@ -28,7 +28,7 @@ impl ChainCall {
         let signed_txn = chain::construct_signed_tx(
             self.chain,
             &self.node_config.signer_account_id,
-            &self.node_config.secret_key,
+            &self.node_config.seda_chain_secret_key,
             &self.contract_id,
             &self.method_name,
             self.args,
