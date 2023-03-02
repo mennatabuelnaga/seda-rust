@@ -30,5 +30,6 @@ seda_log.*
 # DS_Store
 **/.DS_Store
 
-# Randomly generated secret key
+# Randomly generated mnemonic
 seda_mnemonic
+seda_test_mnemonic

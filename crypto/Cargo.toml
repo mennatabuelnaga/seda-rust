@@ -6,12 +6,10 @@ rust-version.workspace = true
 
 
 [dependencies]
-anyhow = { workspace = true}
-borsh = { workspace = true }
 bn254 = {workspace = true}
 concat-kdf = { workspace = true, features = ["std"] }
 ed25519-dalek = { workspace = true }
 tiny-bip39 = { workspace = true }
-serde = { workspace = true }
 sha2 = { workspace = true }
 thiserror = { workspace = true }
+
