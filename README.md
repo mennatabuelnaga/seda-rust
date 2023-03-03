@@ -85,8 +85,8 @@ You can look at the example configuration [here](example.config.toml).
   - runtime_worker_threads(?\*) - The number of threads the node can use to spin
     up jobs.
   - seda_chain_secret_key(!\*) - Your near secret key.
-  - seda_mnemonic(!\*) - Your node secret key.
-  - seda_mnemonic_file_path(!\*) - Your node secret key file path.
+  - seda_secret_key(!\*) - Your node secret key.
+  - seda_sk_file_path(!\*) - Your node secret key file path.
   - signer_account_id(\*) - Your near signer account id.
 - logging - All config fields related to the seda logger.
   - log_file_path(?!\*) - The path where the log file will write.
@@ -103,7 +103,7 @@ SEDA configuration uses the following ENV variables if they exist.
 | `SEDA_LOG_FILE_PATH`  | Overwrites the config `logging.log_file_path` field.                                                                               |
 | `SEDA_NEAR_RPC_URL`   | Overwrites the config `near_chain.chain_rpc_url` field.                                                                            |
 | `SEDA_CHAIN_SECRET_KEY`     | Overwrites the config `node.seda_chain_secret_key` field.       
-| `SEDA_MNEMONIC`     | Overwrites the config `node.seda_mnemonic` field.                                                                               |
+| `SEDA_SECRET_KEY`     | Overwrites the config `node.seda_secret_key` field.                                                                               |
 | `SEDA_SERVER_ADDRESS` | Overwrites the config `seda_server_address` field.                                                                                 |
 | `SEDA_SERVER_PORT`    | Overwrites the config `seda_server_port` field.                                                                                    |
 | `RUST_LOG`            | Controlled via the [tracing_subscriber](https://docs.rs/tracing-subscriber/0.3.16/tracing_subscriber/struct.EnvFilter.html) crate. |

@@ -21,10 +21,10 @@ pub struct PartialNodeConfig {
     pub seda_chain_secret_key:   Option<String>,
     /// An option to override the node secret key config value.
     #[arg(long)]
-    pub seda_mnemonic:           Option<String>,
+    pub seda_secret_key:         Option<String>,
     /// The path where you want to write to the generated secret key.
     #[arg(long)]
-    pub seda_mnemonic_file_path: Option<PathBuf>,
+    pub seda_sk_file_path:       Option<PathBuf>,
     /// An option to override the node signer account ID config value.
     #[arg(long)]
     pub signer_account_id:       Option<String>,
@@ -61,17 +61,17 @@ impl PartialNodeConfig {
             seda_chain_secret_key,
             Err(ConfigError::from("node.seda_chain_secret_key"))
         )?;
-        let seda_mnemonic = merge_config_cli!(
+        let seda_secret_key = merge_config_cli!(
             self,
             cli_options,
-            seda_mnemonic,
-            Err(ConfigError::from("node.seda_mnemonic"))
+            seda_secret_key,
+            Err(ConfigError::from("node.seda_secret_key"))
         )?;
-        let seda_mnemonic_file_path = merge_config_cli!(
+        let seda_sk_file_path = merge_config_cli!(
             self,
             cli_options,
-            seda_mnemonic_file_path,
-            Err(ConfigError::from("node.seda_mnemonic_file_path"))
+            seda_sk_file_path,
+            Err(ConfigError::from("node.seda_sk_file_path"))
         )?;
 
         // TODO this should be derived from the secret key
@@ -106,8 +106,8 @@ impl PartialNodeConfig {
             deposit,
             gas,
             seda_chain_secret_key,
-            seda_mnemonic,
-            seda_mnemonic_file_path,
+            seda_secret_key,
+            seda_sk_file_path,
             signer_account_id,
             contract_account_id,
             public_key,
@@ -124,8 +124,8 @@ impl Config for PartialNodeConfig {
             deposit:                 None,
             gas:                     None,
             seda_chain_secret_key:   None,
-            seda_mnemonic:           Some("".to_string()),
-            seda_mnemonic_file_path: Some("./seda_mnemonic".into()),
+            seda_secret_key:         Some("".to_string()),
+            seda_sk_file_path:       Some("./seda_secret_key".into()),
             signer_account_id:       None,
             contract_account_id:     None,
             public_key:              None,
@@ -136,7 +136,7 @@ impl Config for PartialNodeConfig {
 
     fn overwrite_from_env(&mut self) {
         env_overwrite!(self.seda_chain_secret_key, "SEDA_CHAIN_SECRET_KEY");
-        env_overwrite!(self.seda_mnemonic, "SEDA_MNEMONIC");
+        env_overwrite!(self.seda_secret_key, "SEDA_SECRET_KEY");
     }
 }
 
@@ -145,8 +145,8 @@ pub struct NodeConfigInner {
     pub deposit:                 u128,
     pub gas:                     u64,
     pub seda_chain_secret_key:   String,
-    pub seda_mnemonic:           String,
-    pub seda_mnemonic_file_path: PathBuf,
+    pub seda_secret_key:         String,
+    pub seda_sk_file_path:       PathBuf,
     pub signer_account_id:       String,
     pub contract_account_id:     String,
     pub public_key:              String,
@@ -161,8 +161,8 @@ impl NodeConfigInner {
             deposit:                 Self::DEPOSIT,
             gas:                     Self::GAS,
             seda_chain_secret_key:   String::new(),
-            seda_mnemonic:           "".to_string(),
-            seda_mnemonic_file_path: "./seda_mnemonic".into(),
+            seda_secret_key:         "".to_string(),
+            seda_sk_file_path:       "./seda_secret_key".into(),
             signer_account_id:       String::new(),
             contract_account_id:     String::new(),
             public_key:              String::new(),

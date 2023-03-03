@@ -31,5 +31,5 @@ seda_log.*
 **/.DS_Store
 
 # Randomly generated mnemonic
-seda_mnemonic
-seda_test_mnemonic
+seda_secret_key
+seda_test_sk
