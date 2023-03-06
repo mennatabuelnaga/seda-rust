@@ -10,6 +10,7 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 bn254 = { workspace = true }
+getrandom = { version = "0.2", features = ["js"] }
 hex = { workspace = true }
 near-contract-standards = { workspace = true }
 near-sdk = { workspace = true, features = ["legacy", "unit-testing"] }
