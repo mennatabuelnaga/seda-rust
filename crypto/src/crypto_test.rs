@@ -11,7 +11,7 @@ fn generate_test_mnemonic() {
     if !Path::new(&TEST_SK_PATH).exists() {
         let mut csprng = OsRng {};
         let sk = SecretKey::generate(&mut csprng);
-        write(TEST_SK_PATH, hex::encode(&sk)).expect("Unable to write mnemonic");
+        write(TEST_SK_PATH, hex::encode(&sk)).expect("Unable to write secret key");
     }
 }
 

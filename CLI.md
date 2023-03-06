@@ -22,6 +22,7 @@ This document contains the help content for the `seda` command-line program.
 * [`seda node peers add`↴](#seda-node-peers-add)
 * [`seda node peers list`↴](#seda-node-peers-list)
 * [`seda node peers remove`↴](#seda-node-peers-remove)
+* [`seda node peers discover`↴](#seda-node-peers-discover)
 * [`seda sub-chain`↴](#seda-sub-chain)
 * [`seda sub-chain call`↴](#seda-sub-chain-call)
 * [`seda sub-chain view`↴](#seda-sub-chain-view)
@@ -79,19 +80,35 @@ Runs the SEDA node
 
 * `-d`, `--deposit <DEPOSIT>` — An option to override the node deposit config value
 * `-g`, `--gas <GAS>` — An option to override the node gas config value
-* `--secret-key <SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-chain-secret-key <SEDA_CHAIN_SECRET_KEY>` — An option to override the node chain secret key config value
+* `--seda-secret-key <SEDA_SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-sk-file-path <SEDA_SK_FILE_PATH>` — The path where you want to write to the generated secret key
 * `--signer-account-id <SIGNER_ACCOUNT_ID>` — An option to override the node signer account ID config value
 * `--contract-account-id <CONTRACT_ACCOUNT_ID>` — An option to override the node contract account ID config value
 * `--public-key <PUBLIC_KEY>` — An option to override the node public key config value
 * `--job-manager-interval-ms <JOB_MANAGER_INTERVAL_MS>` — An option to override the node job manager interval(ms) config value
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
+* `--chain-rpc-url <CHAIN_RPC_URL>` — An option to override the Near chain rpc url config value
+* `--in-peers <IN_PEERS>` — The amount of inbound peers we are trying to maintain
+* `--out-peers <OUT_PEERS>` — The maximum amount of out peers we allow
 * `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
 * `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
-* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
+* `--disable-mdns <DISABLE_MDNS>` — Option to use mDNS to discover peers locally
 
   Possible values: `true`, `false`
 
-* `--chain-rpc-url <CHAIN_RPC_URL>` — An option to override the Near chain rpc url config value
+* `--max-mdns-peers <MAX_MDNS_PEERS>` — Maximum amount of peers we want to use from mDNS
+* `--max-manual-peers <MAX_MANUAL_PEERS>` — Maximum amount of peers we want to use from our manually configured peers
+* `--disable-manual-peers <DISABLE_MANUAL_PEERS>` — Option to disable usage of manually configured peers
+
+  Possible values: `true`, `false`
+
+* `--max-kademlia-peers <MAX_KADEMLIA_PEERS>` — Maximum amount of peers we fetch from using Kademlia
+* `--disable-kademlia-peers <DISABLE_KADEMLIA_PEERS>` — Option to disable usage of kademlia
+
+  Possible values: `true`, `false`
+
+* `--cooldown-duration <COOLDOWN_DURATION>` — How long a peer should not be used due a connection issue in ms
 
 
 
@@ -179,18 +196,14 @@ Register a node from the given deposit and socket address
 * `-s`, `--socket-address <SOCKET_ADDRESS>`
 * `-d`, `--deposit <DEPOSIT>` — An option to override the node deposit config value
 * `-g`, `--gas <GAS>` — An option to override the node gas config value
-* `--secret-key <SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-chain-secret-key <SEDA_CHAIN_SECRET_KEY>` — An option to override the node chain secret key config value
+* `--seda-secret-key <SEDA_SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-sk-file-path <SEDA_SK_FILE_PATH>` — The path where you want to write to the generated secret key
 * `--signer-account-id <SIGNER_ACCOUNT_ID>` — An option to override the node signer account ID config value
 * `--contract-account-id <CONTRACT_ACCOUNT_ID>` — An option to override the node contract account ID config value
 * `--public-key <PUBLIC_KEY>` — An option to override the node public key config value
 * `--job-manager-interval-ms <JOB_MANAGER_INTERVAL_MS>` — An option to override the node job manager interval(ms) config value
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
-* `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
-* `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
-* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
-
-  Possible values: `true`, `false`
-
 
 
 
@@ -211,18 +224,14 @@ Update a node by either accepting ownership, setting the pending owner, or chang
 * `-n`, `--node-id <NODE_ID>`
 * `-d`, `--deposit <DEPOSIT>` — An option to override the node deposit config value
 * `-g`, `--gas <GAS>` — An option to override the node gas config value
-* `--secret-key <SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-chain-secret-key <SEDA_CHAIN_SECRET_KEY>` — An option to override the node chain secret key config value
+* `--seda-secret-key <SEDA_SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-sk-file-path <SEDA_SK_FILE_PATH>` — The path where you want to write to the generated secret key
 * `--signer-account-id <SIGNER_ACCOUNT_ID>` — An option to override the node signer account ID config value
 * `--contract-account-id <CONTRACT_ACCOUNT_ID>` — An option to override the node contract account ID config value
 * `--public-key <PUBLIC_KEY>` — An option to override the node public key config value
 * `--job-manager-interval-ms <JOB_MANAGER_INTERVAL_MS>` — An option to override the node job manager interval(ms) config value
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
-* `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
-* `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
-* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
-
-  Possible values: `true`, `false`
-
 
 
 
@@ -263,18 +272,14 @@ Unregister a node from the given node ID
 * `-n`, `--node-id <NODE_ID>`
 * `-d`, `--deposit <DEPOSIT>` — An option to override the node deposit config value
 * `-g`, `--gas <GAS>` — An option to override the node gas config value
-* `--secret-key <SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-chain-secret-key <SEDA_CHAIN_SECRET_KEY>` — An option to override the node chain secret key config value
+* `--seda-secret-key <SEDA_SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-sk-file-path <SEDA_SK_FILE_PATH>` — The path where you want to write to the generated secret key
 * `--signer-account-id <SIGNER_ACCOUNT_ID>` — An option to override the node signer account ID config value
 * `--contract-account-id <CONTRACT_ACCOUNT_ID>` — An option to override the node contract account ID config value
 * `--public-key <PUBLIC_KEY>` — An option to override the node public key config value
 * `--job-manager-interval-ms <JOB_MANAGER_INTERVAL_MS>` — An option to override the node job manager interval(ms) config value
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
-* `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
-* `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
-* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
-
-  Possible values: `true`, `false`
-
 
 
 
@@ -289,6 +294,7 @@ Commands for interacting with the p2p peers
 * `add` — Adds a peer to a running node
 * `list` — Lists all currently connected peers
 * `remove` — Removes a connected peer
+* `discover` — Triggers the node to discover more peers
 
 
 
@@ -321,6 +327,14 @@ Removes a connected peer
 ###### **Arguments:**
 
 * `<PEER_ID>` — A libp2p peer id (ex. 12D3KooWRg13CAzihqGpVfifoeK4nmZ15D3vpZSPfmaDT53CBr9R)
+
+
+
+## `seda node peers discover`
+
+Triggers the node to discover more peers
+
+**Usage:** `seda node peers discover`
 
 
 
@@ -362,18 +376,14 @@ Calls the specified method on the specified chain with the given args and contra
 
 * `-d`, `--deposit <DEPOSIT>` — An option to override the node deposit config value
 * `-g`, `--gas <GAS>` — An option to override the node gas config value
-* `--secret-key <SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-chain-secret-key <SEDA_CHAIN_SECRET_KEY>` — An option to override the node chain secret key config value
+* `--seda-secret-key <SEDA_SECRET_KEY>` — An option to override the node secret key config value
+* `--seda-sk-file-path <SEDA_SK_FILE_PATH>` — The path where you want to write to the generated secret key
 * `--signer-account-id <SIGNER_ACCOUNT_ID>` — An option to override the node signer account ID config value
 * `--contract-account-id <CONTRACT_ACCOUNT_ID>` — An option to override the node contract account ID config value
 * `--public-key <PUBLIC_KEY>` — An option to override the node public key config value
 * `--job-manager-interval-ms <JOB_MANAGER_INTERVAL_MS>` — An option to override the node job manager interval(ms) config value
 * `--runtime-worker-threads <RUNTIME_WORKER_THREADS>` — An option to override the node runtime worker threads config value
-* `--p2p-server-address <P2P_SERVER_ADDRESS>` — An option to override the node p2p server address config value
-* `--p2p-known-peers <P2P_KNOWN_PEERS>` — An option to override the node p2p known peers config value
-* `--enable-mdns <ENABLE_MDNS>` — Option to use mDNS to discover peers locally
-
-  Possible values: `true`, `false`
-
 
 
 
