@@ -4946,6 +4946,8 @@ dependencies = [
  "near-contract-standards",
  "near-sdk",
  "near-sys",
+ "rand 0.8.5",
+ "schemars",
  "serde",
  "sha2 0.10.6",
  "uint 0.8.5",

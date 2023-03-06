@@ -52,23 +52,18 @@ impl MainchainContract {
             "Data request accumulator is empty"
         );
 
-        // reconstruct the aggregate public key from signers[] to verify all signers are
-        // eligible for this batch while also verifying individual eligibility
-
-        // 1. initialize with the first signer
+        // check if all signers are eligible for this epoch and match the aggregate
+        // signature initialize with the first signer's public key
         self.assert_eligible_for_current_epoch(&signers[0]);
         let mut aggregate_public_key_check =
             PublicKey::from_compressed(self.nodes.get(&signers[0]).unwrap().bn254_public_key).unwrap();
-
-        // 2. add the rest of the signers' public keys
+        // add the rest of the signer's public keys
         for signer in signers.iter().skip(1) {
-            self.assert_eligible_for_current_epoch(&signer); // TODO: store in a vector of eligible signers for this epoch
+            self.assert_eligible_for_current_epoch(signer); // TODO: store in a vector of eligible signers for this epoch
             let signer_public_key =
-                PublicKey::from_compressed(self.nodes.get(&signer).unwrap().bn254_public_key).unwrap();
+                PublicKey::from_compressed(self.nodes.get(signer).unwrap().bn254_public_key).unwrap();
             aggregate_public_key_check = aggregate_public_key_check + signer_public_key;
         }
-
-        // 3. verify the constructed aggregate key matches the provided aggregate key
         assert!(
             aggregate_public_key_check.to_compressed().unwrap() == aggregate_public_key,
             "Invalid aggregate public key"

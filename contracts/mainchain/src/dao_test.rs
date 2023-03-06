@@ -1,19 +1,9 @@
-use near_sdk::{test_utils::VMContextBuilder, testing_env, VMContext};
+use near_sdk::testing_env;
 
-use crate::{dao::UpdateConfig, MainchainContract};
-
-fn get_context(signer_account_id: String) -> VMContext {
-    VMContextBuilder::new()
-        .signer_account_id(signer_account_id.parse().unwrap())
-        .is_view(false)
-        .build()
-}
-fn new_contract() -> MainchainContract {
-    MainchainContract::new(
-        "dao_near".to_string().try_into().unwrap(),
-        "seda_token".to_string().try_into().unwrap(),
-    )
-}
+use crate::{
+    dao::UpdateConfig,
+    test_utils::{get_context, new_contract},
+};
 
 #[test]
 fn update_config() {

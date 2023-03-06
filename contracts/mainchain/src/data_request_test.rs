@@ -1,26 +1,6 @@
-use near_sdk::{test_utils::VMContextBuilder, testing_env, VMContext};
+use near_sdk::testing_env;
 
-use crate::MainchainContract;
-
-fn get_context(signer_account_id: String) -> VMContext {
-    VMContextBuilder::new()
-        .signer_account_id(signer_account_id.parse().unwrap())
-        .is_view(false)
-        .build()
-}
-fn get_context_with_deposit(signer_account_id: String) -> VMContext {
-    VMContextBuilder::new()
-        .signer_account_id(signer_account_id.parse().unwrap())
-        .is_view(false)
-        .attached_deposit(2_140_000_000_000_000_000_000) // required for post_data_request()
-        .build()
-}
-fn new_contract() -> MainchainContract {
-    MainchainContract::new(
-        "dao_near".to_string().try_into().unwrap(),
-        "seda_token".to_string().try_into().unwrap(),
-    )
-}
+use crate::test_utils::{get_context, get_context_with_deposit, new_contract};
 
 #[test]
 fn post_data_request() {

@@ -1,27 +1,12 @@
 use bn254::{PrivateKey, PublicKey, ECDSA};
-use near_sdk::{test_utils::VMContextBuilder, testing_env, VMContext};
+use near_sdk::testing_env;
 
-use crate::MainchainContract;
-
-fn get_context(is_view: bool) -> VMContext {
-    VMContextBuilder::new()
-        .signer_account_id("bob_near".parse().unwrap())
-        .is_view(is_view)
-        .build()
-}
-
-fn new_contract() -> MainchainContract {
-    MainchainContract::new(
-        "dao_near".to_string().try_into().unwrap(),
-        "seda_token".to_string().try_into().unwrap(),
-    )
-}
+use crate::test_utils::{get_context, new_contract};
 
 /// Test `ECDSA::verify` function with own signed message
 #[test]
 fn test_verify_signed_msg() {
-    let context = get_context(false);
-    testing_env!(context);
+    testing_env!(get_context("bob_near".to_string()));
     let mut contract = new_contract();
 
     // Public key
@@ -45,8 +30,7 @@ fn test_verify_signed_msg() {
 /// Test aggregate signature verification
 #[test]
 fn test_verify_aggregate_signatures() {
-    let context = get_context(false);
-    testing_env!(context);
+    testing_env!(get_context("bob_near".to_string()));
     let mut contract = new_contract();
 
     // Message

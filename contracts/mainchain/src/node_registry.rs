@@ -7,17 +7,9 @@ use near_sdk::{
     serde::{Deserialize, Serialize},
     AccountId,
     Balance,
-    PromiseError,
-    PromiseOrValue,
 };
 
-use crate::{
-    consts::GAS_FOR_FT_ON_TRANSFER,
-    fungible_token::ft,
-    manage_storage_deposit,
-    MainchainContract,
-    MainchainContractExt,
-};
+use crate::{manage_storage_deposit, MainchainContract, MainchainContractExt};
 
 /// Node information
 #[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Default)]
@@ -77,45 +69,58 @@ impl MainchainContract {
         );
     }
 
-    pub(crate) fn internal_deposit(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
-        let mut node = self.get_expect_node(account_id.clone());
-        node.balance += amount;
-        if node.balance >= self.config.minimum_stake {
-            node.epoch_when_eligible = env::epoch_height() + self.config.epoch_delay_for_election;
-        }
-        self.nodes.insert(&account_id, &node);
-        self.last_total_balance += amount;
+    pub fn internal_deposit(&mut self, amount: Balance) {
+        manage_storage_deposit!(self, "require", {
+            let account_id = env::signer_account_id();
 
-        env::log_str(format!("@{} deposited {}. New balance is {}", account_id, amount, node.balance).as_str());
+            // subtract from user balance and add to contract balance
+            let new_user_balance = self.token.accounts.get(&account_id).unwrap() - amount;
+            self.token.accounts.insert(&account_id, &new_user_balance);
+            let mut node = self.get_expect_node(account_id.clone());
+            node.balance += amount;
 
-        PromiseOrValue::Value(U128::from(0)) // no refund
+            // set epoch when the node is eligible if minimum stake is reached
+            if node.balance >= self.config.minimum_stake {
+                node.epoch_when_eligible = env::epoch_height() + self.config.epoch_delay_for_election;
+            }
+
+            // update the node entry and total balance of the contract
+            self.nodes.insert(&account_id, &node);
+            self.last_total_balance += amount;
+
+            env::log_str(format!("@{} deposited {}. New balance is {}", account_id, amount, node.balance).as_str());
+        });
     }
 
     pub fn internal_withdraw(&mut self, amount: Balance) {
         // TODO: epoch delay for withdrawal
+        manage_storage_deposit!(self, "require", {
+            assert!(amount > 0, "Withdrawal amount should be positive");
+            let account_id = env::predecessor_account_id();
+            let mut node = self.internal_get_node(&account_id);
+            env::log_str(format!("{} balance is {}", account_id, node.balance).as_str());
+            assert!(node.balance >= amount, "Not enough balance to withdraw");
 
-        assert!(amount > 0, "Withdrawal amount should be positive");
-        let account_id = env::predecessor_account_id();
-        let mut node = self.internal_get_node(&account_id);
-        assert!(node.balance >= amount, "Not enough balance to withdraw");
+            // subtract from contract balance and add to user balance
+            node.balance -= amount;
+            if node.balance < self.config.minimum_stake {
+                node.epoch_when_eligible = 0;
+            }
+            self.nodes.insert(&account_id, &node);
+            let new_user_balance = self.token.accounts.get(&account_id).unwrap() + amount;
+            self.token.accounts.insert(&account_id, &new_user_balance);
 
-        // update account
-        node.balance -= amount;
-        if node.balance < self.config.minimum_stake {
-            node.epoch_when_eligible = 0;
-        }
-        self.nodes.insert(&account_id, &node);
+            // update global balance
+            self.last_total_balance -= amount;
 
-        // transfer the tokens, then validate/update state in `withdraw_callback()`
-        ft::ext(self.seda_token.clone())
-            .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
-            .with_attached_deposit(1)
-            .ft_transfer(account_id.clone(), amount.into(), None)
-            .then(
-                Self::ext(env::current_account_id())
-                    .with_static_gas(GAS_FOR_FT_ON_TRANSFER)
-                    .withdraw_callback(account_id, amount.into()),
+            env::log_str(
+                format!(
+                    "@{} withdrawing {}. New balance is {}",
+                    account_id, amount, node.balance
+                )
+                .as_str(),
             );
+        });
     }
 }
 
@@ -174,9 +179,9 @@ impl MainchainContract {
         });
     }
 
-    #[private] // require caller to be this contract
-    pub fn deposit(&mut self, amount: u128, account_id: AccountId) -> PromiseOrValue<U128> {
-        self.internal_deposit(amount, account_id)
+    pub fn deposit(&mut self, amount: U128) {
+        let amount: Balance = amount.into();
+        self.internal_deposit(amount);
     }
 
     /// Withdraws the balance for given account.
@@ -190,37 +195,6 @@ impl MainchainContract {
         let account_id = env::predecessor_account_id();
         let account = self.internal_get_node(&account_id);
         self.internal_withdraw(account.balance);
-    }
-
-    #[private] // require caller to be this contract
-    pub fn withdraw_callback(
-        &mut self,
-        #[callback_result] call_result: Result<(), PromiseError>,
-        account_id: AccountId,
-        amount: U128,
-    ) {
-        let mut node = self.internal_get_node(&account_id);
-        if call_result.is_err() {
-            env::log_str("withdraw failed");
-            // revert withdrawal
-            node.balance += amount.0;
-            if node.balance >= self.config.minimum_stake {
-                node.epoch_when_eligible = self.get_current_epoch() + self.config.epoch_delay_for_election;
-            }
-            self.nodes.insert(&account_id, &node);
-            return;
-        }
-
-        env::log_str(
-            format!(
-                "@{} withdrawing {}. New balance is {}",
-                account_id, amount.0, node.balance
-            )
-            .as_str(),
-        );
-
-        // update global balance
-        self.last_total_balance -= amount.0;
     }
 
     /*************** */

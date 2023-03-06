@@ -6,10 +6,11 @@ use near_sdk::{
     AccountId,
 };
 
-use crate::{MainchainContract, MainchainContractExt};
-
-pub const INIT_MINIMUM_STAKE: u128 = 100_000_000_000_000_000_000_000; // 100 SEDA
-pub const INIT_EPOCH_DELAY_FOR_ELECTION: u64 = 2;
+use crate::{
+    consts::{INIT_EPOCH_DELAY_FOR_ELECTION, INIT_MINIMUM_STAKE},
+    MainchainContract,
+    MainchainContractExt,
+};
 
 #[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Clone)]
 pub struct Config {
