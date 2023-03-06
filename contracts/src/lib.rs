@@ -8,7 +8,6 @@ pub mod merkle;
 pub mod node_registry;
 pub mod slot;
 pub mod storage;
-pub mod test_utils;
 pub mod verify;
 use near_contract_standards::fungible_token::{metadata::FungibleTokenMetadata, FungibleToken};
 use near_sdk::{
@@ -99,5 +98,6 @@ mod tests {
     mod fungible_token_test;
     mod node_registry_test;
     mod slot_test;
+    mod test_utils;
     mod verify_test;
 }

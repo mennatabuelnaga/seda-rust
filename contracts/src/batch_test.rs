@@ -1,7 +1,7 @@
 use near_contract_standards::{fungible_token::core::FungibleTokenCore, storage_management::StorageManagement};
 use near_sdk::{json_types::U128, testing_env};
 
-use crate::test_utils::{
+use super::test_utils::{
     bn254_sign,
     generate_bn254_key,
     get_context,

@@ -1,6 +1,6 @@
 use near_sdk::testing_env;
 
-use crate::test_utils::{get_context, get_context_with_deposit, new_contract};
+use super::test_utils::{get_context, get_context_with_deposit, new_contract};
 
 #[test]
 fn post_data_request() {

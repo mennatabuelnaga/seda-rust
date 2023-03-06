@@ -1,10 +1,8 @@
 use near_contract_standards::{fungible_token::core::FungibleTokenCore, storage_management::StorageManagement};
 use near_sdk::{json_types::U128, testing_env};
 
-use crate::{
-    consts::INITIAL_SUPPLY,
-    test_utils::{get_context_for_ft_transfer, get_context_with_deposit, new_contract},
-};
+use super::test_utils::{get_context_for_ft_transfer, get_context_with_deposit, new_contract};
+use crate::consts::INITIAL_SUPPLY;
 
 #[test]
 fn total_supply() {

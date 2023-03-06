@@ -1,9 +1,7 @@
 use near_sdk::testing_env;
 
-use crate::{
-    dao::UpdateConfig,
-    test_utils::{get_context, new_contract},
-};
+use super::test_utils::{get_context, new_contract};
+use crate::dao::UpdateConfig;
 
 #[test]
 fn update_config() {

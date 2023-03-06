@@ -1,7 +1,7 @@
 use bn254::{PrivateKey, PublicKey, ECDSA};
 use near_sdk::testing_env;
 
-use crate::test_utils::{get_context, new_contract};
+use super::test_utils::{get_context, new_contract};
 
 /// Test `ECDSA::verify` function with own signed message
 #[test]

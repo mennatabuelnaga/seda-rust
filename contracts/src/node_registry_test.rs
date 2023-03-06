@@ -5,19 +5,17 @@ use near_sdk::{
     testing_env,
 };
 
-use crate::{
-    node_registry::{HumanReadableNode, UpdateNode},
-    test_utils::{
-        bn254_sign,
-        generate_bn254_key,
-        get_context,
-        get_context_at_block,
-        get_context_for_ft_transfer,
-        get_context_view,
-        get_context_with_deposit,
-        new_contract,
-    },
+use super::test_utils::{
+    bn254_sign,
+    generate_bn254_key,
+    get_context,
+    get_context_at_block,
+    get_context_for_ft_transfer,
+    get_context_view,
+    get_context_with_deposit,
+    new_contract,
 };
+use crate::node_registry::{HumanReadableNode, UpdateNode};
 
 #[test]
 fn register_and_get_node() {
